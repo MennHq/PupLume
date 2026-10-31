@@ -18,8 +18,10 @@ export default defineSchema({
   webhookLogs: defineTable({
     action: v.string(),
     payload: v.any(),
-    processedAt: v.string(),
+    processedAt: v.optional(v.string()),
+    environment: v.optional(v.string()),
   }),
+
 
   // Puppies belonging to authenticated users
   puppies: defineTable({
@@ -42,6 +44,25 @@ export default defineSchema({
     favoriteTreat: v.optional(v.string()),
     adoptionDate: v.optional(v.string()),
     createdAt: v.string(),
+    ownerPhone: v.optional(v.string()),
+    ownerEmail: v.optional(v.string()),
+    emergencyContactName: v.optional(v.string()),
+    emergencyContactPhone: v.optional(v.string()),
+    emergencyNotes: v.optional(v.string()),
+    isLost: v.optional(v.boolean()),
+    rewardAmount: v.optional(v.string()),
+    hasSmartTagPass: v.optional(v.boolean()),
+    ownerInstagram: v.optional(v.string()),
+    ownerFacebook: v.optional(v.string()),
+    ownerWhatsApp: v.optional(v.string()),
+    ownerTelegram: v.optional(v.string()),
+    ownerSlack: v.optional(v.string()),
+    communicationLinks: v.optional(v.array(v.object({
+      id: v.string(),
+      platform: v.string(),
+      value: v.string(),
+      label: v.optional(v.string()),
+    }))),
   }).index("by_user", ["userId"]),
 
   // User Settings & Preferences
@@ -51,9 +72,20 @@ export default defineSchema({
     feedingAlerts: v.boolean(),
     trainingAlerts: v.boolean(),
     medAlerts: v.boolean(),
+    taskAlerts: v.optional(v.boolean()),
     units: v.string(), // "imperial" | "metric"
     activePuppyId: v.optional(v.string()),
     hasCompletedOnboarding: v.optional(v.boolean()),
+    hasCompletedChecklist: v.optional(v.boolean()),
+    pottyIntervalMode: v.optional(v.string()),
+    pottyCustomIntervalHours: v.optional(v.number()),
+    quietHoursEnabled: v.optional(v.boolean()),
+    quietHoursStart: v.optional(v.string()),
+    quietHoursEnd: v.optional(v.string()),
+    taskAdvanceMinutes: v.optional(v.number()),
+    headsUpDurationSec: v.optional(v.number()),
+    snoozeDurationMin: v.optional(v.number()),
+    chimeSound: v.optional(v.boolean()),
     updatedAt: v.string(),
   }).index("by_user", ["userId"]),
 
@@ -290,6 +322,20 @@ export default defineSchema({
     read: v.boolean(),
     actionUrl: v.optional(v.string()),
   }).index("by_user", ["userId"]),
+
+  // Background Web Push Subscriptions
+  pushSubscriptions: defineTable({
+    userId: v.string(),
+    endpoint: v.string(),
+    keys: v.object({
+      p256dh: v.string(),
+      auth: v.string(),
+    }),
+    userAgent: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
 
   // AI Chat History (REMOVED - Ephemeral Chat)
 

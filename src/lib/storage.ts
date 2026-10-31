@@ -49,7 +49,9 @@ import {
   syncNotificationReadToConvex,
   syncAllNotificationsReadToConvex,
   syncAIMessageToConvex,
-  syncAIMessagesToConvex
+  syncAIMessagesToConvex,
+  repairLegacyPuppyIdsInConvex,
+  resetDailyTasksInConvex
 } from './convex';
 
 export interface UserSettingsData {
@@ -57,9 +59,20 @@ export interface UserSettingsData {
   feedingAlerts: boolean;
   trainingAlerts: boolean;
   medAlerts: boolean;
+  taskAlerts?: boolean;
   units: 'imperial' | 'metric';
   activePuppyId?: string;
   hasCompletedOnboarding?: boolean;
+  hasCompletedChecklist?: boolean;
+  pottyIntervalMode?: 'age_dynamic' | 'custom';
+  pottyCustomIntervalHours?: number;
+  quietHoursEnabled?: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  taskAdvanceMinutes?: number;
+  headsUpDurationSec?: number;
+  snoozeDurationMin?: number;
+  chimeSound?: boolean;
 }
 
 const DEFAULT_SETTINGS: UserSettingsData = {
@@ -67,8 +80,19 @@ const DEFAULT_SETTINGS: UserSettingsData = {
   feedingAlerts: true,
   trainingAlerts: true,
   medAlerts: true,
+  taskAlerts: true,
   units: 'imperial',
   hasCompletedOnboarding: false,
+  hasCompletedChecklist: false,
+  pottyIntervalMode: 'age_dynamic',
+  pottyCustomIntervalHours: 2.5,
+  quietHoursEnabled: true,
+  quietHoursStart: '22:00',
+  quietHoursEnd: '07:00',
+  taskAdvanceMinutes: 15,
+  headsUpDurationSec: 12,
+  snoozeDurationMin: 15,
+  chimeSound: true,
 };
 
 class StorageManager {
@@ -98,6 +122,35 @@ class StorageManager {
   private notifications: NotificationItem[] = [];
   private aiMessages: AIMessage[] = [];
   private settings: UserSettingsData = { ...DEFAULT_SETTINGS };
+  private recentTaskToggles: Map<string, { completed?: boolean; skipped?: boolean; timestamp: number }> = new Map();
+
+  private recordRecentTaskToggle(taskId: string, title: string, completed: boolean): void {
+    const entry = { completed, skipped: false, timestamp: Date.now() };
+    if (taskId) this.recentTaskToggles.set(taskId, entry);
+    if (title) this.recentTaskToggles.set(title.toLowerCase().trim(), entry);
+  }
+
+  private recordRecentTaskSkip(taskId: string, title: string): void {
+    const entry = { completed: false, skipped: true, timestamp: Date.now() };
+    if (taskId) this.recentTaskToggles.set(taskId, entry);
+    if (title) this.recentTaskToggles.set(title.toLowerCase().trim(), entry);
+  }
+
+  private getOptimisticTaskState(taskId: string, title: string): { completed: boolean; skipped: boolean } | null {
+    const now = Date.now();
+    const entry = (taskId && this.recentTaskToggles.get(taskId)) || 
+                  (title && this.recentTaskToggles.get(title.toLowerCase().trim()));
+    if (!entry) return null;
+    if (now - entry.timestamp > 5000) {
+      if (taskId) this.recentTaskToggles.delete(taskId);
+      if (title) this.recentTaskToggles.delete(title.toLowerCase().trim());
+      return null;
+    }
+    return {
+      completed: entry.completed ?? false,
+      skipped: entry.skipped ?? false,
+    };
+  }
 
   constructor() {
     this.loadCache();
@@ -200,16 +253,88 @@ class StorageManager {
       this.family = cachedFamily ? JSON.parse(cachedFamily) : [];
 
       const cachedSettings = localStorage.getItem(`${prefix}settings`);
-      this.settings = cachedSettings ? JSON.parse(cachedSettings) : { ...DEFAULT_SETTINGS };
+      this.settings = cachedSettings ? { ...DEFAULT_SETTINGS, ...JSON.parse(cachedSettings) } : { ...DEFAULT_SETTINGS };
 
       const cachedNotifications = localStorage.getItem(`${prefix}notifications`);
       this.notifications = cachedNotifications ? JSON.parse(cachedNotifications) : [];
 
       const cachedAIMessages = localStorage.getItem(`${prefix}ai_messages`);
       this.aiMessages = cachedAIMessages ? JSON.parse(cachedAIMessages) : [];
+
+      // Normalize legacy/orphan puppy IDs in cached data
+      if (this.puppies.length > 0) {
+        const primaryPuppyId = this.puppies[0].id;
+        const knownPuppyIds = new Set(this.puppies.map((p) => p.id));
+        const resolvePuppyId = (rawId: string | undefined): string => {
+          if (rawId && knownPuppyIds.has(rawId) && !rawId.startsWith('pup-')) {
+            return rawId;
+          }
+          return primaryPuppyId || rawId || 'pup-1';
+        };
+        this.tasks = this.tasks.map(t => ({ ...t, puppyId: resolvePuppyId(t.puppyId) }));
+        this.pottyLogs = this.pottyLogs.map(l => ({ ...l, puppyId: resolvePuppyId(l.puppyId) }));
+        this.sleepLogs = this.sleepLogs.map(s => ({ ...s, puppyId: resolvePuppyId(s.puppyId) }));
+        this.feedingLogs = this.feedingLogs.map(f => ({ ...f, puppyId: resolvePuppyId(f.puppyId) }));
+        this.walkLogs = this.walkLogs.map(w => ({ ...w, puppyId: resolvePuppyId(w.puppyId) }));
+        this.vaccinations = this.vaccinations.map(v => ({ ...v, puppyId: resolvePuppyId(v.puppyId) }));
+        this.medications = this.medications.map(m => ({ ...m, puppyId: resolvePuppyId(m.puppyId) }));
+        this.appointments = this.appointments.map(a => ({ ...a, puppyId: resolvePuppyId(a.puppyId) }));
+        this.expenses = this.expenses.map(e => ({ ...e, puppyId: resolvePuppyId(e.puppyId) }));
+        this.documents = this.documents.map(d => ({ ...d, puppyId: resolvePuppyId(d.puppyId) }));
+        this.behaviorLogs = this.behaviorLogs.map(b => ({ ...b, puppyId: resolvePuppyId(b.puppyId) }));
+        this.groomingTasks = this.groomingTasks.map(g => ({ ...g, puppyId: resolvePuppyId(g.puppyId) }));
+      }
+
+      this.checkDailyTaskRollover();
     } catch (e) {
       console.warn('Error loading cache:', e);
     }
+  }
+
+  /**
+   * Automatically roll over daily routine tasks when crossing into a new day.
+   * Tasks marked completed or skipped on a previous date are reset to pending for today.
+   */
+  public checkDailyTaskRollover(): boolean {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastDateKey = this.userKey('last_active_date');
+    const lastActiveDate = localStorage.getItem(lastDateKey);
+
+    let needsReset = false;
+    if (lastActiveDate && lastActiveDate < todayStr) {
+      needsReset = true;
+    } else {
+      needsReset = this.tasks.some(
+        (t) => (t.completed || t.skipped) && t.date && t.date < todayStr
+      );
+    }
+
+    if (needsReset) {
+      this.tasks = this.tasks.map((t) => {
+        if (!t.date || t.date < todayStr) {
+          return {
+            ...t,
+            completed: false,
+            skipped: false,
+            completedAt: undefined,
+            date: todayStr,
+          };
+        }
+        return t;
+      });
+
+      localStorage.setItem(lastDateKey, todayStr);
+      this.persistUserCache();
+      this.notifyListeners();
+
+      if (this.currentUserId) {
+        resetDailyTasksInConvex(undefined, this.currentUserId).catch(() => {});
+      }
+      return true;
+    } else if (!lastActiveDate) {
+      localStorage.setItem(lastDateKey, todayStr);
+    }
+    return false;
   }
 
   private persistUserCache(): void {
@@ -265,6 +390,12 @@ class StorageManager {
     this.family = [];
     this.notifications = [];
     this.aiMessages = [];
+    this.settings = { ...DEFAULT_SETTINGS };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('puplume_offline_mutation_queue');
+      } catch {}
+    }
     this.persistUserCache();
     this.notifyListeners();
   }
@@ -278,7 +409,7 @@ class StorageManager {
     // 1. Puppies
     if (Array.isArray(cloudData.puppies)) {
       if (cloudData.puppies.length > 0) {
-        this.puppies = cloudData.puppies.map((p: any) => ({
+        const rawPuppies = cloudData.puppies.map((p: any) => ({
           id: p._id || p.id || 'pup-1',
           name: p.name,
           breed: p.breed,
@@ -300,6 +431,19 @@ class StorageManager {
           createdAt: p.createdAt,
         }));
 
+        // Deduplicate puppies by trimmed lowercase name and ID
+        const seenNames = new Set<string>();
+        const seenIds = new Set<string>();
+        this.puppies = rawPuppies.filter((p: any) => {
+          const nameKey = (p.name || '').trim().toLowerCase();
+          if (seenIds.has(p.id) || (nameKey && seenNames.has(nameKey))) {
+            return false;
+          }
+          seenIds.add(p.id);
+          if (nameKey) seenNames.add(nameKey);
+          return true;
+        });
+
         // Active puppy
         const savedActiveId = cloudData.settings?.activePuppyId;
         if (savedActiveId && this.puppies.some((p) => p.id === savedActiveId)) {
@@ -314,39 +458,87 @@ class StorageManager {
     // 2. Settings
     if (cloudData.settings) {
       this.settings = {
+        ...DEFAULT_SETTINGS,
+        ...this.settings,
         pottyAlerts: cloudData.settings.pottyAlerts ?? true,
         feedingAlerts: cloudData.settings.feedingAlerts ?? true,
         trainingAlerts: cloudData.settings.trainingAlerts ?? true,
         medAlerts: cloudData.settings.medAlerts ?? true,
-        units: cloudData.settings.units || 'imperial',
-        activePuppyId: this.activePuppyId ?? undefined,
+        taskAlerts: cloudData.settings.taskAlerts ?? true,
+        units: (cloudData.settings.units as 'imperial' | 'metric') || 'imperial',
+        activePuppyId: this.activePuppyId ?? cloudData.settings.activePuppyId ?? undefined,
         hasCompletedOnboarding: cloudData.settings.hasCompletedOnboarding ?? (this.puppies.length > 0),
+        hasCompletedChecklist: cloudData.settings.hasCompletedChecklist ?? false,
+        pottyIntervalMode: cloudData.settings.pottyIntervalMode || 'age_dynamic',
+        pottyCustomIntervalHours: cloudData.settings.pottyCustomIntervalHours ?? 2.5,
+        quietHoursEnabled: cloudData.settings.quietHoursEnabled !== false,
+        quietHoursStart: cloudData.settings.quietHoursStart || '22:00',
+        quietHoursEnd: cloudData.settings.quietHoursEnd || '07:00',
+        taskAdvanceMinutes: cloudData.settings.taskAdvanceMinutes !== undefined ? cloudData.settings.taskAdvanceMinutes : 15,
+        headsUpDurationSec: cloudData.settings.headsUpDurationSec ?? 12,
+        snoozeDurationMin: cloudData.settings.snoozeDurationMin ?? 15,
+        chimeSound: cloudData.settings.chimeSound !== false,
       };
     }
+
+    const primaryPuppyId = this.puppies[0]?.id;
+    const knownPuppyIds = new Set(this.puppies.map((p) => p.id));
+    const resolvePuppyId = (rawId: string | undefined): string => {
+      if (rawId && knownPuppyIds.has(rawId) && !rawId.startsWith('pup-')) {
+        return rawId;
+      }
+      return primaryPuppyId || rawId || 'pup-1';
+    };
 
     // 3. Tasks - Resilient merge: Never wipe local tasks with an empty cloud response!
     if (Array.isArray(cloudData.tasks)) {
       if (cloudData.tasks.length > 0) {
+        const todayStr = new Date().toISOString().split('T')[0];
         const cloudKeys = new Set(cloudData.tasks.map((t: any) => `${t.title}__${t.time}`));
-        const mappedCloudTasks: TaskItem[] = cloudData.tasks.map((t: any) => ({
-          id: t._id || t.id,
-          puppyId: t.puppyId,
-          title: t.title,
-          category: t.category,
-          time: t.time,
-          durationMin: t.durationMin,
-          completed: t.completed,
-          skipped: t.skipped,
-          period: t.period,
-          date: t.date,
-          description: t.description,
-          notes: t.notes,
-          completedAt: t.completedAt,
-        }));
+        const mappedCloudTasks: TaskItem[] = cloudData.tasks.map((t: any) => {
+          const isPastDate = Boolean(t.date && t.date < todayStr);
+          const taskId = t._id || t.id;
+          const optimistic = this.getOptimisticTaskState(taskId, t.title);
+
+          const completed = optimistic !== null 
+            ? optimistic.completed 
+            : (isPastDate ? false : Boolean(t.completed));
+
+          const skipped = optimistic !== null 
+            ? optimistic.skipped 
+            : (isPastDate ? false : Boolean(t.skipped));
+
+          return {
+            id: taskId,
+            puppyId: resolvePuppyId(t.puppyId),
+            title: t.title,
+            category: t.category,
+            time: t.time,
+            durationMin: t.durationMin,
+            completed,
+            skipped,
+            period: t.period,
+            date: todayStr,
+            description: t.description,
+            notes: t.notes,
+            completedAt: completed ? (t.completedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : undefined,
+          };
+        });
+
+        // Deduplicate mappedCloudTasks by title and time to avoid duplicate task rows
+        const seenKeys = new Set<string>();
+        const dedupedCloudTasks: TaskItem[] = [];
+        for (const task of mappedCloudTasks) {
+          const key = `${(task.title || '').toLowerCase().trim()}__${(task.time || '').toLowerCase().trim()}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            dedupedCloudTasks.push(task);
+          }
+        }
 
         // Preserve any pending locally created tasks not yet received from cloud
         const pendingLocal = this.tasks.filter((t) => !cloudKeys.has(`${t.title}__${t.time}`));
-        this.tasks = [...mappedCloudTasks, ...pendingLocal];
+        this.tasks = [...dedupedCloudTasks, ...pendingLocal];
       }
       // If cloud tasks is empty but we have local tasks (e.g. from onboarding or user added), KEEP local tasks!
     }
@@ -355,7 +547,7 @@ class StorageManager {
     if (Array.isArray(cloudData.pottyLogs)) {
       this.pottyLogs = cloudData.pottyLogs.map((l: any) => ({
         id: l._id || l.id,
-        puppyId: l.puppyId,
+        puppyId: resolvePuppyId(l.puppyId),
         type: l.type,
         location: l.location,
         timestamp: l.timestamp,
@@ -367,7 +559,7 @@ class StorageManager {
     if (Array.isArray(cloudData.feedingLogs)) {
       this.feedingLogs = cloudData.feedingLogs.map((l: any) => ({
         id: l._id || l.id,
-        puppyId: l.puppyId,
+        puppyId: resolvePuppyId(l.puppyId),
         mealType: l.mealType,
         amountCups: l.amountCups || 1,
         foodBrand: l.foodBrand,
@@ -380,7 +572,7 @@ class StorageManager {
     if (Array.isArray(cloudData.sleepLogs)) {
       this.sleepLogs = cloudData.sleepLogs.map((l: any) => ({
         id: l._id || l.id,
-        puppyId: l.puppyId,
+        puppyId: resolvePuppyId(l.puppyId),
         type: l.type,
         startTime: l.startTime,
         endTime: l.endTime,
@@ -393,7 +585,7 @@ class StorageManager {
     if (Array.isArray(cloudData.walkLogs)) {
       this.walkLogs = cloudData.walkLogs.map((l: any) => ({
         id: l._id || l.id,
-        puppyId: l.puppyId,
+        puppyId: resolvePuppyId(l.puppyId),
         startTime: l.startTime || l.timestamp,
         durationMin: l.durationMin,
         distanceMiles: l.distanceMiles || 0.5,
@@ -409,7 +601,7 @@ class StorageManager {
     if (Array.isArray(cloudData.vaccinations)) {
       this.vaccinations = cloudData.vaccinations.map((v: any) => ({
         id: v._id || v.id,
-        puppyId: v.puppyId,
+        puppyId: resolvePuppyId(v.puppyId),
         vaccineName: v.vaccineName || v.name || 'Vaccine',
         administeredDate: v.administeredDate,
         nextDueDate: v.nextDueDate || v.dueDate || '',
@@ -424,7 +616,7 @@ class StorageManager {
     if (Array.isArray(cloudData.medications)) {
       this.medications = cloudData.medications.map((m: any) => ({
         id: m._id || m.id,
-        puppyId: m.puppyId,
+        puppyId: resolvePuppyId(m.puppyId),
         name: m.name,
         dosage: m.dosage,
         frequency: m.frequency,
@@ -439,7 +631,7 @@ class StorageManager {
     if (Array.isArray(cloudData.appointments)) {
       this.appointments = cloudData.appointments.map((a: any) => ({
         id: a._id || a.id,
-        puppyId: a.puppyId,
+        puppyId: resolvePuppyId(a.puppyId),
         title: a.title,
         clinic: a.clinic,
         date: a.date,
@@ -455,7 +647,7 @@ class StorageManager {
     if (Array.isArray(cloudData.expenses)) {
       this.expenses = cloudData.expenses.map((e: any) => ({
         id: e._id || e.id,
-        puppyId: e.puppyId,
+        puppyId: resolvePuppyId(e.puppyId),
         title: e.title,
         category: e.category,
         amount: e.amount,
@@ -469,7 +661,7 @@ class StorageManager {
     if (Array.isArray(cloudData.documents)) {
       this.documents = cloudData.documents.map((d: any) => ({
         id: d._id || d.id,
-        puppyId: d.puppyId,
+        puppyId: resolvePuppyId(d.puppyId),
         title: d.title,
         category: d.category,
         date: d.date,
@@ -484,7 +676,7 @@ class StorageManager {
     if (Array.isArray(cloudData.behaviorLogs)) {
       this.behaviorLogs = cloudData.behaviorLogs.map((b: any) => ({
         id: b._id || b.id,
-        puppyId: b.puppyId,
+        puppyId: resolvePuppyId(b.puppyId),
         behaviorType: b.behaviorType,
         timestamp: b.timestamp,
         severity: b.severity || 'mild',
@@ -498,7 +690,7 @@ class StorageManager {
     if (Array.isArray(cloudData.groomingTasks)) {
       this.groomingTasks = cloudData.groomingTasks.map((g: any) => ({
         id: g._id || g.id,
-        puppyId: g.puppyId,
+        puppyId: resolvePuppyId(g.puppyId),
         type: g.type,
         label: g.label,
         lastDone: g.lastDone,
@@ -524,7 +716,7 @@ class StorageManager {
     if (Array.isArray(cloudData.journalEntries)) {
       this.journal = cloudData.journalEntries.map((j: any) => ({
         id: j._id || j.id,
-        puppyId: j.puppyId,
+        puppyId: resolvePuppyId(j.puppyId),
         title: j.title,
         date: j.date,
         notes: j.notes,
@@ -578,6 +770,9 @@ class StorageManager {
 
     this.persistUserCache();
     this.notifyListeners();
+
+    // Permanently repair legacy puppyIds in Convex cloud database in background
+    repairLegacyPuppyIdsInConvex(this.currentUserId || undefined).catch(() => {});
   }
 
   // Puppies
@@ -615,9 +810,59 @@ class StorageManager {
     syncPuppyToConvex(puppy, this.currentUserId || undefined).catch(() => {});
   }
 
-  // Tasks
-  getTasks(): TaskItem[] {
+  private matchesPuppy(recordPuppyId: string | undefined, targetPuppyId: string): boolean {
+    if (!targetPuppyId) return true;
+    if (this.puppies.length <= 1) return true;
+    if (recordPuppyId === targetPuppyId) return true;
+
+    // Check if the record has an unassigned, legacy, or orphan puppyId (e.g. starts with "pup-", or doesn't match any registered puppy)
+    const matchesAnyKnownPuppy = this.puppies.some((p) => p.id === recordPuppyId);
+    if (!recordPuppyId || !matchesAnyKnownPuppy || recordPuppyId.startsWith('pup-')) {
+      // Unassigned/legacy records belong to the primary (first created) puppy
+      const primaryPuppy = this.puppies[0];
+      return Boolean(primaryPuppy && primaryPuppy.id === targetPuppyId);
+    }
+
+    return false;
+  }
+
+  // Tasks (Scoped strictly to active or target puppy)
+  getTasks(puppyId?: string): TaskItem[] {
+    this.checkDailyTaskRollover();
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.tasks;
+    return this.tasks.filter((t) => this.matchesPuppy(t.puppyId, targetId));
+  }
+
+  getAllTasks(): TaskItem[] {
     return this.tasks;
+  }
+
+  resetTasksForPuppy(puppyId?: string): TaskItem[] {
+    const targetPuppyId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    const todayStr = new Date().toISOString().split('T')[0];
+    this.tasks = this.tasks.map((t) => {
+      if (this.matchesPuppy(t.puppyId, targetPuppyId)) {
+        return {
+          ...t,
+          completed: false,
+          skipped: false,
+          completedAt: undefined,
+          date: todayStr,
+        };
+      }
+      return t;
+    });
+    this.persistUserCache();
+    this.notifyListeners();
+
+    if (this.currentUserId) {
+      resetDailyTasksInConvex(targetPuppyId, this.currentUserId).catch((e) => {
+        console.debug('[storage] resetDailyTasks note:', e);
+      });
+    }
+
+    return this.getTasks(targetPuppyId);
   }
 
   saveTasks(tasks: TaskItem[]): void {
@@ -628,27 +873,35 @@ class StorageManager {
 
   toggleTask(taskId: string): TaskItem[] {
     let taskTitle = '';
+    let targetPuppyId = '';
     let targetCompleted = false;
+    const todayStr = new Date().toISOString().split('T')[0];
 
     this.tasks = this.tasks.map((t) => {
       if (t.id === taskId) {
         taskTitle = t.title;
+        targetPuppyId = t.puppyId;
         targetCompleted = !t.completed;
         return {
           ...t,
           completed: targetCompleted,
           skipped: false,
+          date: todayStr,
           completedAt: targetCompleted ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
         };
       }
       return t;
     });
 
+    if (taskTitle) {
+      this.recordRecentTaskToggle(taskId, taskTitle, targetCompleted);
+    }
+
     this.persistUserCache();
     this.notifyListeners();
 
     if (taskTitle) {
-      toggleTaskInConvex(taskTitle, targetCompleted, this.currentUserId || undefined).catch(() => {});
+      toggleTaskInConvex(taskTitle, targetCompleted, this.currentUserId || undefined, taskId, targetPuppyId).catch(() => {});
     }
 
     return this.tasks;
@@ -656,19 +909,31 @@ class StorageManager {
 
   skipTask(taskId: string): TaskItem[] {
     let taskTitle = '';
+    let targetPuppyId = '';
+    const todayStr = new Date().toISOString().split('T')[0];
     this.tasks = this.tasks.map((t) => {
       if (t.id === taskId) {
         taskTitle = t.title;
-        return { ...t, skipped: true, completed: false };
+        targetPuppyId = t.puppyId;
+        return {
+          ...t,
+          completed: false,
+          skipped: true,
+          date: todayStr,
+        };
       }
       return t;
     });
+
+    if (taskTitle) {
+      this.recordRecentTaskSkip(taskId, taskTitle);
+    }
 
     this.persistUserCache();
     this.notifyListeners();
 
     if (taskTitle) {
-      skipTaskInConvex(taskTitle, this.currentUserId || undefined).catch(() => {});
+      skipTaskInConvex(taskTitle, this.currentUserId || undefined, taskId, targetPuppyId).catch(() => {});
     }
 
     return this.tasks;
@@ -726,13 +991,20 @@ class StorageManager {
     }
   }
 
-  // Potty logs
-  getPottyLogs(): PottyLog[] {
-    return this.pottyLogs;
+  // Potty logs (Scoped strictly to active or target puppy)
+  getPottyLogs(puppyId?: string): PottyLog[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.pottyLogs;
+    return this.pottyLogs.filter((p) => this.matchesPuppy(p.puppyId, targetId));
   }
 
   addPottyLog(log: Omit<PottyLog, 'id'>): PottyLog {
-    const newLog: PottyLog = { ...log, id: `potty-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newLog: PottyLog = { 
+      ...log, 
+      id: `potty-${Date.now()}`,
+      puppyId: log.puppyId || activePup?.id || 'pup-1',
+    };
     this.pottyLogs.unshift(newLog);
     this.persistUserCache();
     this.notifyListeners();
@@ -746,13 +1018,20 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  // Sleep logs
-  getSleepLogs(): SleepLog[] {
-    return this.sleepLogs;
+  // Sleep logs (Scoped strictly to active or target puppy)
+  getSleepLogs(puppyId?: string): SleepLog[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.sleepLogs;
+    return this.sleepLogs.filter((s) => this.matchesPuppy(s.puppyId, targetId));
   }
 
   addSleepLog(log: Omit<SleepLog, 'id'>): SleepLog {
-    const newLog: SleepLog = { ...log, id: `sleep-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newLog: SleepLog = { 
+      ...log, 
+      id: `sleep-${Date.now()}`,
+      puppyId: log.puppyId || activePup?.id || 'pup-1',
+    };
     this.sleepLogs.unshift(newLog);
     this.persistUserCache();
     this.notifyListeners();
@@ -766,13 +1045,20 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  // Feeding logs
-  getFeedingLogs(): FeedingLog[] {
-    return this.feedingLogs;
+  // Feeding logs (Scoped strictly to active or target puppy)
+  getFeedingLogs(puppyId?: string): FeedingLog[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.feedingLogs;
+    return this.feedingLogs.filter((f) => this.matchesPuppy(f.puppyId, targetId));
   }
 
   addFeedingLog(log: Omit<FeedingLog, 'id'>): FeedingLog {
-    const newLog: FeedingLog = { ...log, id: `feed-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newLog: FeedingLog = { 
+      ...log, 
+      id: `feed-${Date.now()}`,
+      puppyId: log.puppyId || activePup?.id || 'pup-1',
+    };
     this.feedingLogs.unshift(newLog);
     this.persistUserCache();
     this.notifyListeners();
@@ -786,13 +1072,20 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  // Walk logs
-  getWalkLogs(): WalkLog[] {
-    return this.walkLogs;
+  // Walk logs (Scoped strictly to active or target puppy)
+  getWalkLogs(puppyId?: string): WalkLog[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.walkLogs;
+    return this.walkLogs.filter((w) => this.matchesPuppy(w.puppyId, targetId));
   }
 
   addWalkLog(log: Omit<WalkLog, 'id'>): WalkLog {
-    const newLog: WalkLog = { ...log, id: `walk-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newLog: WalkLog = { 
+      ...log, 
+      id: `walk-${Date.now()}`,
+      puppyId: log.puppyId || activePup?.id || 'pup-1',
+    };
     this.walkLogs.unshift(newLog);
     this.persistUserCache();
     this.notifyListeners();
@@ -841,13 +1134,20 @@ class StorageManager {
     return this.trainingLessons;
   }
 
-  // Health records
-  getVaccinations(): VaccinationRecord[] {
-    return this.vaccinations;
+  // Health records (Scoped strictly to active or target puppy)
+  getVaccinations(puppyId?: string): VaccinationRecord[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.vaccinations;
+    return this.vaccinations.filter((v) => this.matchesPuppy(v.puppyId, targetId));
   }
 
   addVaccination(v: Omit<VaccinationRecord, 'id'>): VaccinationRecord {
-    const newVac: VaccinationRecord = { ...v, id: `vac-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newVac: VaccinationRecord = { 
+      ...v, 
+      id: `vac-${Date.now()}`,
+      puppyId: v.puppyId || activePup?.id || 'pup-1',
+    };
     this.vaccinations.push(newVac);
     this.persistUserCache();
     this.notifyListeners();
@@ -861,12 +1161,19 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  getMedications(): MedicationRecord[] {
-    return this.medications;
+  getMedications(puppyId?: string): MedicationRecord[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.medications;
+    return this.medications.filter((m) => this.matchesPuppy(m.puppyId, targetId));
   }
 
   addMedication(m: Omit<MedicationRecord, 'id'>): MedicationRecord {
-    const newMed: MedicationRecord = { ...m, id: `med-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newMed: MedicationRecord = { 
+      ...m, 
+      id: `med-${Date.now()}`,
+      puppyId: m.puppyId || activePup?.id || 'pup-1',
+    };
     this.medications.push(newMed);
     this.persistUserCache();
     this.notifyListeners();
@@ -880,12 +1187,19 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  getAppointments(): VetAppointment[] {
-    return this.appointments;
+  getAppointments(puppyId?: string): VetAppointment[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.appointments;
+    return this.appointments.filter((a) => this.matchesPuppy(a.puppyId, targetId));
   }
 
   addAppointment(a: Omit<VetAppointment, 'id'>): VetAppointment {
-    const newApt: VetAppointment = { ...a, id: `apt-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newApt: VetAppointment = { 
+      ...a, 
+      id: `apt-${Date.now()}`,
+      puppyId: a.puppyId || activePup?.id || 'pup-1',
+    };
     this.appointments.push(newApt);
     this.persistUserCache();
     this.notifyListeners();
@@ -899,13 +1213,20 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  // Expenses
-  getExpenses(): ExpenseRecord[] {
-    return this.expenses;
+  // Expenses (Scoped strictly to active or target puppy)
+  getExpenses(puppyId?: string): ExpenseRecord[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.expenses;
+    return this.expenses.filter((e) => this.matchesPuppy(e.puppyId, targetId));
   }
 
   addExpense(e: Omit<ExpenseRecord, 'id'>): ExpenseRecord {
-    const newExp: ExpenseRecord = { ...e, id: `exp-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newExp: ExpenseRecord = { 
+      ...e, 
+      id: `exp-${Date.now()}`,
+      puppyId: e.puppyId || activePup?.id || 'pup-1',
+    };
     this.expenses.unshift(newExp);
     this.persistUserCache();
     this.notifyListeners();
@@ -919,13 +1240,20 @@ class StorageManager {
     this.notifyListeners();
   }
 
-  // Documents
-  getDocuments(): DocumentRecord[] {
-    return this.documents;
+  // Documents (Scoped strictly to active or target puppy)
+  getDocuments(puppyId?: string): DocumentRecord[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.documents;
+    return this.documents.filter((d) => this.matchesPuppy(d.puppyId, targetId));
   }
 
   addDocument(d: Omit<DocumentRecord, 'id'>): DocumentRecord {
-    const newDoc: DocumentRecord = { ...d, id: `doc-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newDoc: DocumentRecord = { 
+      ...d, 
+      id: `doc-${Date.now()}`,
+      puppyId: d.puppyId || activePup?.id || 'pup-1',
+    };
     this.documents.unshift(newDoc);
     this.persistUserCache();
     this.notifyListeners();
@@ -940,13 +1268,20 @@ class StorageManager {
     removeDocumentFromConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
-  // Behavior
-  getBehaviorLogs(): BehaviorIncident[] {
-    return this.behaviorLogs;
+  // Behavior (Scoped strictly to active or target puppy)
+  getBehaviorLogs(puppyId?: string): BehaviorIncident[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.behaviorLogs;
+    return this.behaviorLogs.filter((b) => this.matchesPuppy(b.puppyId, targetId));
   }
 
   addBehaviorIncident(b: Omit<BehaviorIncident, 'id'>): BehaviorIncident {
-    const newBeh: BehaviorIncident = { ...b, id: `beh-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newBeh: BehaviorIncident = { 
+      ...b, 
+      id: `beh-${Date.now()}`,
+      puppyId: b.puppyId || activePup?.id || 'pup-1',
+    };
     this.behaviorLogs.unshift(newBeh);
     this.persistUserCache();
     this.notifyListeners();
@@ -955,8 +1290,10 @@ class StorageManager {
   }
 
   // Grooming & Socialization
-  getGroomingTasks(): GroomingTask[] {
-    return this.groomingTasks;
+  getGroomingTasks(puppyId?: string): GroomingTask[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.groomingTasks;
+    return this.groomingTasks.filter((g) => this.matchesPuppy(g.puppyId, targetId));
   }
 
   saveGroomingTasks(tasks: GroomingTask[]): void {
@@ -1008,6 +1345,7 @@ class StorageManager {
     description?: string;
     notes?: string;
   }): SocializationItem {
+    const activePup = this.getActivePuppy();
     const newItem: SocializationItem = {
       id: `soc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       category: item.category,
@@ -1020,20 +1358,26 @@ class StorageManager {
     this.socialization.push(newItem);
     this.persistUserCache();
     this.notifyListeners();
-    const activePup = this.getActivePuppy();
     if (activePup) {
       syncSocializationToConvex(activePup.id, newItem, this.currentUserId || undefined).catch(() => {});
     }
     return newItem;
   }
 
-  // Journal
-  getJournal(): JournalEntry[] {
-    return this.journal;
+  // Journal (Scoped strictly to active or target puppy)
+  getJournal(puppyId?: string): JournalEntry[] {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (!targetId || this.puppies.length <= 1) return this.journal;
+    return this.journal.filter((j) => !j.puppyId || j.puppyId === targetId);
   }
 
   addJournalEntry(j: Omit<JournalEntry, 'id'>): JournalEntry {
-    const newEntry: JournalEntry = { ...j, id: `jrn-${Date.now()}` };
+    const activePup = this.getActivePuppy();
+    const newEntry: JournalEntry = { 
+      ...j, 
+      id: `jrn-${Date.now()}`,
+      puppyId: j.puppyId || activePup?.id || 'pup-1',
+    };
     this.journal.unshift(newEntry);
     this.persistUserCache();
     this.notifyListeners();
@@ -1082,6 +1426,18 @@ class StorageManager {
   // Notifications
   getNotifications(): NotificationItem[] {
     return this.notifications;
+  }
+
+  addNotification(notification: NotificationItem): void {
+    this.notifications = [notification, ...this.notifications.slice(0, 49)];
+    this.persistUserCache();
+    this.notifyListeners();
+  }
+
+  saveNotifications(notifications: NotificationItem[]): void {
+    this.notifications = notifications.slice(0, 50);
+    this.persistUserCache();
+    this.notifyListeners();
   }
 
   markNotificationRead(id: string): void {
@@ -1253,9 +1609,9 @@ class StorageManager {
   }
 
   // Generate .ICS Calendar File
-  generateICSFile(puppyName: string): string {
-    const appointments = this.getAppointments();
-    const tasks = this.getTasks().filter((t) => t.category === 'health' || t.category === 'training');
+  generateICSFile(puppyName: string, puppyId?: string): string {
+    const appointments = this.getAppointments(puppyId);
+    const tasks = this.getTasks(puppyId).filter((t) => t.category === 'health' || t.category === 'training');
 
     let ics = [
       'BEGIN:VCALENDAR',

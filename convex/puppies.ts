@@ -1,11 +1,11 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const getPuppies = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) {
       return [];
     }
@@ -23,8 +23,7 @@ export const getPuppy = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return null;
 
     if (args.id) {
@@ -61,11 +60,7 @@ export const createPuppy = mutation({
     adoptionDate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) {
-      throw new Error("Authentication or userId required to create puppy");
-    }
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const { userId: _, ...data } = args;
 
@@ -96,14 +91,32 @@ export const updatePuppy = mutation({
     vetName: v.optional(v.string()),
     insuranceProvider: v.optional(v.string()),
     favoriteTreat: v.optional(v.string()),
+    ownerPhone: v.optional(v.string()),
+    ownerEmail: v.optional(v.string()),
+    emergencyContactName: v.optional(v.string()),
+    emergencyContactPhone: v.optional(v.string()),
+    emergencyNotes: v.optional(v.string()),
+    isLost: v.optional(v.boolean()),
+    rewardAmount: v.optional(v.string()),
+    hasSmartTagPass: v.optional(v.boolean()),
+    ownerInstagram: v.optional(v.string()),
+    ownerFacebook: v.optional(v.string()),
+    ownerWhatsApp: v.optional(v.string()),
+    ownerTelegram: v.optional(v.string()),
+    ownerSlack: v.optional(v.string()),
+    communicationLinks: v.optional(v.array(v.object({
+      id: v.string(),
+      platform: v.string(),
+      value: v.string(),
+      label: v.optional(v.string()),
+    }))),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const { id, userId: _, ...updates } = args;
     const existing = await ctx.db.get(id);
-    if (!existing || (userId && existing.userId !== userId)) {
+    if (!existing || existing.userId !== userId) {
       throw new Error("Puppy not found or unauthorized");
     }
 
@@ -134,13 +147,28 @@ export const savePuppy = mutation({
     favoriteTreat: v.optional(v.string()),
     adoptionDate: v.optional(v.string()),
     createdAt: v.optional(v.string()),
+    ownerPhone: v.optional(v.string()),
+    ownerEmail: v.optional(v.string()),
+    emergencyContactName: v.optional(v.string()),
+    emergencyContactPhone: v.optional(v.string()),
+    emergencyNotes: v.optional(v.string()),
+    isLost: v.optional(v.boolean()),
+    rewardAmount: v.optional(v.string()),
+    hasSmartTagPass: v.optional(v.boolean()),
+    ownerInstagram: v.optional(v.string()),
+    ownerFacebook: v.optional(v.string()),
+    ownerWhatsApp: v.optional(v.string()),
+    ownerTelegram: v.optional(v.string()),
+    ownerSlack: v.optional(v.string()),
+    communicationLinks: v.optional(v.array(v.object({
+      id: v.string(),
+      platform: v.string(),
+      value: v.string(),
+      label: v.optional(v.string()),
+    }))),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) {
-      throw new Error("Authentication or userId required to save puppy");
-    }
+    const userId = await requireAuthUser(ctx, args.userId);
 
     // Try finding existing puppy by ID first, then by name
     let existing = null;
@@ -148,7 +176,10 @@ export const savePuppy = mutation({
       const normId = ctx.db.normalizeId("puppies", args.id);
       if (normId) {
         const p = await ctx.db.get(normId);
-        if (p && p.userId === userId) {
+        if (p) {
+          if (p.userId !== userId) {
+            throw new Error("Unauthorized to modify this puppy");
+          }
           existing = p;
         }
       }
@@ -181,12 +212,31 @@ export const savePuppy = mutation({
       insurancePolicyNumber: args.insurancePolicyNumber,
       favoriteTreat: args.favoriteTreat,
       adoptionDate: args.adoptionDate,
+      ownerPhone: args.ownerPhone,
+      ownerEmail: args.ownerEmail,
+      emergencyContactName: args.emergencyContactName,
+      emergencyContactPhone: args.emergencyContactPhone,
+      emergencyNotes: args.emergencyNotes,
+      isLost: args.isLost,
+      rewardAmount: args.rewardAmount,
+      hasSmartTagPass: args.hasSmartTagPass,
+      ownerInstagram: args.ownerInstagram,
+      ownerFacebook: args.ownerFacebook,
+      ownerWhatsApp: args.ownerWhatsApp,
+      ownerTelegram: args.ownerTelegram,
+      ownerSlack: args.ownerSlack,
+      communicationLinks: args.communicationLinks,
       createdAt: args.createdAt || new Date().toISOString(),
     };
 
     if (existing) {
       await ctx.db.patch(existing._id, data);
       return existing._id;
+    }
+
+    // If an ID was specified but not found, this puppy was deleted or wiped — do not resurrect
+    if (args.id) {
+      return null;
     }
 
     return await ctx.db.insert("puppies", data);
@@ -199,15 +249,189 @@ export const deletePuppy = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const existing = await ctx.db.get(args.id);
-    if (!existing || (userId && existing.userId !== userId)) {
+    if (!existing || existing.userId !== userId) {
       throw new Error("Puppy not found or unauthorized");
     }
 
     await ctx.db.delete(args.id);
     return args.id;
+  },
+});
+
+// Public query for Smart QR Collar Tag emergency page (Intentionally accessible without user login when a dog is lost)
+export const getPublicPuppyByTag = query({
+  args: { identifier: v.string() },
+  handler: async (ctx, args) => {
+    const raw = (args.identifier || "").trim();
+    if (!raw) return null;
+
+    // Check if it's a valid Convex puppy ID
+    const normId = ctx.db.normalizeId("puppies", raw);
+    let puppy = null;
+    if (normId) {
+      puppy = await ctx.db.get(normId);
+    }
+
+    // If not found by ID, look up by name
+    if (!puppy) {
+      const allPups = await ctx.db.query("puppies").collect();
+      puppy = allPups.find(
+        (p) => p.name.trim().toLowerCase() === raw.toLowerCase()
+      ) || null;
+    }
+
+    if (!puppy) return null;
+
+    // Return safe, sanitized emergency info (no internal auth secrets)
+    return {
+      _id: puppy._id,
+      name: puppy.name,
+      breed: puppy.breed,
+      sex: puppy.sex,
+      weightLbs: puppy.weightLbs,
+      birthDate: puppy.birthDate,
+      photoUrl: puppy.photoUrl,
+      temperament: puppy.temperament,
+      allergies: puppy.allergies,
+      dietaryRestrictions: puppy.dietaryRestrictions,
+      microchipNumber: puppy.microchipNumber,
+      vetClinic: puppy.vetClinic,
+      vetPhone: puppy.vetPhone,
+      vetName: puppy.vetName,
+      ownerPhone: puppy.ownerPhone,
+      ownerEmail: puppy.ownerEmail,
+      emergencyContactName: puppy.emergencyContactName,
+      emergencyContactPhone: puppy.emergencyContactPhone,
+      emergencyNotes: puppy.emergencyNotes,
+      isLost: puppy.isLost ?? false,
+      rewardAmount: puppy.rewardAmount,
+      hasSmartTagPass: puppy.hasSmartTagPass ?? false,
+      ownerInstagram: puppy.ownerInstagram,
+      ownerFacebook: puppy.ownerFacebook,
+      ownerWhatsApp: puppy.ownerWhatsApp,
+      ownerTelegram: puppy.ownerTelegram,
+      ownerSlack: puppy.ownerSlack,
+      communicationLinks: puppy.communicationLinks,
+    };
+  },
+});
+
+// Mutation to toggle Lost Mode and emergency notes (Owner only)
+export const updateSmartTagLostMode = mutation({
+  args: {
+    puppyId: v.id("puppies"),
+    userId: v.optional(v.string()),
+    isLost: v.boolean(),
+    rewardAmount: v.optional(v.string()),
+    emergencyNotes: v.optional(v.string()),
+    ownerPhone: v.optional(v.string()),
+    ownerInstagram: v.optional(v.string()),
+    ownerFacebook: v.optional(v.string()),
+    ownerWhatsApp: v.optional(v.string()),
+    ownerTelegram: v.optional(v.string()),
+    ownerSlack: v.optional(v.string()),
+    communicationLinks: v.optional(v.array(v.object({
+      id: v.string(),
+      platform: v.string(),
+      value: v.string(),
+      label: v.optional(v.string()),
+    }))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    const puppy = await ctx.db.get(args.puppyId);
+    if (!puppy || puppy.userId !== userId) {
+      throw new Error("Puppy not found or unauthorized");
+    }
+
+    await ctx.db.patch(args.puppyId, {
+      isLost: args.isLost,
+      ...(args.rewardAmount !== undefined ? { rewardAmount: args.rewardAmount } : {}),
+      ...(args.emergencyNotes !== undefined ? { emergencyNotes: args.emergencyNotes } : {}),
+      ...(args.ownerPhone !== undefined ? { ownerPhone: args.ownerPhone } : {}),
+      ...(args.ownerInstagram !== undefined ? { ownerInstagram: args.ownerInstagram } : {}),
+      ...(args.ownerFacebook !== undefined ? { ownerFacebook: args.ownerFacebook } : {}),
+      ...(args.ownerWhatsApp !== undefined ? { ownerWhatsApp: args.ownerWhatsApp } : {}),
+      ...(args.ownerTelegram !== undefined ? { ownerTelegram: args.ownerTelegram } : {}),
+      ...(args.ownerSlack !== undefined ? { ownerSlack: args.ownerSlack } : {}),
+      ...(args.communicationLinks !== undefined ? { communicationLinks: args.communicationLinks } : {}),
+    });
+
+    return true;
+  },
+});
+
+// Mutation to unlock Smart Tag Pass (Owner only)
+export const unlockSmartTagPass = mutation({
+  args: {
+    puppyId: v.optional(v.id("puppies")),
+    identifier: v.optional(v.string()),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    let puppy = null;
+    if (args.puppyId) {
+      puppy = await ctx.db.get(args.puppyId);
+    } else if (args.identifier) {
+      const raw = args.identifier.trim();
+      const normId = ctx.db.normalizeId("puppies", raw);
+      if (normId) {
+        puppy = await ctx.db.get(normId);
+      }
+      if (!puppy) {
+        const userPups = await ctx.db
+          .query("puppies")
+          .withIndex("by_user", (q) => q.eq("userId", userId))
+          .collect();
+        puppy = userPups.find(
+          (p) => p.name.trim().toLowerCase() === raw.toLowerCase()
+        ) || null;
+      }
+    }
+
+    if (!puppy || puppy.userId !== userId) {
+      throw new Error("Puppy not found or unauthorized");
+    }
+
+    await ctx.db.patch(puppy._id, {
+      hasSmartTagPass: true,
+    });
+
+    return puppy._id;
+  },
+});
+
+// Webhook-driven internal unlock (cannot be triggered by client)
+export const unlockSmartTagPassInternal = internalMutation({
+  args: {
+    puppyId: v.optional(v.string()),
+    puppyName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let puppy = null;
+    if (args.puppyId) {
+      const normId = ctx.db.normalizeId("puppies", args.puppyId);
+      if (normId) {
+        puppy = await ctx.db.get(normId);
+      }
+    }
+    if (!puppy && args.puppyName) {
+      const allPups = await ctx.db.query("puppies").collect();
+      puppy = allPups.find(
+        (p) => p.name.trim().toLowerCase() === args.puppyName!.trim().toLowerCase()
+      ) || null;
+    }
+
+    if (puppy) {
+      await ctx.db.patch(puppy._id, { hasSmartTagPass: true });
+      return true;
+    }
+    return false;
   },
 });

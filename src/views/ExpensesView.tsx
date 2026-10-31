@@ -22,15 +22,19 @@ interface ExpensesViewProps {
 }
 
 export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>(storage.getExpenses());
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => storage.getExpenses(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
 
   React.useEffect(() => {
+    setExpenses(storage.getExpenses(puppy.id));
+  }, [puppy.id]);
+
+  React.useEffect(() => {
     return storage.subscribe(() => {
-      setExpenses([...storage.getExpenses()]);
+      setExpenses([...storage.getExpenses(puppy.id)]);
     });
-  }, []);
+  }, [puppy.id]);
 
 
   // Form states
@@ -55,7 +59,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
       vendor: vendor.trim() || 'Store',
       date
     });
-    setExpenses(storage.getExpenses());
+    setExpenses(storage.getExpenses(puppy.id));
     setIsAddOpen(false);
     setTitle('');
     setAmount('');
@@ -213,7 +217,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
                   type="button"
                   onClick={() => {
                     storage.deleteExpense(exp.id);
-                    setExpenses([...storage.getExpenses()]);
+                    setExpenses([...storage.getExpenses(puppy.id)]);
                   }}
                   className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
                   title="Delete expense"

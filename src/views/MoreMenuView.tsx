@@ -16,6 +16,7 @@ import {
   Dog
 } from 'lucide-react';
 import { PuppyProfile } from '../types';
+import { storage } from '../lib/storage';
 import { PWAInstallButton } from '../components/pwa/PWAInstallButton';
 import { Download } from 'lucide-react';
 
@@ -26,21 +27,42 @@ interface MoreMenuViewProps {
 }
 
 export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, onSignOut }) => {
+  const socialList = storage.getSocialization();
+  const totalSocial = socialList.length || 11;
+  const exposedSocial = socialList.filter(s => s.status && s.status !== 'unexposed' && s.status !== 'not_started').length;
+  
+  const journalEntries = storage.getJournal(puppy.id);
+  const photos = journalEntries.filter(j => Boolean(j.mediaUrl));
+
+  const vaccinations = storage.getVaccinations(puppy.id);
+  const nextVac = vaccinations.find(v => v.status === 'due_soon' || v.status === 'overdue');
+
+  const expenses = storage.getExpenses(puppy.id);
+  const currentMonthStr = new Date().toISOString().slice(0, 7);
+  const monthTotal = expenses
+    .filter(e => e.date && e.date.startsWith(currentMonthStr))
+    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+  const documents = storage.getDocuments(puppy.id);
+  const pottyLogs = storage.getPottyLogs(puppy.id);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayPotties = pottyLogs.filter(p => p.timestamp && p.timestamp.startsWith(todayStr)).length;
   const menuSections = [
     {
       title: 'Daily Tracking & Care',
       items: [
-        { id: 'potty', label: 'Potty Tracker & Predictor', desc: 'Real-time countdowns & accident log', icon: <Droplet className="w-5 h-5 text-emerald-600" />, badge: '86% Safe' },
-        { id: 'health', label: 'Health & Veterinary Center', desc: 'Vaccine schedule, meds & weight tracking', icon: <Activity className="w-5 h-5 text-rose-600" /> },
-        { id: 'socialization', label: 'Socialization & Grooming', desc: '12-week checklist & fear-free care', icon: <Scissors className="w-5 h-5 text-purple-600" /> },
-        { id: 'journal', label: 'Puppy Journal & Memories', desc: 'Milestone moments & photo log', icon: <Heart className="w-5 h-5 text-pink-600" /> }
+        { id: 'potty', label: 'Potty Tracker & Predictor', desc: 'Real-time countdowns & accident log', icon: <Droplet className="w-5 h-5 text-emerald-600" />, badge: todayPotties > 0 ? `${todayPotties} logged today` : 'Ready' },
+        { id: 'health', label: 'Health & Veterinary Center', desc: 'Vaccine schedule, meds & weight tracking', icon: <Activity className="w-5 h-5 text-rose-600" />, badge: nextVac ? `Due: ${nextVac.vaccineName}` : `${puppy.weightLbs} lbs` },
+        { id: 'socialization', label: 'Socialization & Grooming', desc: '12-week checklist & fear-free care', icon: <Scissors className="w-5 h-5 text-purple-600" />, badge: `${exposedSocial}/${totalSocial} done` },
+        { id: 'journal', label: 'Puppy Journal & Memories', desc: 'Milestone moments & photo log', icon: <Heart className="w-5 h-5 text-pink-600" />, badge: photos.length > 0 ? `${photos.length} photos` : 'Snap first' },
+        { id: 'recap', label: 'Weekly & Monthly Recap', desc: 'Paw-gress stories, potty trends & habit milestones', icon: <Sparkles className="w-5 h-5 text-amber-600" />, badge: 'New 🌟' }
       ]
     },
     {
       title: 'Records & Organization',
       items: [
-        { id: 'expenses', label: 'Expense & Budget Tracker', desc: 'Receipt scanner, vet bills & CSV export', icon: <DollarSign className="w-5 h-5 text-amber-600" /> },
-        { id: 'vault', label: 'Document Vault', desc: 'Vaccine records, microchip & insurance PDFs', icon: <FileText className="w-5 h-5 text-sky-600" /> },
+        { id: 'expenses', label: 'Expense & Budget Tracker', desc: 'Receipt scanner, vet bills & CSV export', icon: <DollarSign className="w-5 h-5 text-amber-600" />, badge: monthTotal > 0 ? `${monthTotal} this mo` : 'Track budget' },
+        { id: 'vault', label: 'Document Vault', desc: 'Vaccine records, microchip & insurance PDFs', icon: <FileText className="w-5 h-5 text-sky-600" />, badge: documents.length > 0 ? `${documents.length} docs` : 'Store files' },
         { id: 'sharing', label: 'Family & Caregiver Team', desc: 'Partner sharing & pet sitter emergency sheet', icon: <Users className="w-5 h-5 text-indigo-600" /> }
       ]
     },

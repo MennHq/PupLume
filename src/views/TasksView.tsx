@@ -3,7 +3,6 @@ import {
   Check, 
   Clock, 
   Plus, 
-  Sparkles, 
   Filter, 
   Trash2, 
   CheckCircle2, 
@@ -11,19 +10,19 @@ import {
   Layers,
   ArrowRight,
   MoreHorizontal,
-  Edit2,
-  Download
+  Edit2
 } from 'lucide-react';
 import { PuppyProfile, TaskItem } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
-import { exportPuppyScheduleToICS } from '../lib/calendarExport';
+import { Scissors, Activity, Droplet, GraduationCap } from 'lucide-react';
 
 interface TasksViewProps {
   puppy: PuppyProfile;
   onOpenLesson: (lessonId: string) => void;
+  onNavigate?: (view: string) => void;
 }
 
 const generateTaskGoogleCalendarUrl = (task: TaskItem) => {
@@ -50,11 +49,22 @@ const generateTaskGoogleCalendarUrl = (task: TaskItem) => {
   return url.toString();
 };
 
-export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => {
-  const [tasks, setTasks] = useState<TaskItem[]>(storage.getTasks());
+export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNavigate }) => {
+  const [tasks, setTasks] = useState<TaskItem[]>(() => storage.getTasks(puppy.id));
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
+  React.useEffect(() => {
+    setTasks(storage.getTasks(puppy.id));
+  }, [puppy.id]);
   
+  // Form states
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<any>('training');
+  const [time, setTime] = useState('02:00 PM');
+  const [durationMin, setDurationMin] = useState('15');
+  const [period, setPeriod] = useState<any>('afternoon');
+  const [description, setDescription] = useState('');
+
   React.useEffect(() => {
     const handleOpenAddTask = (e: any) => {
       if (e.detail) {
@@ -71,17 +81,9 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
 
   React.useEffect(() => {
     return storage.subscribe(() => {
-      setTasks([...storage.getTasks()]);
+      setTasks([...storage.getTasks(puppy.id)]);
     });
-  }, []);
-
-  // Form states
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<any>('training');
-  const [time, setTime] = useState('02:00 PM');
-  const [durationMin, setDurationMin] = useState('15');
-  const [period, setPeriod] = useState<any>('afternoon');
-  const [description, setDescription] = useState('');
+  }, [puppy.id]);
 
   // Context Menu & Long Press
   const [activeMenuTaskId, setActiveMenuTaskId] = useState<string | null>(null);
@@ -125,7 +127,6 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -142,7 +143,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
 
   const handleDelete = (taskId: string) => {
     storage.deleteTask(taskId);
-    setTasks([...storage.getTasks()]);
+    setTasks([...storage.getTasks(puppy.id)]);
     setActiveMenuTaskId(null);
   };
 
@@ -170,8 +171,8 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
   };
 
   const handleToggle = (taskId: string) => {
-    const updated = storage.toggleTask(taskId);
-    setTasks([...updated]);
+    storage.toggleTask(taskId);
+    setTasks([...storage.getTasks(puppy.id)]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -201,7 +202,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
         date: new Date().toISOString().split('T')[0]
       });
     }
-    setTasks([...storage.getTasks()]);
+    setTasks([...storage.getTasks(puppy.id)]);
     setIsAddOpen(false);
     setEditTaskId(null);
     setTitle('');
@@ -213,16 +214,6 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
     setEditTaskId(null);
     setTitle('');
     setDescription('');
-  };
-
-  const handleRegenerateWithAI = () => {
-    setIsRegenerating(true);
-    setTimeout(() => {
-      // Re-seed with fresh balanced Day plan
-      storage.saveTasks(storage.getTasks().map(t => ({ ...t, completed: false, skipped: false })));
-      setTasks(storage.getTasks());
-      setIsRegenerating(false);
-    }, 800);
   };
 
   const categories = [
@@ -245,54 +236,132 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
 
   const completedCount = tasks.filter(t => t.completed).length;
 
+  // Calculate the upcoming pending task based on the current time of day
+  const nextTask = React.useMemo(() => {
+    const pendingTasks = tasks.filter((t) => !t.completed && !t.skipped && t.time);
+    if (pendingTasks.length === 0) return null;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const parseToMinutes = (timeStr: string): number => {
+      const [tPart, period] = timeStr.trim().split(' ');
+      if (!tPart) return 0;
+      let [h, m] = tPart.split(':').map(Number);
+      if (isNaN(h)) h = 0;
+      if (isNaN(m)) m = 0;
+      if (period === 'PM' && h < 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    };
+
+    const sorted = [...pendingTasks].sort((a, b) => parseToMinutes(a.time) - parseToMinutes(b.time));
+    const upcoming = sorted.find((t) => parseToMinutes(t.time) >= currentMinutes);
+    const target = upcoming || sorted[0];
+    if (!target) return null;
+
+    const targetMinutes = parseToMinutes(target.time);
+    const diff = targetMinutes - currentMinutes;
+
+    let relativeTime = '';
+    if (diff > 0 && diff < 60) {
+      relativeTime = `in ${diff}m`;
+    } else if (diff >= 60 && diff < 180) {
+      const hrs = Math.floor(diff / 60);
+      const mins = diff % 60;
+      relativeTime = mins > 0 ? `in ${hrs}h ${mins}m` : `in ${hrs}h`;
+    } else if (diff <= 0) {
+      relativeTime = 'due now';
+    } else {
+      relativeTime = target.time;
+    }
+
+    return {
+      ...target,
+      relativeTime,
+      isDue: diff <= 0,
+    };
+  }, [tasks]);
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
       {/* Header */}
-      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B]">
-              Daily Routine & Planner
-            </h1>
-            <span className="text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full">
-              {completedCount} / {tasks.length} done
-            </span>
+      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs">
+        {/* Top: Title & Action */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B] tracking-tight">
+                Daily Routine & Planner
+              </h1>
+              <span className="text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full">
+                {completedCount} / {tasks.length} done
+              </span>
+            </div>
+            <p className="text-xs text-[#766A63] mt-1 max-w-xl">
+              Predictable rhythms establish security, house training, and emotional calm for {puppy.name}.
+            </p>
           </div>
-          <p className="text-xs text-[#766A63] mt-1">
-            Predictable rhythms establish security, house training, and emotional calm for {puppy.name}.
-          </p>
+
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsAddOpen(true)}
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Add Task
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportPuppyScheduleToICS(puppy, tasks)}
-            leftIcon={<Download className="w-3.5 h-3.5 text-[#5F3E29]" />}
-            title="Export recurring puppy schedule to Apple Calendar, Google Calendar, or Outlook (.ics)"
+        {/* Up Next Glance Bar */}
+        {nextTask ? (
+          <div
+            onClick={() => {
+              const el = document.getElementById(`task-card-${nextTask.id}`);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('ring-2', 'ring-[#8B5E3C]');
+                setTimeout(() => el.classList.remove('ring-2', 'ring-[#8B5E3C]'), 1800);
+              }
+            }}
+            title="Click to jump to this task"
+            className="mt-4 pt-3.5 border-t border-[#F3E7DA] flex items-center justify-between gap-3 cursor-pointer group hover:bg-[#FFFDF9] -mx-1 px-2 py-1.5 rounded-xl transition-colors"
           >
-            Export .ics
-          </Button>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${nextTask.isDue ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${nextTask.isDue ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+              </span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8B5E3C] shrink-0 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-[#8B5E3C]" />
+                Up Next
+              </span>
+              <span className="text-[#C5B8AB] shrink-0">•</span>
+              <span className="text-xs font-bold text-[#2C211B] truncate group-hover:text-[#8B5E3C] transition-colors">
+                {nextTask.title}
+              </span>
+              <span className="text-[11px] font-medium text-[#766A63] shrink-0">
+                ({nextTask.relativeTime})
+              </span>
+            </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            isLoading={isRegenerating}
-            onClick={handleRegenerateWithAI}
-            leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#8B5E3C]" />}
-          >
-            Smart Re-balance
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddOpen(true)}
-            leftIcon={<Plus className="w-4 h-4" />}
-          >
-            Add Task
-          </Button>
-        </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] font-semibold text-[#8B5E3C] bg-[#FFF9F2] px-2.5 py-0.5 rounded-lg border border-[#E8DDD3] shadow-2xs">
+                {nextTask.time}
+              </span>
+              <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                Jump <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+          </div>
+        ) : tasks.length > 0 && completedCount === tasks.length ? (
+          <div className="mt-4 pt-3.5 border-t border-[#F3E7DA] flex items-center gap-2 text-xs font-bold text-[#1E6B37]">
+            <CheckCircle2 className="w-4 h-4 text-[#2E9E52]" />
+            <span>All tasks completed for today! Great job with {puppy.name}. 🎉</span>
+          </div>
+        ) : null}
       </div>
 
       {/* Filter Tabs & Category Bar */}
@@ -366,6 +435,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
           filteredTasks.map((task) => (
             <div
               key={task.id}
+              id={`task-card-${task.id}`}
               tabIndex={0}
               className={`relative p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 focus:outline-none focus:border-[#8B5E3C] focus:ring-4 focus:ring-[#8B5E3C]/10 ${
                 task.completed
@@ -454,7 +524,53 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
                     }}
                     className="flex-shrink-0 text-xs hidden sm:flex"
                   >
+                    <GraduationCap className="w-3.5 h-3.5 mr-1" />
                     Start Drill
+                  </Button>
+                )}
+
+                {task.category === 'grooming' && !task.completed && onNavigate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onNavigate('socialization');
+                    }}
+                    className="flex-shrink-0 text-xs hidden sm:flex text-purple-700 hover:bg-purple-50"
+                  >
+                    <Scissors className="w-3.5 h-3.5 mr-1" />
+                    Checklist
+                  </Button>
+                )}
+
+                {task.category === 'health' && !task.completed && onNavigate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onNavigate('health');
+                    }}
+                    className="flex-shrink-0 text-xs hidden sm:flex text-rose-700 hover:bg-rose-50"
+                  >
+                    <Activity className="w-3.5 h-3.5 mr-1" />
+                    Records
+                  </Button>
+                )}
+
+                {task.category === 'potty' && !task.completed && onNavigate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onNavigate('potty');
+                    }}
+                    className="flex-shrink-0 text-xs hidden sm:flex text-emerald-700 hover:bg-emerald-50"
+                  >
+                    <Droplet className="w-3.5 h-3.5 mr-1" />
+                    Tracker
                   </Button>
                 )}
                 

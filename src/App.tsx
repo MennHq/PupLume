@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useUser, useClerk, SignIn } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
@@ -9,29 +9,33 @@ import { storage } from './lib/storage';
 import { AppLayout } from './components/layout/AppLayout';
 
 // Views
-import { OnboardingWizard } from './views/OnboardingWizard';
 import { HomeScreen } from './views/HomeScreen';
-import { TasksView } from './views/TasksView';
-import { AIAssistantView } from './views/AIAssistantView';
-import { TrainingAcademyView } from './views/TrainingAcademyView';
-import { PottyTrackerView } from './views/PottyTrackerView';
-import { HealthCenterView } from './views/HealthCenterView';
-import { ExpensesView } from './views/ExpensesView';
-import { DocumentVaultView } from './views/DocumentVaultView';
-import { SocializationGroomingView } from './views/SocializationGroomingView';
-import { PuppyJournalView } from './views/PuppyJournalView';
-import { PuppyProfileView } from './views/PuppyProfileView';
-import { FamilySharingView } from './views/FamilySharingView';
-import { SettingsView } from './views/SettingsView';
-import { MoreMenuView } from './views/MoreMenuView';
+const OnboardingWizard = lazy(() => import('./views/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+const TasksView = lazy(() => import('./views/TasksView').then(m => ({ default: m.TasksView })));
+const AIAssistantView = lazy(() => import('./views/AIAssistantView').then(m => ({ default: m.AIAssistantView })));
+const TrainingAcademyView = lazy(() => import('./views/TrainingAcademyView').then(m => ({ default: m.TrainingAcademyView })));
+const PottyTrackerView = lazy(() => import('./views/PottyTrackerView').then(m => ({ default: m.PottyTrackerView })));
+const HealthCenterView = lazy(() => import('./views/HealthCenterView').then(m => ({ default: m.HealthCenterView })));
+const ExpensesView = lazy(() => import('./views/ExpensesView').then(m => ({ default: m.ExpensesView })));
+const DocumentVaultView = lazy(() => import('./views/DocumentVaultView').then(m => ({ default: m.DocumentVaultView })));
+const SocializationGroomingView = lazy(() => import('./views/SocializationGroomingView').then(m => ({ default: m.SocializationGroomingView })));
+const PuppyJournalView = lazy(() => import('./views/PuppyJournalView').then(m => ({ default: m.PuppyJournalView })));
+const PuppyProfileView = lazy(() => import('./views/PuppyProfileView').then(m => ({ default: m.PuppyProfileView })));
+const FamilySharingView = lazy(() => import('./views/FamilySharingView').then(m => ({ default: m.FamilySharingView })));
+const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
+const MoreMenuView = lazy(() => import('./views/MoreMenuView').then(m => ({ default: m.MoreMenuView })));
+const PublicPupSafetyPage = lazy(() => import('./views/PublicPupSafetyPage').then(m => ({ default: m.PublicPupSafetyPage })));
+const PaddleLogPage = lazy(() => import('./views/PaddleLogPage').then(m => ({ default: m.PaddleLogPage })));
+const RecapView = lazy(() => import('./views/RecapView').then(m => ({ default: m.RecapView })));
+const ProPaywallModal = lazy(() => import('./components/ui/ProPaywallModal').then(m => ({ default: m.ProPaywallModal })));
 import { Dog, Sparkles, ShieldCheck, Heart } from 'lucide-react';
 import { clearUserDataInConvex } from './lib/convex';
 import { OfflineAlert } from './components/pwa/OfflineAlert';
-import { ProPaywallModal } from './components/ui/ProPaywallModal';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
 import { FirstTimeWelcomeTour } from './components/ui/FirstTimeWelcomeTour';
 import { GettingStartedChecklist } from './components/onboarding/GettingStartedChecklist';
 import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
+import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import posthog from 'posthog-js';
 
@@ -95,6 +99,11 @@ export default function App() {
   const [puppy, setPuppy] = useState<PuppyProfile | null>(() => storage.getPuppy());
   const [currentView, setCurrentView] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view');
+      if (viewParam) {
+        return viewParam === 'plan' ? 'tasks' : viewParam;
+      }
       let path = window.location.pathname.replace(/^\/+/, '');
       if (path === 'plan') path = 'tasks';
       return path || 'home';
@@ -104,8 +113,8 @@ export default function App() {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [paywallFeature, setPaywallFeature] = useState<string | null>(null);
-
-  
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Sync currentView to clean URL paths (e.g. /academy)
   useEffect(() => {
@@ -120,6 +129,12 @@ export default function App() {
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view');
+      if (viewParam) {
+        setCurrentView(viewParam === 'plan' ? 'tasks' : viewParam);
+        return;
+      }
       let path = window.location.pathname.replace(/^\/+/, '');
       if (path === 'plan') path = 'tasks';
       setCurrentView(path || 'home');
@@ -128,7 +143,32 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Listen for custom navigate events (e.g., triggered by the AI assistant)
+  // Listen for Service Worker navigation messages (when user clicks Windows / Android push notification)
+  useEffect(() => {
+    const handleSwMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'NAVIGATE') {
+        const view = e.data.view || (e.data.url ? e.data.url.replace(/^\/+/, '').split('?')[0] : null);
+        if (view) {
+          setCurrentView(view === 'plan' ? 'tasks' : view);
+        }
+      } else if (e.data?.type === 'SHOW_IN_APP_ALERT' && e.data.payload) {
+        window.dispatchEvent(
+          new CustomEvent('puplume-headsup-alert', {
+            detail: e.data.payload
+          })
+        );
+      }
+    };
+
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+      };
+    }
+  }, []);
+
+  // Listen for custom navigate events (e.g., triggered by the AI assistant or notification click)
   useEffect(() => {
     const handleCustomNavigate = (e: any) => {
       if (e.detail && e.detail.view) {
@@ -205,19 +245,9 @@ export default function App() {
         const activePup = storage.getPuppy();
         setPuppy(activePup ? { ...activePup } : null);
       } else {
-        const localPup = storage.getActivePuppy() || storage.getPuppy();
-        if (localPup) {
-          storage.syncFullStateToConvex(user.id);
-          setPuppy(localPup);
-        } else if (cloudData.settings?.hasCompletedOnboarding) {
-          // Existing user who already completed onboarding
-        } else {
-          // Brand-new account with zero data (only if not already set locally)
-          const current = storage.getPuppy();
-          if (!current) {
-            setPuppy(null);
-          }
-        }
+        // Cloud has zero puppies for this account (clean database or fresh account)
+        storage.clearAllUserData();
+        setPuppy(null);
       }
     }
   }, [cloudData, user?.id]);
@@ -235,6 +265,17 @@ export default function App() {
     return () => notificationEngine.stop();
   }, []);
 
+  // 0. Public zero-auth emergency page for collar tag scans (/pup/*)
+  if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/pup/') || window.location.pathname === '/pup')) {
+    return <Suspense fallback={<div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}><PublicPupSafetyPage /></Suspense>;
+  }
+
+  // Temporary /paddlelog diagnostic page
+  if (typeof window !== 'undefined' && window.location.pathname === '/paddlelog') {
+    return <Suspense fallback={<div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}><PaddleLogPage /></Suspense>;
+  }
+
+
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-[#FAF6F0] flex flex-col">
@@ -251,12 +292,7 @@ export default function App() {
 
   // 2. Unauthenticated: Split-screen layout (Marketing on left, Clerk on right)
   if (!isSignedIn) {
-    // If user hit the app without login intent, redirect to the marketing site
-    const isLoginIntent = window.location.pathname === '/sign-in' || window.location.search.includes('login=true');
-    if (!isLoginIntent) {
-      window.location.href = 'http://localhost:3001';
-      return null;
-    }
+    // Direct in-app sign in
 
     return (
       <div className="min-h-screen bg-[#FFF9F2] flex flex-col md:flex-row">
@@ -282,8 +318,6 @@ export default function App() {
                 appearance={{
                   variables: {
                     colorPrimary: "#8B5E3C",
-                    colorText: "#2C211B",
-                    colorTextSecondary: "#766A63",
                     colorBackground: "#FFF9F2",
                     borderRadius: "1rem",
                   },
@@ -329,9 +363,11 @@ export default function App() {
   }
 
   // 4. Paddle Paywall Gate
-  if (cloudData !== undefined && !cloudData?.user?.hasAccess) {
+  const hasLocalAccess = typeof window !== 'undefined' && user?.id && localStorage.getItem(`puplume_access_${user.id}`) === 'true';
+  if (cloudData !== undefined && !cloudData?.user?.hasAccess && !hasLocalAccess) {
     return <PaddlePaywall onSignOut={signOut} />;
   }
+
 
   // Active puppy from state, storage, or cloud data
   const activePuppy: PuppyProfile | null = puppy || storage.getPuppy() || (cloudData?.puppies && cloudData.puppies.length > 0 ? {
@@ -360,9 +396,6 @@ export default function App() {
               setPuppy(newPuppy);
               setCurrentView('home');
               showToast(`Welcome ${newPuppy.name}! Your puppy's schedule is ready.`);
-              if (user?.id) {
-                storage.syncFullStateToConvex(user.id);
-              }
             }}
             onCancel={() => {
               if (activePuppy) setCurrentView('home');
@@ -386,6 +419,12 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }}
       puppy={activePuppy}
+      isNotificationsOpen={isNotificationsOpen}
+      onOpenNotifications={() => setIsNotificationsOpen(true)}
+      onCloseNotifications={() => setIsNotificationsOpen(false)}
+      isSearchOpen={isSearchOpen}
+      onOpenSearch={() => setIsSearchOpen(true)}
+      onCloseSearch={() => setIsSearchOpen(false)}
       onSelectLesson={(lessonId) => {
         setSelectedLessonId(lessonId);
         setCurrentView('academy');
@@ -417,6 +456,13 @@ export default function App() {
         </div>
       )}
 
+      {/* 100% Bespoke In-App Heads-Up Alert with 1-Click Interactive Actions */}
+      <HeadsUpNotification 
+        puppy={activePuppy} 
+        onNavigate={setCurrentView} 
+        onShowToast={showToast} 
+      />
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 bg-[#2C211B] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-xl border border-[#E8DDD3]/30">
@@ -427,25 +473,26 @@ export default function App() {
       {/* First-time Interactive Welcome Tour (Shows once, 5 steps) */}
       <FirstTimeWelcomeTour puppy={activePuppy} />
 
-      {/* Getting Started Onboarding Checklist Widget */}
-      <GettingStartedChecklist puppy={activePuppy} onNavigate={setCurrentView} />
+      {/* Getting Started Onboarding Checklist Widget (Permanently suppressed once completed in backend) */}
+      {!cloudData?.settings?.hasCompletedChecklist && (
+        <GettingStartedChecklist 
+          puppy={activePuppy} 
+          onNavigate={setCurrentView} 
+          backendCompleted={Boolean(cloudData?.settings?.hasCompletedChecklist)}
+        />
+      )}
 
       {/* Floating Onboarding Guide Tip Spotlight */}
       <OnboardingGuideTip />
 
       {/* Main View Router */}
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center p-12"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}>
       {currentView === 'home' && (
         <HomeScreen
           puppy={activePuppy}
           onNavigate={setCurrentView}
-          onOpenSearch={() => {
-            const searchBtn = document.getElementById('home-search-button');
-            if (searchBtn) searchBtn.click();
-          }}
-          onOpenNotifications={() => {
-            const notifBtn = document.getElementById('home-notifications-button');
-            if (notifBtn) notifBtn.click();
-          }}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenLesson={(lessonId) => {
             if (!isPro) {
               setPaywallFeature('Training Academy');
@@ -460,6 +507,7 @@ export default function App() {
       {currentView === 'tasks' && (
         <TasksView
           puppy={activePuppy}
+          onNavigate={setCurrentView}
           onOpenLesson={(lessonId) => {
             if (!isPro) {
               setPaywallFeature('Training Academy');
@@ -528,6 +576,10 @@ export default function App() {
         <PuppyJournalView puppy={activePuppy} />
       )}
 
+      {currentView === 'recap' && (
+        <RecapView puppy={activePuppy} onNavigate={setCurrentView} />
+      )}
+
       {currentView === 'puppy' && (
         <PuppyProfileView
           puppy={activePuppy}
@@ -561,6 +613,7 @@ export default function App() {
         onClose={() => setPaywallFeature(null)}
         featureName={paywallFeature || ''}
       />
+      </Suspense>
     </AppLayout>
   );
 }

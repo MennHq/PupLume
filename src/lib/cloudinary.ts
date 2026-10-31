@@ -26,6 +26,8 @@ export async function uploadImageToCloudinary(
   options: {
     folder?: string;
     tags?: string[];
+    previousImageUrl?: string;
+    previousPublicId?: string;
   } = {}
 ): Promise<UploadResult> {
   let base64Data: string;
@@ -48,6 +50,8 @@ export async function uploadImageToCloudinary(
         file: base64Data,
         folder,
         tags: options.tags || ['puplume'],
+        previousImageUrl: options.previousImageUrl,
+        previousPublicId: options.previousPublicId,
       }),
     });
 
@@ -94,4 +98,25 @@ export function getOptimizedCloudinaryUrl(
   if (options?.crop) transforms.push(`c_${options.crop}`);
 
   return `${parts[0]}/upload/${transforms.join(',')}/${parts[1]}`;
+}
+
+/**
+ * Permanently deletes an image from Cloudinary (called when user removes or swaps photos)
+ */
+export async function deleteImageFromCloudinary(urlOrPublicId: string): Promise<boolean> {
+  if (!urlOrPublicId) return false;
+  try {
+    const response = await fetch('/api/cloudinary/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: urlOrPublicId }),
+    });
+    const data = await response.json().catch(() => ({}));
+    return Boolean(data.success);
+  } catch (err) {
+    console.warn('[Cloudinary Client] Failed to delete image:', err);
+    return false;
+  }
 }

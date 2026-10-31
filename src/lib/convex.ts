@@ -27,374 +27,400 @@ export const CONVEX_DEPLOYMENT =
   import.meta.env.CONVEX_DEPLOYMENT ||
   "dev:energetic-partridge-407|eyJ2MiI6ImIyZjQ0MTY2YjEwYjQzMThiODNhNThlZWMyYTJmMGI0In0=";
 
+import { offlineQueue } from "./offlineQueue";
+
+// Helper to run mutation with instant offline queue fallback
+async function runWithOfflineQueue<T>(
+  mutationType: string,
+  payload: any,
+  fn: () => Promise<T>
+): Promise<boolean> {
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    offlineQueue.enqueue(mutationType, payload);
+    return true;
+  }
+  try {
+    await fn();
+    return true;
+  } catch (err) {
+    console.debug(`[Convex] ${mutationType} note:`, err);
+    offlineQueue.enqueue(mutationType, payload);
+    return true;
+  }
+}
+
 // Async background mutation helpers to Convex
 export async function syncPuppyToConvex(
   puppy: PuppyProfile,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.puppies.savePuppy, {
-      userId,
-      id: puppy.id,
-      name: puppy.name,
-      breed: puppy.breed,
-      birthDate: puppy.birthDate,
-      sex: puppy.sex,
-      weightLbs: puppy.weightLbs,
-      photoUrl: puppy.photoUrl,
-      temperament: puppy.temperament,
-      dietaryRestrictions: puppy.dietaryRestrictions,
-      microchipNumber: puppy.microchipNumber,
-      allergies: puppy.allergies,
-      vetClinic: puppy.vetClinic,
-      vetPhone: puppy.vetPhone,
-      vetName: puppy.vetName,
-      insuranceProvider: puppy.insuranceProvider,
-      insurancePolicyNumber: puppy.insurancePolicyNumber,
-      favoriteTreat: puppy.favoriteTreat,
-      adoptionDate: puppy.adoptionDate,
-      createdAt: puppy.createdAt,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncPuppy note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    id: puppy.id,
+    name: puppy.name,
+    breed: puppy.breed,
+    birthDate: puppy.birthDate,
+    sex: puppy.sex,
+    weightLbs: puppy.weightLbs,
+    photoUrl: puppy.photoUrl,
+    temperament: puppy.temperament,
+    dietaryRestrictions: puppy.dietaryRestrictions,
+    microchipNumber: puppy.microchipNumber,
+    allergies: puppy.allergies,
+    vetClinic: puppy.vetClinic,
+    vetPhone: puppy.vetPhone,
+    vetName: puppy.vetName,
+    insuranceProvider: puppy.insuranceProvider,
+    insurancePolicyNumber: puppy.insurancePolicyNumber,
+    favoriteTreat: puppy.favoriteTreat,
+    adoptionDate: puppy.adoptionDate,
+    createdAt: puppy.createdAt,
+    ownerPhone: puppy.ownerPhone,
+    ownerEmail: puppy.ownerEmail,
+    emergencyContactName: puppy.emergencyContactName,
+    emergencyContactPhone: puppy.emergencyContactPhone,
+    emergencyNotes: puppy.emergencyNotes,
+    isLost: puppy.isLost,
+    rewardAmount: puppy.rewardAmount,
+    hasSmartTagPass: puppy.hasSmartTagPass,
+    ownerInstagram: puppy.ownerInstagram,
+    ownerFacebook: puppy.ownerFacebook,
+    ownerWhatsApp: puppy.ownerWhatsApp,
+    ownerTelegram: puppy.ownerTelegram,
+    ownerSlack: puppy.ownerSlack,
+    communicationLinks: puppy.communicationLinks,
+  };
+  return runWithOfflineQueue("puppies:savePuppy", payload, () =>
+    convex.mutation(api.puppies.savePuppy, payload)
+  );
 }
 
 export async function syncTaskToConvex(
   task: TaskItem,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.tasks.createTask, {
-      userId,
-      puppyId: task.puppyId,
-      title: task.title,
-      category: task.category,
-      time: task.time,
-      durationMin: task.durationMin,
-      period: task.period,
-      date: task.date,
-      description: task.description,
-      notes: task.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncTask note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: task.puppyId,
+    title: task.title,
+    category: task.category,
+    time: task.time,
+    durationMin: task.durationMin,
+    period: task.period,
+    date: task.date,
+    description: task.description,
+    notes: task.notes,
+  };
+  return runWithOfflineQueue("tasks:createTask", payload, () =>
+    convex.mutation(api.tasks.createTask, payload)
+  );
 }
 
 export async function toggleTaskInConvex(
   title: string,
   completed: boolean,
-  userId?: string
+  userId?: string,
+  id?: string,
+  puppyId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.tasks.toggleTask, {
-      userId,
-      title,
-      completed,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] toggleTask note:", err);
-    return false;
+  const isValidConvexId = Boolean(id && !id.startsWith('task-'));
+  const payload: any = {
+    userId,
+    title,
+    completed,
+  };
+  if (isValidConvexId) {
+    payload.id = id;
   }
+  if (puppyId) {
+    payload.puppyId = puppyId;
+  }
+  return runWithOfflineQueue("tasks:toggleTask", payload, () =>
+    convex.mutation(api.tasks.toggleTask, payload)
+  );
 }
 
 export async function skipTaskInConvex(
   title: string,
-  userId?: string
+  userId?: string,
+  id?: string,
+  puppyId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.tasks.skipTask, {
-      userId,
-      title,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] skipTask note:", err);
-    return false;
+  const isValidConvexId = Boolean(id && !id.startsWith('task-'));
+  const payload: any = {
+    userId,
+    title,
+  };
+  if (isValidConvexId) {
+    payload.id = id;
   }
+  if (puppyId) {
+    payload.puppyId = puppyId;
+  }
+  return runWithOfflineQueue("tasks:skipTask", payload, () =>
+    convex.mutation(api.tasks.skipTask, payload)
+  );
 }
 
 export async function deleteTaskInConvex(
   id: string,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.tasks.deleteTask, {
-      id: id as any,
-      userId,
-    });
+  if (!id || id.startsWith('task-')) {
     return true;
-  } catch (err) {
-    console.debug("[Convex] deleteTask note:", err);
-    return false;
   }
+  const payload = {
+    id: id as any,
+    userId,
+  };
+  return runWithOfflineQueue("tasks:deleteTask", payload, () =>
+    convex.mutation(api.tasks.deleteTask, payload)
+  );
 }
 
 export async function updateTaskInConvex(
   task: TaskItem,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.tasks.updateTask, {
-      id: task.id as any,
-      userId,
-      title: task.title,
-      category: task.category,
-      time: task.time,
-      durationMin: task.durationMin,
-      period: task.period,
-      description: task.description,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] updateTask note:", err);
-    return false;
+  if (!task.id || task.id.startsWith('task-')) {
+    return syncTaskToConvex(task, userId);
   }
+  const payload = {
+    id: task.id as any,
+    userId,
+    puppyId: task.puppyId,
+    title: task.title,
+    category: task.category,
+    time: task.time,
+    durationMin: task.durationMin,
+    period: task.period,
+    description: task.description,
+  };
+  return runWithOfflineQueue("tasks:updateTask", payload, () =>
+    convex.mutation(api.tasks.updateTask, payload)
+  );
+}
+
+export async function repairLegacyPuppyIdsInConvex(userId?: string): Promise<any> {
+  try {
+    return await convex.mutation(api.app.repairLegacyPuppyIds, { userId });
+  } catch (e) {
+    console.debug('[convex] repairLegacyPuppyIds note:', e);
+    return null;
+  }
+}
+
+export async function resetDailyTasksInConvex(puppyId?: string, userId?: string, force?: boolean): Promise<any> {
+  const payload = { userId, puppyId, force };
+  return runWithOfflineQueue("tasks:resetDailyTasks", payload, () =>
+    convex.mutation(api.tasks.resetDailyTasks, payload)
+  );
 }
 
 export async function syncPottyLogToConvex(
   log: PottyLog,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.potty.addPottyLog, {
-      userId,
-      puppyId: log.puppyId,
-      type: log.type,
-      location: log.location,
-      timestamp: log.timestamp,
-      notes: log.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncPottyLog note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: log.puppyId,
+    type: log.type,
+    location: log.location,
+    timestamp: log.timestamp,
+    notes: log.notes,
+  };
+  return runWithOfflineQueue("potty:addPottyLog", payload, () =>
+    convex.mutation(api.potty.addPottyLog, payload)
+  );
 }
 
 export async function syncFeedingLogToConvex(
   log: FeedingLog,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.feeding.addFeedingLog, {
-      userId,
-      puppyId: log.puppyId,
-      mealType: log.mealType,
-      amountCups: log.amountCups,
-      foodBrand: log.foodBrand,
-      timestamp: log.timestamp,
-      notes: log.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncFeedingLog note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: log.puppyId,
+    mealType: log.mealType,
+    amountCups: log.amountCups,
+    foodBrand: log.foodBrand,
+    timestamp: log.timestamp,
+    notes: log.notes,
+  };
+  return runWithOfflineQueue("feeding:addFeedingLog", payload, () =>
+    convex.mutation(api.feeding.addFeedingLog, payload)
+  );
 }
 
 export async function syncSleepLogToConvex(
   log: SleepLog,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.sleep.addSleepLog, {
-      userId,
-      puppyId: log.puppyId,
-      type: log.type,
-      startTime: log.startTime,
-      endTime: log.endTime,
-      durationMin: log.durationMin,
-      notes: log.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncSleepLog note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: log.puppyId,
+    type: log.type,
+    startTime: log.startTime,
+    endTime: log.endTime,
+    durationMin: log.durationMin,
+    notes: log.notes,
+  };
+  return runWithOfflineQueue("sleep:addSleepLog", payload, () =>
+    convex.mutation(api.sleep.addSleepLog, payload)
+  );
 }
 
 export async function syncWalkLogToConvex(
   log: WalkLog,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.walk.addWalkLog, {
-      userId,
-      puppyId: log.puppyId,
-      durationMin: log.durationMin,
-      distanceMiles: log.distanceMiles,
-      peesCount: log.peesCount,
-      poopsCount: log.poopsCount,
-      pullingRating: log.pullingRating,
-      reactivityNotes: log.reactivityNotes,
-      timestamp: log.startTime || new Date().toISOString(),
-      notes: log.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncWalkLog note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: log.puppyId,
+    durationMin: log.durationMin,
+    distanceMiles: log.distanceMiles,
+    peesCount: log.peesCount,
+    poopsCount: log.poopsCount,
+    pullingRating: log.pullingRating,
+    reactivityNotes: log.reactivityNotes,
+    timestamp: log.startTime || new Date().toISOString(),
+    notes: log.notes,
+  };
+  return runWithOfflineQueue("walk:addWalkLog", payload, () =>
+    convex.mutation(api.walk.addWalkLog, payload)
+  );
 }
 
 export async function syncVaccinationToConvex(
   v: VaccinationRecord,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.health.addVaccination, {
-      userId,
-      puppyId: v.puppyId,
-      name: v.vaccineName,
-      vaccineName: v.vaccineName,
-      status: v.status,
-      administeredDate: v.administeredDate,
-      dueDate: v.nextDueDate,
-      nextDueDate: v.nextDueDate,
-      vetClinic: v.vetClinic,
-      lotNumber: v.lotNumber,
-      isCore: true,
-      notes: v.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncVaccination note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: v.puppyId,
+    name: v.vaccineName,
+    vaccineName: v.vaccineName,
+    status: v.status,
+    administeredDate: v.administeredDate,
+    dueDate: v.nextDueDate,
+    nextDueDate: v.nextDueDate,
+    vetClinic: v.vetClinic,
+    lotNumber: v.lotNumber,
+    isCore: true,
+    notes: v.notes,
+  };
+  return runWithOfflineQueue("health:addVaccination", payload, () =>
+    convex.mutation(api.health.addVaccination, payload)
+  );
 }
 
 export async function syncMedicationToConvex(
   m: MedicationRecord,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.health.addMedication, {
-      userId,
-      puppyId: m.puppyId,
-      name: m.name,
-      dosage: m.dosage,
-      frequency: m.frequency,
-      startDate: m.startDate,
-      reminderTime: m.reminderTime,
-      active: m.active,
-      notes: m.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncMedication note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: m.puppyId,
+    name: m.name,
+    dosage: m.dosage,
+    frequency: m.frequency,
+    startDate: m.startDate,
+    reminderTime: m.reminderTime,
+    active: m.active,
+    notes: m.notes,
+  };
+  return runWithOfflineQueue("health:addMedication", payload, () =>
+    convex.mutation(api.health.addMedication, payload)
+  );
 }
 
 export async function syncAppointmentToConvex(
   a: VetAppointment,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.health.addAppointment, {
-      userId,
-      puppyId: a.puppyId,
-      title: a.title,
-      clinic: a.clinic,
-      date: a.date,
-      time: a.time,
-      reason: a.reason,
-      status: a.status,
-      doctor: a.doctor,
-      notes: a.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncAppointment note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: a.puppyId,
+    title: a.title,
+    clinic: a.clinic,
+    date: a.date,
+    time: a.time,
+    reason: a.reason,
+    status: a.status,
+    doctor: a.doctor,
+    notes: a.notes,
+  };
+  return runWithOfflineQueue("health:addAppointment", payload, () =>
+    convex.mutation(api.health.addAppointment, payload)
+  );
 }
 
 export async function syncExpenseToConvex(
   e: ExpenseRecord,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.expenses.addExpense, {
-      userId,
-      puppyId: e.puppyId,
-      title: e.title,
-      category: e.category,
-      amount: e.amount,
-      date: e.date,
-      vendor: e.vendor,
-      notes: e.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncExpense note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: e.puppyId,
+    title: e.title,
+    category: e.category,
+    amount: e.amount,
+    date: e.date,
+    vendor: e.vendor,
+    notes: e.notes,
+  };
+  return runWithOfflineQueue("expenses:addExpense", payload, () =>
+    convex.mutation(api.expenses.addExpense, payload)
+  );
 }
 
 export async function syncDocumentToConvex(
   d: DocumentRecord,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.documents.addDocument, {
-      userId,
-      puppyId: d.puppyId,
-      title: d.title,
-      category: d.category,
-      date: d.date,
-      fileType: d.fileType,
-      fileSize: d.fileSize,
-      fileUrl: d.fileUrl,
-      notes: d.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncDocument note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: d.puppyId,
+    title: d.title,
+    category: d.category,
+    date: d.date,
+    fileType: d.fileType,
+    fileSize: d.fileSize,
+    fileUrl: d.fileUrl,
+    notes: d.notes,
+  };
+  return runWithOfflineQueue("documents:addDocument", payload, () =>
+    convex.mutation(api.documents.addDocument, payload)
+  );
 }
 
 export async function removeDocumentFromConvex(
   id: string,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.documents.deleteDocument, { id, userId });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] removeDocument note:", err);
-    return false;
-  }
+  const payload = { id, userId };
+  return runWithOfflineQueue("documents:deleteDocument", payload, () =>
+    convex.mutation(api.documents.deleteDocument, payload)
+  );
 }
 
 export async function syncBehaviorLogToConvex(
   b: BehaviorIncident,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.behavior.addBehaviorLog, {
-      userId,
-      puppyId: b.puppyId,
-      behaviorType: b.behaviorType,
-      timestamp: b.timestamp,
-      severity: b.severity,
-      trigger: b.trigger,
-      whatHelped: b.whatHelped,
-      notes: b.notes,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncBehaviorLog note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: b.puppyId,
+    behaviorType: b.behaviorType,
+    timestamp: b.timestamp,
+    severity: b.severity,
+    trigger: b.trigger,
+    whatHelped: b.whatHelped,
+    notes: b.notes,
+  };
+  return runWithOfflineQueue("behavior:addBehaviorLog", payload, () =>
+    convex.mutation(api.behavior.addBehaviorLog, payload)
+  );
 }
 
 export async function syncGroomingTasksToConvex(
@@ -448,21 +474,18 @@ export async function syncJournalEntryToConvex(
   j: JournalEntry,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.journal.addJournalEntry, {
-      userId,
-      puppyId: j.puppyId,
-      title: j.title,
-      date: j.date,
-      notes: j.notes,
-      mediaUrl: j.mediaUrl,
-      milestoneBadge: j.milestoneBadge,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncJournalEntry note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId: j.puppyId,
+    title: j.title,
+    date: j.date,
+    notes: j.notes,
+    mediaUrl: j.mediaUrl,
+    milestoneBadge: j.milestoneBadge,
+  };
+  return runWithOfflineQueue("journal:addJournalEntry", payload, () =>
+    convex.mutation(api.journal.addJournalEntry, payload)
+  );
 }
 
 export async function syncTrainingLessonToConvex(
@@ -488,26 +511,16 @@ export async function syncTrainingLessonToConvex(
 }
 
 export async function syncSettingsToConvex(
-  settings: {
-    pottyAlerts: boolean;
-    feedingAlerts: boolean;
-    trainingAlerts: boolean;
-    medAlerts: boolean;
-    units: string;
-    activePuppyId?: string;
-  },
+  settings: any,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.settings.saveSettings, {
-      ...settings,
-      userId,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncSettings note:", err);
-    return false;
-  }
+  const payload = {
+    ...(settings ? (({ _id, _creationTime, updatedAt, ...rest }) => rest)(settings) : {}),
+    userId,
+  };
+  return runWithOfflineQueue("settings:saveSettings", payload, () =>
+    convex.mutation(api.settings.saveSettings, payload)
+  );
 }
 
 export async function syncFamilyMemberToConvex(
@@ -571,49 +584,21 @@ export async function syncAllNotificationsReadToConvex(
   }
 }
 
+// Ephemeral local AI chat - no cloud sync required for privacy
 export async function syncAIMessageToConvex(
-  puppyId: string,
-  msg: { sender: string; text: string; timestamp: string; suggestedActions?: any },
-  userId?: string
+  _puppyId: string,
+  _msg: { sender: string; text: string; timestamp: string; suggestedActions?: any },
+  _userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.ai.addAIMessage, {
-      userId,
-      puppyId,
-      sender: msg.sender,
-      text: msg.text,
-      timestamp: msg.timestamp,
-      suggestedActions: msg.suggestedActions ? JSON.stringify(msg.suggestedActions) : undefined,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncAIMessage note:", err);
-    return false;
-  }
+  return true;
 }
 
 export async function syncAIMessagesToConvex(
-  puppyId: string,
-  messages: { sender: string; text: string; timestamp: string; suggestedActions?: any }[],
-  userId?: string
+  _puppyId: string,
+  _messages: { sender: string; text: string; timestamp: string; suggestedActions?: any }[],
+  _userId?: string
 ): Promise<boolean> {
-  try {
-    const formattedMessages = messages.map(m => ({
-      sender: m.sender,
-      text: m.text,
-      timestamp: m.timestamp,
-      suggestedActions: m.suggestedActions ? JSON.stringify(m.suggestedActions) : undefined,
-    }));
-    await convex.mutation(api.ai.saveAIMessages, {
-      userId,
-      puppyId,
-      messages: formattedMessages,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncAIMessages note:", err);
-    return false;
-  }
+  return true;
 }
 
 export async function completeAIOnboardingInConvex(
@@ -663,10 +648,120 @@ export async function clearUserDataInConvex(userId?: string): Promise<boolean> {
 
 export async function deleteUserAccountInConvex(): Promise<boolean> {
   try {
-    await convex.mutation(api.app.deleteUserAccount);
+    await convex.mutation(api.app.deleteUserAccount, {});
     return true;
   } catch (err) {
     console.debug("[Convex] deleteUserAccount note:", err);
     return false;
   }
+}
+
+export async function deletePuppyInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('pup-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("puppies:deletePuppy", payload, () =>
+    convex.mutation(api.puppies.deletePuppy, payload)
+  );
+}
+
+export async function deletePottyLogInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('potty-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("potty:deletePottyLog", payload, () =>
+    convex.mutation(api.potty.deletePottyLog, payload)
+  );
+}
+
+export async function deleteFeedingLogInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('feed-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("feeding:deleteFeedingLog", payload, () =>
+    convex.mutation(api.feeding.deleteFeedingLog, payload)
+  );
+}
+
+export async function deleteSleepLogInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('sleep-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("sleep:deleteSleepLog", payload, () =>
+    convex.mutation(api.sleep.deleteSleepLog, payload)
+  );
+}
+
+export async function deleteWalkLogInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('walk-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("walk:deleteWalkLog", payload, () =>
+    convex.mutation(api.walk.deleteWalkLog, payload)
+  );
+}
+
+export async function deleteVaccinationInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('vac-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("health:deleteVaccination", payload, () =>
+    convex.mutation(api.health.deleteVaccination, payload)
+  );
+}
+
+export async function deleteMedicationInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('med-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("health:deleteMedication", payload, () =>
+    convex.mutation(api.health.deleteMedication, payload)
+  );
+}
+
+export async function deleteAppointmentInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('apt-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("health:deleteAppointment", payload, () =>
+    convex.mutation(api.health.deleteAppointment, payload)
+  );
+}
+
+export async function deleteExpenseInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('exp-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("expenses:deleteExpense", payload, () =>
+    convex.mutation(api.expenses.deleteExpense, payload)
+  );
+}
+
+export async function deleteJournalEntryInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('jrn-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("journal:deleteJournalEntry", payload, () =>
+    convex.mutation(api.journal.deleteJournalEntry, payload)
+  );
 }

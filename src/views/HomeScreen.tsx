@@ -27,6 +27,9 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { Modal } from '../components/ui/Modal';
+import { WeeklyRecapBanner } from '../components/recap/WeeklyRecapBanner';
+import { CareMilestonesHub } from '../components/home/CareMilestonesHub';
+import { Scissors, Activity } from 'lucide-react';
 
 interface HomeScreenProps {
   puppy: PuppyProfile;
@@ -43,15 +46,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenNotifications,
   onOpenLesson
 }) => {
-  const [tasks, setTasks] = useState<TaskItem[]>(storage.getTasks());
+  const [tasks, setTasks] = useState<TaskItem[]>(() => storage.getTasks(puppy.id));
+  const [unreadNotifs, setUnreadNotifs] = useState(() => storage.getNotifications().filter(n => !n.read).length);
   const [activeTaskModal, setActiveTaskModal] = useState<TaskItem | null>(null);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
 
   React.useEffect(() => {
+    setTasks(storage.getTasks(puppy.id));
+  }, [puppy.id]);
+
+  React.useEffect(() => {
     return storage.subscribe(() => {
-      setTasks([...storage.getTasks()]);
+      setTasks([...storage.getTasks(puppy.id)]);
+      setUnreadNotifs(storage.getNotifications().filter(n => !n.read).length);
     });
-  }, []);
+  }, [puppy.id]);
 
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isInsightLoading, setIsInsightLoading] = useState(true);
@@ -65,8 +74,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             name: puppy.name,
             breed: puppy.breed,
             ageWeeks: Math.max(1, Math.floor((new Date().getTime() - new Date(puppy.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 7))),
-            tasks: storage.getTasks().slice(0, 5),
-            pottyLogs: storage.getPottyLogs().slice(0, 3)
+            tasks: storage.getTasks(puppy.id).slice(0, 5),
+            pottyLogs: storage.getPottyLogs(puppy.id).slice(0, 3)
           }
         };
 
@@ -105,8 +114,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [newTaskDuration, setNewTaskDuration] = useState('15');
   const [newTaskPeriod, setNewTaskPeriod] = useState<any>('afternoon');
 
-  const unreadNotifs = storage.getNotifications().filter(n => !n.read).length;
-
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
 
@@ -119,13 +126,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const handleToggleTask = (taskId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const updated = storage.toggleTask(taskId);
-    setTasks([...updated]);
+    storage.toggleTask(taskId);
+    setTasks([...storage.getTasks(puppy.id)]);
   };
 
   const handleSkipTask = (taskId: string) => {
-    const updated = storage.skipTask(taskId);
-    setTasks([...updated]);
+    storage.skipTask(taskId);
+    setTasks([...storage.getTasks(puppy.id)]);
   };
 
   const getTaskPeriod = (t: TaskItem): 'morning' | 'afternoon' | 'evening' | 'night' => {
@@ -160,7 +167,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       period: newTaskPeriod,
       date: new Date().toISOString().split('T')[0]
     });
-    setTasks([...storage.getTasks()]);
+    setTasks([...storage.getTasks(puppy.id)]);
     setIsAddTaskOpen(false);
     setNewTaskTitle('');
   };
@@ -173,8 +180,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
-      {/* Top Header Card */}
+    <div className="max-w-6xl mx-auto pb-24">
+      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+        {/* Main Feed Column (8 cols on lg desktop) */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Top Header Card */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div
@@ -227,11 +237,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <Bell className="w-4 h-4" />
             {unreadNotifs > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
                 {unreadNotifs}
               </span>
             )}
           </button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onNavigate('recap')}
+            className="text-xs font-semibold flex items-center gap-1 text-[#8B5E3C] hover:bg-[#FFF9F2]"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            Recap
+          </Button>
 
           <Button
             variant="outline"
@@ -244,6 +264,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
+      {/* Weekly Paw-gress Recap Banner */}
+      <WeeklyRecapBanner puppy={puppy} onOpenRecap={() => onNavigate('recap')} />
+
+      
+
       {/* Progress & Bladder Dashboard Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         {/* Card 1: Today's Tasks Progress */}
@@ -255,8 +280,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <h3 className="text-xl font-black text-[#2C211B] mt-0.5">
               {completedCount} <span className="text-xs font-medium text-[#766A63]">/ {totalCount} completed</span>
             </h3>
-            <p className="text-[11px] text-[#8B5E3C] font-semibold mt-1">
-              {completedCount >= totalCount ? '🎉 Daily goal achieved!' : `${totalCount - completedCount} tasks remaining`}
+            <p className={`text-[11px] font-semibold mt-1 ${
+              totalCount === 0 
+                ? 'text-[#766A63]' 
+                : completedCount >= totalCount 
+                ? 'text-emerald-700' 
+                : completedCount === 0 
+                ? 'text-[#A45238]' 
+                : 'text-[#8B5E3C]'
+            }`}>
+              {totalCount === 0 
+                ? 'No habits scheduled yet today' 
+                : completedCount >= totalCount 
+                ? `🎉 All ${totalCount} scheduled habits done!` 
+                : completedCount === 0 
+                ? `Routine not started yet • ${totalCount} remaining` 
+                : `${totalCount - completedCount} habits remaining`}
             </p>
           </div>
           <ProgressRing completed={completedCount} total={totalCount} size={64} strokeWidth={6} />
@@ -264,7 +303,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Card 2: Smart Potty Countdown */}
         {(() => {
-          const pottyLogs = storage.getPottyLogs();
+          const pottyLogs = storage.getPottyLogs(puppy.id);
           const lastPotty = pottyLogs[0];
           return (
             <div 
@@ -273,19 +312,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             >
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className={`w-2 h-2 rounded-full ${lastPotty ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`} />
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
                     Potty Tracking
                   </span>
                 </div>
                 <h3 className="text-sm font-black text-[#2C211B] mt-0.5">
-                  {lastPotty ? `Last: ${lastPotty.type} (${lastPotty.location})` : 'Ready to Log'}
+                  {lastPotty ? `Last: ${lastPotty.type} (${lastPotty.location})` : 'Untracked Today'}
                 </h3>
                 <p className="text-[11px] text-[#766A63] mt-1">
-                  {lastPotty ? `Recorded at ${lastPotty.timestamp}` : 'Tap to record potty break'}
+                  {lastPotty ? `Recorded at ${new Date(lastPotty.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Tap to log first bathroom break'}
                 </p>
               </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 group-hover:scale-105 transition-transform">
+              <div className={`p-2.5 rounded-xl ${lastPotty ? 'bg-emerald-50 text-emerald-700' : 'bg-[#FAF6F0] text-[#8B5E3C]'} group-hover:scale-105 transition-transform`}>
                 <Droplet className="w-5 h-5" />
               </div>
             </div>
@@ -294,8 +333,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Card 3: Next Health Milestone */}
         {(() => {
-          const apts = storage.getAppointments();
-          const vacs = storage.getVaccinations();
+          const apts = storage.getAppointments(puppy.id);
+          const vacs = storage.getVaccinations(puppy.id);
           const nextApt = apts.find(a => a.status === 'scheduled');
           const nextVac = vacs.find(v => v.status === 'due_soon');
 
@@ -319,7 +358,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   {nextApt ? nextApt.clinic : puppy.vetPhone ? `Call: ${puppy.vetPhone}` : 'Tap to add vet visits'}
                 </p>
               </div>
-              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-700 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 rounded-xl bg-[#F8EBE3] text-[#A45238] group-hover:scale-105 transition-transform">
                 <CalendarIcon className="w-5 h-5" />
               </div>
             </div>
@@ -399,6 +438,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </div>
       )}
+
+      {/* Care & Milestones Hub (Mobile & Tablet Glanceable Row - hidden on lg desktop where sidebar is active) */}
+      <div className="lg:hidden">
+        <CareMilestonesHub puppy={puppy} onNavigate={onNavigate} variant="grid" />
+      </div>
 
       {/* AI Insight Card */}
       <div className="bg-white rounded-2xl border border-[#E8DDD3] p-4 shadow-xs flex items-start gap-3.5">
@@ -534,6 +578,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0">
+                        {task.category === 'grooming' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onNavigate('socialization');
+                            }}
+                            className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors"
+                          >
+                            <Scissors className="w-3 h-3" />
+                            Guide
+                          </button>
+                        )}
+                        {task.category === 'training' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onNavigate('academy');
+                            }}
+                            className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 transition-colors"
+                          >
+                            <GraduationCap className="w-3 h-3" />
+                            Academy
+                          </button>
+                        )}
+                        {task.category === 'potty' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onNavigate('potty');
+                            }}
+                            className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                          >
+                            <Droplet className="w-3 h-3" />
+                            Tracker
+                          </button>
+                        )}
+                        {task.category === 'health' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onNavigate('health');
+                            }}
+                            className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors"
+                          >
+                            <Activity className="w-3 h-3" />
+                            Records
+                          </button>
+                        )}
                         <span className="text-xs font-semibold text-[#766A63]">
                           {task.time}
                         </span>
@@ -545,6 +641,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             );
           })
         )}
+          </div>
+        </div>
+
+        {/* Desktop Sticky Care & Milestones Sidebar (4 cols on lg desktop) */}
+        <div className="hidden lg:block lg:col-span-4 sticky top-20 space-y-6">
+          <CareMilestonesHub puppy={puppy} onNavigate={onNavigate} variant="sidebar" />
+        </div>
       </div>
 
       {/* Task Details Modal */}
@@ -601,7 +704,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={() => {
                 storage.deleteTask(activeTaskModal.id);
-                setTasks([...storage.getTasks()]);
+                setTasks([...storage.getTasks(puppy.id)]);
                 setActiveTaskModal(null);
               }}
             >

@@ -46,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
     secondary: 'bg-[#F3E7DA] text-[#2C211B] hover:bg-[#E8DDD3] active:bg-[#DBC9BB]',
     outline: 'border border-[#E8DDD3] text-[#2C211B] bg-white hover:bg-[#FFF9F2] active:bg-[#F3E7DA]',
     ghost: 'text-[#766A63] hover:text-[#2C211B] hover:bg-[#F3E7DA]/50 active:bg-[#F3E7DA]',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800',
+    danger: 'bg-[#A45238] text-white hover:bg-[#8C3F24] active:bg-[#73331C]',
     sage: 'bg-[#A8B59A] text-white hover:bg-[#8F9F80] active:bg-[#788869]',
     peach: 'bg-[#E9B89C] text-[#2C211B] hover:bg-[#DF9E7B] active:bg-[#D58C67]'
   }[variant];

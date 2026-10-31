@@ -15,6 +15,8 @@ import {
 import { Modal } from './Modal';
 import { Button } from './Button';
 import { storage } from '../../lib/storage';
+import { Camera, Scissors, Smile, Meh, Frown, Heart } from 'lucide-react';
+import { CloudinaryImageUploader } from './CloudinaryImageUploader';
 
 interface QuickActionSheetProps {
   onActionComplete: (msg: string) => void;
@@ -44,6 +46,12 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
   const [expenseCategory, setExpenseCategory] = useState<any>('food');
 
   const [noteText, setNoteText] = useState('');
+
+  // Memory & Socialization quick states
+  const [memoryTitle, setMemoryTitle] = useState('');
+  const [memoryPhotoUrl, setMemoryPhotoUrl] = useState('');
+  const [memoryNotes, setMemoryNotes] = useState('');
+  const [socialItems, setSocialItems] = useState(() => storage.getSocialization().filter(s => s.status === 'unexposed').slice(0, 4));
 
   const activePuppy = storage.getActivePuppy();
   if (!activePuppy) return null;
@@ -151,6 +159,30 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
     onActionComplete(`Saved observation for ${activePuppy.name}`);
   };
 
+  const handleSaveMemory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!memoryTitle.trim()) return;
+    storage.addJournalEntry({
+      puppyId: activePuppy.id,
+      title: memoryTitle.trim(),
+      notes: memoryNotes.trim(),
+      mediaUrl: memoryPhotoUrl || undefined,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      milestoneBadge: 'Memory'
+    });
+    setActiveModal(null);
+    setMemoryTitle('');
+    setMemoryPhotoUrl('');
+    setMemoryNotes('');
+    onActionComplete(`Saved memory photo for ${activePuppy.name} 📸`);
+  };
+
+  const handleMarkSocial = (itemId: string, status: 'positive' | 'neutral' | 'needs_work') => {
+    storage.updateSocializationStatus(itemId, status);
+    setSocialItems(prev => prev.filter(s => s.id !== itemId));
+    onActionComplete(`Logged socialization experience! 🐾`);
+  };
+
   const actions = [
     {
       id: 'potty',
@@ -200,6 +232,24 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       icon: <FileText className="w-5 h-5 text-purple-600" />,
       bg: 'bg-purple-50 hover:bg-purple-100 border-purple-200/60',
       action: () => { setIsOpen(false); setActiveModal('note'); }
+    },
+    {
+      id: 'memory',
+      label: 'Snap Memory',
+      icon: <Camera className="w-5 h-5 text-pink-600" />,
+      bg: 'bg-pink-50 hover:bg-pink-100 border-pink-200/60',
+      action: () => { setIsOpen(false); setActiveModal('memory'); }
+    },
+    {
+      id: 'social',
+      label: 'Socialize',
+      icon: <Scissors className="w-5 h-5 text-purple-600" />,
+      bg: 'bg-purple-50 hover:bg-purple-100 border-purple-200/60',
+      action: () => { 
+        setSocialItems(storage.getSocialization().filter(s => s.status === 'unexposed').slice(0, 4));
+        setIsOpen(false); 
+        setActiveModal('social'); 
+      }
     }
   ];
 
@@ -608,6 +658,140 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Snap Memory Photo Modal */}
+      <Modal
+        isOpen={activeModal === 'memory'}
+        onClose={() => setActiveModal(null)}
+        title={`Snap Memory for ${activePuppy.name}`}
+        subtitle="Save milestone moments and photos to your Journal"
+      >
+        <form onSubmit={handleSaveMemory} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              Memory Photo
+            </label>
+            <CloudinaryImageUploader
+              folder="puplume/journal"
+              currentImageUrl={memoryPhotoUrl}
+              onUploadSuccess={(url) => setMemoryPhotoUrl(url)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              Milestone / Caption
+            </label>
+            <input
+              type="text"
+              required
+              value={memoryTitle}
+              onChange={(e) => setMemoryTitle(e.target.value)}
+              placeholder="e.g. First time splashing in the park puddle!"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              Notes (Optional)
+            </label>
+            <textarea
+              rows={2}
+              value={memoryNotes}
+              onChange={(e) => setMemoryNotes(e.target.value)}
+              placeholder="How did they react? Any special details?"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setActiveModal(null)} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1">
+              Save Memory 📸
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* 1-Tap Socialization Experience Modal */}
+      <Modal
+        isOpen={activeModal === 'social'}
+        onClose={() => setActiveModal(null)}
+        title={`Socialization Check for ${activePuppy.name}`}
+        subtitle="12-Week fear-free exposure checklist"
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-[#766A63]">
+            Record how {activePuppy.name} reacts to new surfaces, sounds, and people:
+          </p>
+
+          {socialItems.length === 0 ? (
+            <div className="text-center py-6">
+              <Check className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+              <p className="text-xs font-bold text-[#2C211B]">All priority exposures logged!</p>
+              <p className="text-[11px] text-[#766A63]">Visit the full Socialization view for more.</p>
+            </div>
+          ) : (
+            socialItems.map((item) => (
+              <div 
+                key={item.id}
+                className="p-3 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between gap-2"
+              >
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-[#2C211B] truncate">{item.title || item.name}</h4>
+                  <span className="text-[10px] text-[#766A63] uppercase tracking-wider font-semibold">
+                    {item.category}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleMarkSocial(item.id, 'positive')}
+                    className="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center gap-1 border border-emerald-200 transition-colors cursor-pointer"
+                    title="Positive reaction"
+                  >
+                    <Smile className="w-4 h-4" />
+                    <span className="text-[10px]">Loved</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMarkSocial(item.id, 'neutral')}
+                    className="p-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold flex items-center gap-1 border border-amber-200 transition-colors cursor-pointer"
+                    title="Neutral reaction"
+                  >
+                    <Meh className="w-4 h-4" />
+                    <span className="text-[10px]">Okay</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMarkSocial(item.id, 'needs_work')}
+                    className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1 border border-rose-200 transition-colors cursor-pointer"
+                    title="Needs more gentle exposure"
+                  >
+                    <Frown className="w-4 h-4" />
+                    <span className="text-[10px]">Wary</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+
+          <div className="pt-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setActiveModal(null)} 
+              className="w-full text-xs"
+            >
+              Done
+            </Button>
+          </div>
+        </div>
       </Modal>
     </>
   );

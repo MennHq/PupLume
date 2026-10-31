@@ -65,7 +65,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
   });
 
   const [groomingItems, setGroomingItems] = useState<GroomingItem[]>(() => {
-    const fromStorage = storage.getGroomingTasks();
+    const fromStorage = storage.getGroomingTasks(puppy.id);
     return fromStorage.map(g => ({
       id: g.id,
       name: g.label,
@@ -84,6 +84,17 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
   const [newGroomFreqDays, setNewGroomFreqDays] = useState('3');
 
   useEffect(() => {
+    const fromGroom = storage.getGroomingTasks(puppy.id);
+    setGroomingItems(fromGroom.map(g => ({
+      id: g.id,
+      name: g.label,
+      frequency: `Every ${g.frequencyDays} days`,
+      lastDone: g.lastDone ? new Date(g.lastDone).toLocaleDateString() : 'Not yet logged',
+      cooperativeLevel: 'comfort'
+    })));
+  }, [puppy.id]);
+
+  useEffect(() => {
     return storage.subscribe(() => {
       const fromSocial = storage.getSocialization();
       setSocialItems(fromSocial.map(s => ({
@@ -94,7 +105,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
         notes: s.notes
       })));
 
-      const fromGroom = storage.getGroomingTasks();
+      const fromGroom = storage.getGroomingTasks(puppy.id);
       setGroomingItems(fromGroom.map(g => ({
         id: g.id,
         name: g.label,
@@ -103,7 +114,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
         cooperativeLevel: 'comfort'
       })));
     });
-  }, []);
+  }, [puppy.id]);
 
   const handleCycleSocial = (id: string) => {
     const item = socialItems.find(i => i.id === id);

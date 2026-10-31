@@ -1,36 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { WifiOff, RotateCw, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { WifiOff, RotateCw, AlertTriangle, CheckCircle2, ChevronRight, CloudUpload } from 'lucide-react';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { OfflinePageModal } from './OfflinePageModal';
+import { offlineQueue } from '../../lib/offlineQueue';
 
 export const OfflineAlert: React.FC = () => {
   const { isOnline, isChecking, wasOffline, checkConnection } = useNetworkStatus();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showReconnectedToast, setShowReconnectedToast] = useState(false);
-  const [hasPromptedModal, setHasPromptedModal] = useState(false);
+  const [flushedCount, setFlushedCount] = useState<number | null>(null);
+  const [queuedCount, setQueuedCount] = useState<number>(() => offlineQueue.getCount());
+
+  // Listen to offline mutation queue changes
+  useEffect(() => {
+    return offlineQueue.subscribe((count) => {
+      setQueuedCount(count);
+    });
+  }, []);
+
+  // Listen to queue flushed event
+  useEffect(() => {
+    const handleFlushed = (e: any) => {
+      const count = e.detail?.count || 0;
+      if (count > 0) {
+        setFlushedCount(count);
+        setShowReconnectedToast(true);
+        const timer = setTimeout(() => {
+          setShowReconnectedToast(false);
+          setFlushedCount(null);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener('offline-queue-flushed', handleFlushed);
+    return () => window.removeEventListener('offline-queue-flushed', handleFlushed);
+  }, []);
 
   // If reconnected after being offline, show brief reassuring toast
   useEffect(() => {
-    if (isOnline && wasOffline) {
+    if (isOnline && wasOffline && !flushedCount) {
       setShowReconnectedToast(true);
       const timer = setTimeout(() => {
         setShowReconnectedToast(false);
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [isOnline, wasOffline]);
+  }, [isOnline, wasOffline, flushedCount]);
 
-  // When connection drops, prompt once and keep banner visible
-  useEffect(() => {
-    if (!isOnline && !hasPromptedModal) {
-      setHasPromptedModal(true);
-    }
-  }, [isOnline, hasPromptedModal]);
-
-  // When back online, reset modal prompt so if network drops again, it works
+  // When back online, reset modal
   useEffect(() => {
     if (isOnline) {
-      setHasPromptedModal(false);
       setIsModalOpen(false);
     }
   }, [isOnline]);
@@ -43,12 +63,16 @@ export const OfflineAlert: React.FC = () => {
         className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xl animate-in fade-in slide-in-from-top-3 duration-300"
       >
         <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-        <span>Internet connection restored — PupLume is online</span>
+        <span>
+          {flushedCount && flushedCount > 0 
+            ? `Internet restored — Synced ${flushedCount} offline change${flushedCount > 1 ? 's' : ''} to PupLume Cloud!`
+            : 'Internet connection restored — PupLume is online'}
+        </span>
       </aside>
     );
   }
 
-  // 2. Strict requirement: SHOW THIS ONLY WHEN THE USER IS OFFLINE
+  // 2. SHOW THIS ONLY WHEN THE USER IS OFFLINE
   if (isOnline) {
     return null;
   }
@@ -75,14 +99,23 @@ export const OfflineAlert: React.FC = () => {
 
             <div className="flex items-center gap-1.5 flex-wrap">
               <strong className="font-bold text-white tracking-wide">
-                No Internet Connection:
+                Offline Mode:
               </strong>
               <span className="text-[#F5EAE0]">
-                Fully disconnected. Please try to connect with the internet.
+                {queuedCount > 0 
+                  ? `${queuedCount} change${queuedCount > 1 ? 's' : ''} safely queued in offline storage.`
+                  : 'You are currently disconnected. All data is cached locally.'}
               </span>
-              <span className="hidden md:inline text-[11px] bg-white/15 px-2 py-0.5 rounded-full text-amber-200 font-medium">
-                Using cached data
-              </span>
+              {queuedCount > 0 ? (
+                <span className="inline-flex items-center gap-1 text-[11px] bg-amber-400/20 text-amber-200 px-2 py-0.5 rounded-full font-semibold border border-amber-300/30">
+                  <CloudUpload className="w-3 h-3 text-amber-300" />
+                  Auto-syncs on reconnect
+                </span>
+              ) : (
+                <span className="hidden md:inline text-[11px] bg-white/15 px-2 py-0.5 rounded-full text-amber-200 font-medium">
+                  Offline safe
+                </span>
+              )}
             </div>
           </div>
 
@@ -109,7 +142,7 @@ export const OfflineAlert: React.FC = () => {
         </div>
       </aside>
 
-      {/* Full-Feature Professional Offline Page Modal */}
+      {/* Troubleshooting Modal */}
       <OfflinePageModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -90,6 +90,28 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       const birthDate = new Date(puppy.birthDate);
       const ageWeeks = Math.max(1, Math.floor((new Date().getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
 
+      const pLogs = storage.getPottyLogs(puppy.id);
+      const outdoorCount = pLogs.filter(l => l.location === 'outdoor' || l.location === 'pad').length;
+      const recentPottySummary = pLogs.length > 0 
+        ? `${Math.round((outdoorCount / pLogs.length) * 100)}% outdoor reliability, ${pLogs.length} logs recorded`
+        : 'No potty logs recorded yet';
+
+      const pupTasks = storage.getTasks(puppy.id);
+      const pendingTasks = pupTasks.filter(t => !t.completed && !t.skipped);
+      const upcomingTasks = pendingTasks.length > 0
+        ? pendingTasks.slice(0, 3).map(t => `${t.title} (${t.time})`).join(', ')
+        : 'All today tasks completed';
+
+      const apts = storage.getAppointments(puppy.id);
+      const nextApt = apts.find(a => a.status === 'scheduled');
+      const vacs = storage.getVaccinations(puppy.id);
+      const nextVac = vacs.find(v => v.status === 'due_soon');
+      const upcomingVet = nextApt
+        ? `${nextApt.title} on ${nextApt.date} at ${nextApt.clinic}`
+        : nextVac
+        ? `Vaccine due: ${nextVac.vaccineName} (${nextVac.nextDueDate})`
+        : `${puppy.vetClinic || 'No upcoming vet appointments'}`;
+
       const payload = {
         userId: user?.id,
         message: text,
@@ -97,13 +119,13 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
           name: puppy.name,
           breed: puppy.breed,
           ageWeeks,
-birthDate: puppy.birthDate,
+          birthDate: puppy.birthDate,
           weightLbs: puppy.weightLbs,
           temperament: puppy.temperament,
-          recentPottySummary: '86% outdoor reliability, 3 outdoor logs today, 1 indoor slip yesterday',
-          recentSleepSummary: '8.5h uninterrupted night sleep, 1.5h morning nap',
-          upcomingTasks: 'Recall Training at 10:30 AM, Sniff walk at 11:00 AM',
-          upcomingVet: 'Puppy 16-Week Booster & Rabies Exam on Oct 12 with Dr. Vance at City Vet',
+          recentPottySummary,
+          recentSleepSummary: 'Normal puppy sleep schedule',
+          upcomingTasks,
+          upcomingVet,
           longTermMemories: memoriesList
         }
       };
@@ -157,15 +179,15 @@ birthDate: puppy.birthDate,
         const event = new CustomEvent('navigate', { detail: { view: tab } });
         window.dispatchEvent(event);
       }
-      setExecutedActions(prev => new Set([...prev, action.id]));
+      setExecutedActions(prev => ({ ...prev, [action.id]: true }));
       if (onActionTriggered) onActionTriggered(`Navigating to ${tab}...`);
       return;
     }
 
 
     if (action.type === 'CREATE_TASK') {
-      // Navigate to plan view
-      window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'plan' } }));
+      // Navigate to tasks view
+      window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'tasks' } }));
       // Tell TasksView to open the Add modal with prefilled data
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('open-add-task', { 

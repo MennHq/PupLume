@@ -131,9 +131,8 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 10,
     tips: ['Throw an outdoor potty party! Give treats outside immediately, not after walking back indoors.'],
     commonMistakes: ['Playing first before pottying.', 'Waiting until puppy whines at the door (they don’t know how yet).'],
-    completed: true,
+    completed: false,
     mastered: false,
-    lastPracticed: '2026-09-21'
   },
   {
     id: 'house-2',
@@ -150,9 +149,8 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 5,
     tips: ['Enzymatic spray needs 10 minutes of dwell time to fully neutralize odor.'],
     commonMistakes: ['Rubbing puppy’s nose in accident (cruel and medically ineffective).'],
-    completed: true,
-    mastered: true,
-    lastPracticed: '2026-09-19'
+    completed: false,
+    mastered: false,
   },
 
   // 3. Behavior & Mouthing
@@ -171,9 +169,8 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 5,
     tips: ['If puppy is in over-aroused "shark mode", they are almost always overtired and need a crate nap.'],
     commonMistakes: ['Pulling hand away fast in a game of chase.', 'Screaming high-pitched, which excites prey drive.'],
-    completed: true,
+    completed: false,
     mastered: false,
-    lastPracticed: '2026-09-21'
   },
   {
     id: 'behav-2',
@@ -229,9 +226,8 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 10,
     tips: ['Cover top and sides with a breathable blanket for dark den feel.'],
     commonMistakes: ['Using crate as a punishment or time-out.', 'Shoving puppy in by force.'],
-    completed: true,
-    mastered: true,
-    lastPracticed: '2026-09-20'
+    completed: false,
+    mastered: false,
   },
   {
     id: 'crate-2',
@@ -269,9 +265,8 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 8,
     tips: ['Use a Y-shaped front/back clip harness to protect growing throat and trachea.'],
     commonMistakes: ['Using choke chains, prong collars, or retractable flexi-leashes on young puppies.'],
-    completed: true,
-    mastered: true,
-    lastPracticed: '2026-09-18'
+    completed: false,
+    mastered: false,
   },
   {
     id: 'walk-2',
@@ -309,8 +304,7 @@ export const INITIAL_TRAINING_CURRICULUM: TrainingLesson[] = [
     durationMin: 10,
     tips: ['Never force puppy to approach. Let them explore at their own chosen speed.'],
     commonMistakes: ['Overwhelming the puppy with too loud sounds or crowded places too early.'],
-    completed: true,
+    completed: false,
     mastered: false,
-    lastPracticed: '2026-09-20'
   }
 ];

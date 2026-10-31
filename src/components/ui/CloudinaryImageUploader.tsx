@@ -50,7 +50,12 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
     setPreviewUrl(objectUrl);
 
     try {
-      const result = await uploadImageToCloudinary(file, { folder });
+      // Pass previousImageUrl so Cloudinary cleans up the old image automatically
+      const previousTarget = currentImageUrl || (previewUrl && previewUrl.startsWith('http') ? previewUrl : undefined);
+      const result = await uploadImageToCloudinary(file, { 
+        folder, 
+        previousImageUrl: previousTarget 
+      });
       onUploadSuccess(result.url);
       setPreviewUrl(result.url);
     } catch (err: any) {

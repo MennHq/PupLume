@@ -21,14 +21,18 @@ interface PottyTrackerViewProps {
 }
 
 export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => {
-  const [logs, setLogs] = useState<PottyLog[]>(storage.getPottyLogs());
+  const [logs, setLogs] = useState<PottyLog[]>(() => storage.getPottyLogs(puppy.id));
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
   React.useEffect(() => {
+    setLogs(storage.getPottyLogs(puppy.id));
+  }, [puppy.id]);
+
+  React.useEffect(() => {
     return storage.subscribe(() => {
-      setLogs([...storage.getPottyLogs()]);
+      setLogs([...storage.getPottyLogs(puppy.id)]);
     });
-  }, []);
+  }, [puppy.id]);
 
 
   // Form states
@@ -38,14 +42,14 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
 
   // Quick 1-tap buttons
   const handleQuickLog = (type: 'pee' | 'poop' | 'both' | 'accident', loc: 'outdoor' | 'pad' | 'indoor_accident') => {
-    const newLog = storage.addPottyLog({
+    storage.addPottyLog({
       puppyId: puppy.id,
       type,
       location: loc,
       timestamp: new Date().toISOString(),
       notes: `${type.toUpperCase()} recorded via 1-tap tracker`
     });
-    setLogs(storage.getPottyLogs());
+    setLogs(storage.getPottyLogs(puppy.id));
   };
 
   const handleCreateLog = (e: React.FormEvent) => {
@@ -57,14 +61,14 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
       timestamp: new Date().toISOString(),
       notes
     });
-    setLogs(storage.getPottyLogs());
+    setLogs(storage.getPottyLogs(puppy.id));
     setIsLogModalOpen(false);
     setNotes('');
   };
 
   const handleDeleteLog = (id: string) => {
     storage.deletePottyLog(id);
-    setLogs(storage.getPottyLogs());
+    setLogs(storage.getPottyLogs(puppy.id));
   };
 
   const outdoorCount = logs.filter(l => l.location === 'outdoor' || l.location === 'pad').length;

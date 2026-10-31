@@ -11,7 +11,20 @@ import {
   ExternalLink,
   Cloud,
   CheckCircle2,
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Sparkles,
+  Dog,
+  Clock,
+  Moon,
+  Volume2,
+  VolumeX,
+  Sliders,
+  Calendar,
+  Zap,
+  Info,
+  Copy,
+  User,
+  Key
 } from 'lucide-react';
 import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';
@@ -34,7 +47,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   const [feedingAlerts, setFeedingAlerts] = useState(initialSettings.feedingAlerts);
   const [trainingAlerts, setTrainingAlerts] = useState(initialSettings.trainingAlerts);
   const [medAlerts, setMedAlerts] = useState(initialSettings.medAlerts);
+  const [taskAlerts, setTaskAlerts] = useState(initialSettings.taskAlerts !== false);
   const [units, setUnits] = useState<'imperial' | 'metric'>(initialSettings.units);
+  const [chimeSound, setChimeSound] = useState(initialSettings.chimeSound !== false);
+  const [pottyIntervalMode, setPottyIntervalMode] = useState<'age_dynamic' | 'custom'>(
+    initialSettings.pottyIntervalMode || 'age_dynamic'
+  );
+  const [pottyCustomIntervalHours, setPottyCustomIntervalHours] = useState(
+    initialSettings.pottyCustomIntervalHours || 2.5
+  );
+  const [quietHoursEnabled, setQuietHoursEnabled] = useState(
+    initialSettings.quietHoursEnabled !== false
+  );
+  const [quietHoursStart, setQuietHoursStart] = useState(initialSettings.quietHoursStart || '22:00');
+  const [quietHoursEnd, setQuietHoursEnd] = useState(initialSettings.quietHoursEnd || '07:00');
+  const [taskAdvanceMinutes, setTaskAdvanceMinutes] = useState(
+    initialSettings.taskAdvanceMinutes !== undefined ? initialSettings.taskAdvanceMinutes : 15
+  );
+  const [headsUpDurationSec, setHeadsUpDurationSec] = useState(
+    initialSettings.headsUpDurationSec || 12
+  );
+  const [snoozeDurationMin, setSnoozeDurationMin] = useState(
+    initialSettings.snoozeDurationMin || 15
+  );
   const [isSaved, setIsSaved] = useState(false);
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -55,6 +90,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
 
   const [userName, setUserName] = useState(user?.firstName || user?.fullName || '');
   const [isUpdatingName, setIsUpdatingName] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   React.useEffect(() => {
     if (user && !userName) setUserName(user.firstName || user.fullName || '');
@@ -71,7 +107,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
       setFeedingAlerts(s.feedingAlerts);
       setTrainingAlerts(s.trainingAlerts);
       setMedAlerts(s.medAlerts);
+      setTaskAlerts(s.taskAlerts !== false);
       setUnits(s.units);
+      setChimeSound(s.chimeSound !== false);
+      setPottyIntervalMode(s.pottyIntervalMode || 'age_dynamic');
+      setPottyCustomIntervalHours(s.pottyCustomIntervalHours || 2.5);
+      setQuietHoursEnabled(s.quietHoursEnabled !== false);
+      setQuietHoursStart(s.quietHoursStart || '22:00');
+      setQuietHoursEnd(s.quietHoursEnd || '07:00');
+      setTaskAdvanceMinutes(s.taskAdvanceMinutes !== undefined ? s.taskAdvanceMinutes : 15);
+      setHeadsUpDurationSec(s.headsUpDurationSec || 12);
+      setSnoozeDurationMin(s.snoozeDurationMin || 15);
     });
   }, []);
 
@@ -129,8 +175,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
       feedingAlerts,
       trainingAlerts,
       medAlerts,
+      taskAlerts,
       units,
       activePuppyId: puppy.id,
+      chimeSound,
+      pottyIntervalMode,
+      pottyCustomIntervalHours,
+      quietHoursEnabled,
+      quietHoursStart,
+      quietHoursEnd,
+      taskAdvanceMinutes,
+      headsUpDurationSec,
+      snoozeDurationMin,
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
@@ -214,12 +270,69 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         </p>
       </div>
 
-      {/* User Profile */}
-      <div className="p-6 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-4">
-        <h3 className="text-sm font-bold text-[#2C211B] flex items-center gap-2">
-          <Smartphone className="w-4 h-4 text-[#8B5E3C]" />
-          Your Profile
-        </h3>
+      {/* User Profile & Account ID */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#2C211B] flex items-center gap-2">
+            <User className="w-4 h-4 text-[#8B5E3C]" />
+            Your Profile & Account Identity
+          </h3>
+          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${
+            user?.id 
+              ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+              : 'text-amber-700 bg-amber-50 border-amber-200'
+          }`}>
+            <CheckCircle2 className="w-3 h-3" />
+            {user?.id ? 'Clerk & Convex Synced' : 'Guest / Local Device'}
+          </span>
+        </div>
+
+        {/* User ID Section */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#2C211B] uppercase tracking-wider flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5 text-[#8B5E3C]" />
+              Unique User ID
+            </span>
+            {user?.primaryEmailAddress && (
+              <span className="text-[11px] text-[#766A63] font-medium">
+                {user.primaryEmailAddress.emailAddress}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 px-3 py-2 bg-white rounded-xl border border-[#E8DDD3] font-mono text-xs text-[#5F3E29] select-all overflow-x-auto">
+              {user?.id || storage.getCurrentUserId() || 'local-device-user'}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const idToCopy = user?.id || storage.getCurrentUserId() || 'local-device-user';
+                navigator.clipboard.writeText(idToCopy);
+                setCopiedId(true);
+                setTimeout(() => setCopiedId(false), 2000);
+              }}
+              className="px-3 py-2 rounded-xl border border-[#E8DDD3] bg-white hover:bg-[#F3E7DA] text-xs font-bold text-[#5F3E29] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+              title="Copy User ID to clipboard"
+            >
+              {copiedId ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
+                  <span className="text-emerald-700">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                  <span>Copy ID</span>
+                </>
+              )}
+            </button>
+          </div>
+          <p className="text-[11px] text-[#766A63]">
+            This is your unique account identifier across PupLume, Clerk Auth, and Convex cloud database.
+          </p>
+        </div>
+
         <div>
           <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
             Your Name (Owner)
@@ -241,55 +354,402 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         </div>
       </div>
 
-      {/* Smart Notifications */}
-      <div className="p-6 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-4">
-        <h3 className="text-sm font-bold text-[#2C211B] flex items-center gap-2">
-          <Bell className="w-4 h-4 text-[#8B5E3C]" />
-          Smart Reminder Notifications
-        </h3>
-
-        {/* Native Web Push Notification Permission Banner */}
-        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Smart Notifications Studio */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8DDD3]/60 pb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-xs font-bold text-[#2C211B]">System Push Notifications</h4>
-              {pushPermission === 'granted' ? (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Active
-                </span>
-              ) : pushPermission === 'denied' ? (
-                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                  Blocked in Browser
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                  Permission Needed
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-[#766A63] mt-0.5">
-              Receive alert sounds and desktop/phone popups 15 minutes before tasks and potty breaks.
+            <h3 className="text-base font-extrabold text-[#2C211B] flex items-center gap-2">
+              <Bell className="w-5 h-5 text-[#8B5E3C]" />
+              Smart Notification Studio
+            </h3>
+            <p className="text-xs text-[#766A63] mt-0.5">
+              Customize potty calculation rules, routine task timing, quiet hours, and alert behavior.
             </p>
           </div>
-
-          {pushPermission !== 'granted' && (
+          {pushPermission === 'granted' ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                await notificationEngine.testNotification();
+                showStatus('Test alert triggered in-app!');
+              }}
+              className="text-xs whitespace-nowrap self-start sm:self-center shrink-0 cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5 mr-1 text-amber-600" />
+              Preview Alert
+            </Button>
+          ) : (
             <Button
               size="sm"
               variant="primary"
               onClick={handleRequestPush}
-              className="text-xs whitespace-nowrap shrink-0"
+              className="text-xs whitespace-nowrap self-start sm:self-center shrink-0 cursor-pointer"
             >
               Enable Notifications
             </Button>
           )}
         </div>
 
-        <div className="space-y-3">
+        {/* 1. Smart Potty Cadence Calculation */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#8B5E3C]/10 text-[#8B5E3C] flex items-center justify-center font-bold text-sm">
+                🐾
+              </div>
+              <div>
+                <h4 className="text-xs font-extrabold text-[#2C211B]">
+                  Potty Reminder Calculation Rule
+                </h4>
+                <p className="text-[11px] text-[#766A63]">
+                  Choose how PupLume calculates bathroom break intervals for {puppy.name}.
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-[#8B5E3C] bg-white px-2 py-0.5 rounded-full border border-[#E8DDD3]">
+              {pottyIntervalMode === 'age_dynamic' ? 'Dynamic' : `${pottyCustomIntervalHours}h Fixed`}
+            </span>
+          </div>
+
+          {/* Mode Selector Tabs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setPottyIntervalMode('age_dynamic');
+                storage.saveSettings({ ...storage.getSettings(), pottyIntervalMode: 'age_dynamic' });
+              }}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                pottyIntervalMode === 'age_dynamic'
+                  ? 'bg-white border-[#8B5E3C] shadow-xs ring-1 ring-[#8B5E3C]'
+                  : 'bg-[#FAF6F0] border-[#E8DDD3] hover:bg-white text-[#766A63]'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#2C211B]">🐾 Veterinary Age-Dynamic</span>
+                {pottyIntervalMode === 'age_dynamic' && <Check className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+              </div>
+              <p className="text-[11px] text-[#766A63] mt-1 leading-tight">
+                Standard vet rule: 1 hour bladder capacity per month of age.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setPottyIntervalMode('custom');
+                storage.saveSettings({ ...storage.getSettings(), pottyIntervalMode: 'custom' });
+              }}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                pottyIntervalMode === 'custom'
+                  ? 'bg-white border-[#8B5E3C] shadow-xs ring-1 ring-[#8B5E3C]'
+                  : 'bg-[#FAF6F0] border-[#E8DDD3] hover:bg-white text-[#766A63]'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#2C211B]">⏱ Custom Fixed Interval</span>
+                {pottyIntervalMode === 'custom' && <Check className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+              </div>
+              <p className="text-[11px] text-[#766A63] mt-1 leading-tight">
+                Select a fixed hour cadence regardless of puppy age.
+              </p>
+            </button>
+          </div>
+
+          {/* If Custom: Hours Selector */}
+          {pottyIntervalMode === 'custom' ? (
+            <div className="pt-2 border-t border-[#E8DDD3]/60 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-[#2C211B]">Remind every:</span>
+              {[1.5, 2, 2.5, 3, 4].map((hours) => (
+                <button
+                  key={hours}
+                  type="button"
+                  onClick={() => {
+                    setPottyCustomIntervalHours(hours);
+                    storage.saveSettings({ ...storage.getSettings(), pottyCustomIntervalHours: hours });
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    pottyCustomIntervalHours === hours
+                      ? 'bg-[#8B5E3C] text-white shadow-xs'
+                      : 'bg-white border border-[#E8DDD3] text-[#2C211B] hover:bg-[#FAF6F0]'
+                  }`}
+                >
+                  {hours} hrs
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3]/80 flex items-center gap-2 text-[11px] text-[#766A63]">
+              <Info className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                Based on <strong>{puppy.name}</strong>&apos;s age, the estimated bladder window is ~<strong>2.5 hours</strong>. Alerts adapt automatically as your pup grows!
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Task Advance Notice & Timing */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-xl bg-[#8B5E3C]/10 text-[#8B5E3C] flex items-center justify-center font-bold text-sm">
+              <Clock className="w-4 h-4 text-[#8B5E3C]" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-[#2C211B]">
+                Routine Schedule Task Advance Notice
+              </h4>
+              <p className="text-[11px] text-[#766A63]">
+                How far in advance to alert you before scheduled walks, meals, and tasks:
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {[
+              { val: 0, label: 'At start (0m)' },
+              { val: 5, label: '5m before' },
+              { val: 10, label: '10m before' },
+              { val: 15, label: '15m before (Recommended)' },
+              { val: 30, label: '30m before' },
+            ].map(({ val, label }) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => {
+                  setTaskAdvanceMinutes(val);
+                  storage.saveSettings({ ...storage.getSettings(), taskAdvanceMinutes: val });
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  taskAdvanceMinutes === val
+                    ? 'bg-[#8B5E3C] text-white shadow-xs'
+                    : 'bg-white border border-[#E8DDD3] text-[#2C211B] hover:bg-[#FAF6F0]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Quiet Hours (Sleep Schedule) */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <Moon className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <h4 className="text-xs font-extrabold text-[#2C211B]">
+                  Quiet Hours (Sleep Schedule)
+                </h4>
+                <p className="text-[11px] text-[#766A63]">
+                  Mutes routine reminders during your puppy&apos;s nighttime sleep.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const next = !quietHoursEnabled;
+                setQuietHoursEnabled(next);
+                storage.saveSettings({ ...storage.getSettings(), quietHoursEnabled: next });
+              }}
+              className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 ${
+                quietHoursEnabled ? 'bg-[#8B5E3C]' : 'bg-[#E8DDD3]'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                  quietHoursEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {quietHoursEnabled && (
+            <div className="pt-2 border-t border-[#E8DDD3]/60 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#766A63]">Mute from:</span>
+                <input
+                  type="time"
+                  value={quietHoursStart}
+                  onChange={(e) => {
+                    setQuietHoursStart(e.target.value);
+                    storage.saveSettings({ ...storage.getSettings(), quietHoursStart: e.target.value });
+                  }}
+                  className="px-2.5 py-1 bg-white border border-[#E8DDD3] rounded-lg text-xs font-bold text-[#2C211B] focus:outline-none focus:ring-1 focus:ring-[#8B5E3C]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#766A63]">Until:</span>
+                <input
+                  type="time"
+                  value={quietHoursEnd}
+                  onChange={(e) => {
+                    setQuietHoursEnd(e.target.value);
+                    storage.saveSettings({ ...storage.getSettings(), quietHoursEnd: e.target.value });
+                  }}
+                  className="px-2.5 py-1 bg-white border border-[#E8DDD3] rounded-lg text-xs font-bold text-[#2C211B] focus:outline-none focus:ring-1 focus:ring-[#8B5E3C]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 4. In-App Heads-Up Card Behavior & Chime Audio */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Volume2 className="w-4 h-4 text-amber-700" />
+              </div>
+              <div>
+                <h4 className="text-xs font-extrabold text-[#2C211B]">
+                  Audio Chime & In-App Card Duration
+                </h4>
+                <p className="text-[11px] text-[#766A63]">
+                  Fine-tune in-app Heads-Up popup timing and gentle notification sounds.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const next = !chimeSound;
+                setChimeSound(next);
+                storage.saveSettings({ ...storage.getSettings(), chimeSound: next });
+              }}
+              className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 ${
+                chimeSound ? 'bg-[#8B5E3C]' : 'bg-[#E8DDD3]'
+              }`}
+              title={chimeSound ? 'Sound enabled' : 'Muted'}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                  chimeSound ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-[#E8DDD3]/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span className="text-[11px] font-bold text-[#766A63] block mb-1.5">
+                Heads-Up Banner Auto-Dismiss:
+              </span>
+              <div className="flex gap-1.5">
+                {[8, 12, 15, 20].map((sec) => (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => {
+                      setHeadsUpDurationSec(sec);
+                      storage.saveSettings({ ...storage.getSettings(), headsUpDurationSec: sec });
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      headsUpDurationSec === sec
+                        ? 'bg-[#8B5E3C] text-white shadow-xs'
+                        : 'bg-white border border-[#E8DDD3] text-[#2C211B]'
+                    }`}
+                  >
+                    {sec}s
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] font-bold text-[#766A63] block mb-1.5">
+                Snooze Duration:
+              </span>
+              <div className="flex gap-1.5">
+                {[10, 15, 30].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => {
+                      setSnoozeDurationMin(mins);
+                      storage.saveSettings({ ...storage.getSettings(), snoozeDurationMin: mins });
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      snoozeDurationMin === mins
+                        ? 'bg-[#8B5E3C] text-white shadow-xs'
+                        : 'bg-white border border-[#E8DDD3] text-[#2C211B]'
+                    }`}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. Notification Category Toggles */}
+        <div className="space-y-2.5 pt-1">
+          <h4 className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+            Active Alert Categories
+          </h4>
           {[
-            { id: 'potty', label: 'Predictive Potty Countdowns', desc: 'Alerts 10 minutes before next estimated bladder threshold', state: pottyAlerts, set: setPottyAlerts },
-            { id: 'feeding', label: 'Scheduled Mealtime Reminders', desc: 'Morning, noon, and evening alerts to keep feeding times reliable', state: feedingAlerts, set: setFeedingAlerts },
-            { id: 'training', label: 'Daily 5-Minute Training Drills', desc: 'Micro-session nudges when puppy is refreshed after nap', state: trainingAlerts, set: setTrainingAlerts },
-            { id: 'meds', label: 'Preventatives & Booster Notices', desc: 'Monthly heartworm/flea chews and clinic appointment reminders', state: medAlerts, set: setMedAlerts }
+            { 
+              id: 'potty', 
+              label: '🐾 Predictive Potty Breaks', 
+              desc: 'Countdowns to estimated bladder thresholds so you catch bathroom breaks on time', 
+              state: pottyAlerts, 
+              toggle: () => {
+                const next = !pottyAlerts;
+                setPottyAlerts(next);
+                storage.saveSettings({ ...storage.getSettings(), pottyAlerts: next });
+              } 
+            },
+            { 
+              id: 'tasks', 
+              label: '📋 Daily Routine & Schedule Tasks', 
+              desc: 'Reminders for scheduled crate times, walks, grooming, and play routines', 
+              state: taskAlerts, 
+              toggle: () => {
+                const next = !taskAlerts;
+                setTaskAlerts(next);
+                storage.saveSettings({ ...storage.getSettings(), taskAlerts: next });
+              } 
+            },
+            { 
+              id: 'feeding', 
+              label: '🍲 Scheduled Mealtime Reminders', 
+              desc: 'Breakfast, lunch, and dinner alerts to maintain reliable metabolic rhythms', 
+              state: feedingAlerts, 
+              toggle: () => {
+                const next = !feedingAlerts;
+                setFeedingAlerts(next);
+                storage.saveSettings({ ...storage.getSettings(), feedingAlerts: next });
+              } 
+            },
+            { 
+              id: 'training', 
+              label: '🎓 Daily Training Drills', 
+              desc: '5-minute micro-session nudges when puppy is refreshed after a nap', 
+              state: trainingAlerts, 
+              toggle: () => {
+                const next = !trainingAlerts;
+                setTrainingAlerts(next);
+                storage.saveSettings({ ...storage.getSettings(), trainingAlerts: next });
+              } 
+            },
+            { 
+              id: 'meds', 
+              label: '💊 Preventatives & Health Booster Notices', 
+              desc: 'Monthly heartworm/flea chews and clinic appointment reminders', 
+              state: medAlerts, 
+              toggle: () => {
+                const next = !medAlerts;
+                setMedAlerts(next);
+                storage.saveSettings({ ...storage.getSettings(), medAlerts: next });
+              } 
+            }
           ].map((item) => (
             <div key={item.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3]">
               <div>
@@ -298,8 +758,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
               </div>
               <button
                 type="button"
-                onClick={() => item.set(!item.state)}
-                className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 ${
+                onClick={item.toggle}
+                className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 shrink-0 ${
                   item.state ? 'bg-[#8B5E3C]' : 'bg-[#E8DDD3]'
                 }`}
               >

@@ -57,17 +57,23 @@ const generateGoogleCalendarUrl = (apt: VetAppointment) => {
 
 export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpdatePuppy }) => {
   const [activeTab, setActiveTab] = useState<'vaccines' | 'meds' | 'appointments' | 'weight'>('vaccines');
-  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(storage.getVaccinations());
-  const [medications, setMedications] = useState<MedicationRecord[]>(storage.getMedications());
-  const [appointments, setAppointments] = useState<VetAppointment[]>(storage.getAppointments());
+  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(() => storage.getVaccinations(puppy.id));
+  const [medications, setMedications] = useState<MedicationRecord[]>(() => storage.getMedications(puppy.id));
+  const [appointments, setAppointments] = useState<VetAppointment[]>(() => storage.getAppointments(puppy.id));
+
+  React.useEffect(() => {
+    setVaccinations(storage.getVaccinations(puppy.id));
+    setMedications(storage.getMedications(puppy.id));
+    setAppointments(storage.getAppointments(puppy.id));
+  }, [puppy.id]);
 
   React.useEffect(() => {
     return storage.subscribe(() => {
-      setVaccinations([...storage.getVaccinations()]);
-      setMedications([...storage.getMedications()]);
-      setAppointments([...storage.getAppointments()]);
+      setVaccinations([...storage.getVaccinations(puppy.id)]);
+      setMedications([...storage.getMedications(puppy.id)]);
+      setAppointments([...storage.getAppointments(puppy.id)]);
     });
-  }, []);
+  }, [puppy.id]);
 
   // Modals
   const [isEditVetOpen, setIsEditVetOpen] = useState(false);
@@ -153,7 +159,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       vetClinic: vacClinic || puppy.vetClinic || '',
       status: 'up_to_date'
     });
-    setVaccinations(storage.getVaccinations());
+    setVaccinations(storage.getVaccinations(puppy.id));
     setIsAddVacOpen(false);
     setVacName('');
     setVacDueDate('');
@@ -171,7 +177,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       startDate: new Date().toISOString().split('T')[0],
       active: true
     });
-    setMedications(storage.getMedications());
+    setMedications(storage.getMedications(puppy.id));
     setIsAddMedOpen(false);
     setMedName('');
   };
@@ -188,7 +194,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       reason: aptReason,
       status: 'scheduled'
     });
-    setAppointments(storage.getAppointments());
+    setAppointments(storage.getAppointments(puppy.id));
     setIsAddAptOpen(false);
     setAptTitle('');
   };
@@ -203,7 +209,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
   };
 
   const handleExportICS = () => {
-    const icsContent = storage.generateICSFile(puppy.name);
+    const icsContent = storage.generateICSFile(puppy.name, puppy.id);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

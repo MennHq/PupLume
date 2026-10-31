@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser } from "./authHelper";
 
 // Ephemeral Chat: aiMessages table was removed for privacy.
 
@@ -11,9 +12,7 @@ export const saveMemory = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     return await ctx.db.insert("memories", {
       userId,
@@ -31,12 +30,10 @@ export const deleteMemory = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const memory = await ctx.db.get(args.memoryId);
-    if (memory?.userId !== userId) throw new Error("Unauthorized");
+    if (!memory || memory.userId !== userId) throw new Error("Unauthorized");
 
     await ctx.db.delete(args.memoryId);
   }

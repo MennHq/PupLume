@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const getTrainingLessons = query({
   args: { 
@@ -7,8 +8,7 @@ export const getTrainingLessons = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     return await ctx.db
@@ -28,9 +28,7 @@ export const updateLessonStatus = mutation({
     lastPracticed: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const existing = await ctx.db
       .query("trainingLessons")
@@ -39,7 +37,10 @@ export const updateLessonStatus = mutation({
       )
       .first();
 
-    if (existing && (!userId || existing.userId === userId)) {
+    if (existing) {
+      if (existing.userId !== userId) {
+        throw new Error("Unauthorized to modify this lesson");
+      }
       await ctx.db.patch(existing._id, {
         completed: args.completed,
         mastered: args.mastered,

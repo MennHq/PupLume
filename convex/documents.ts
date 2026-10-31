@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const listDocuments = query({
   args: { 
@@ -7,8 +8,7 @@ export const listDocuments = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     return await ctx.db
@@ -31,9 +31,7 @@ export const addDocument = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const { userId: _, ...data } = args;
 
@@ -50,30 +48,27 @@ export const deleteDocument = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const normId = ctx.db.normalizeId("documents", args.id);
     if (normId) {
       const doc = await ctx.db.get(normId);
-      if (doc && (!userId || doc.userId === userId)) {
+      if (doc && doc.userId === userId) {
         await ctx.db.delete(normId);
         return normId;
       }
     }
 
-    if (userId) {
-      const doc = await ctx.db
-        .query("documents")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .filter((q) => q.eq(q.field("title"), args.id))
-        .first();
-      if (doc) {
-        await ctx.db.delete(doc._id);
-        return doc._id;
-      }
+    const doc = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("title"), args.id))
+      .first();
+    if (doc && doc.userId === userId) {
+      await ctx.db.delete(doc._id);
+      return doc._id;
     }
 
-    return null;
+    throw new Error("Document not found or unauthorized");
   },
 });

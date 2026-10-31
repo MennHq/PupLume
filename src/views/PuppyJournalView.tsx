@@ -15,20 +15,25 @@ import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
+import { deleteImageFromCloudinary } from '../lib/cloudinary';
 
 interface PuppyJournalViewProps {
   puppy: PuppyProfile;
 }
 
 export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => {
-  const [entries, setEntries] = useState(() => storage.getJournal());
+  const [entries, setEntries] = useState(() => storage.getJournal(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   React.useEffect(() => {
+    setEntries(storage.getJournal(puppy.id));
+  }, [puppy.id]);
+
+  React.useEffect(() => {
     return storage.subscribe(() => {
-      setEntries([...storage.getJournal()]);
+      setEntries([...storage.getJournal(puppy.id)]);
     });
-  }, []);
+  }, [puppy.id]);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -49,7 +54,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
       mediaUrl: photoUrl || undefined
     });
 
-    setEntries([...storage.getJournal()]);
+    setEntries([...storage.getJournal(puppy.id)]);
     setIsAddOpen(false);
     setTitle('');
     setBody('');
@@ -121,8 +126,12 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
                 <button
                   type="button"
                   onClick={() => {
+                    const media = entry.mediaUrl || (entry as any).photoUrl;
+                    if (media) {
+                      deleteImageFromCloudinary(media).catch(() => {});
+                    }
                     storage.deleteJournalEntry(entry.id);
-                    setEntries([...storage.getJournal()]);
+                    setEntries([...storage.getJournal(puppy.id)]);
                   }}
                   className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
                   title="Delete memory"

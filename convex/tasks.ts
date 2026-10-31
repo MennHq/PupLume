@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const listTasks = query({
   args: { 
@@ -8,8 +9,7 @@ export const listTasks = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     let q = ctx.db
@@ -38,11 +38,34 @@ export const createTask = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required to create task");
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    const hasPuppy = await ctx.db
+      .query("puppies")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (!hasPuppy) {
+      return null;
+    }
 
     const { userId: _, ...taskData } = args;
+
+    // Prevent duplicate tasks with the exact same title, date, and puppy
+    const existing = await ctx.db
+      .query("tasks")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("puppyId"), taskData.puppyId),
+          q.eq(q.field("title"), taskData.title),
+          q.eq(q.field("date"), taskData.date)
+        )
+      )
+      .first();
+
+    if (existing) {
+      return existing._id;
+    }
 
     return await ctx.db.insert("tasks", {
       ...taskData,
@@ -57,6 +80,7 @@ export const updateTask = mutation({
   args: {
     id: v.id("tasks"),
     userId: v.optional(v.string()),
+    puppyId: v.optional(v.string()),
     title: v.string(),
     category: v.string(),
     time: v.string(),
@@ -65,9 +89,7 @@ export const updateTask = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const task = await ctx.db.get(args.id);
     if (!task || task.userId !== userId) throw new Error("Not authorized");
@@ -87,27 +109,49 @@ export const toggleTask = mutation({
     completed: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     let task = null;
     if (args.id) {
       task = await ctx.db.get(args.id);
-    } else if (args.title && userId) {
-      task = await ctx.db
+      if (task && task.userId !== userId) {
+        throw new Error("Unauthorized: Task does not belong to user");
+      }
+    }
+    if (!task && args.title) {
+      const candidates = await ctx.db
         .query("tasks")
         .withIndex("by_user", (q) => q.eq("userId", userId))
         .filter((q) => q.eq(q.field("title"), args.title))
-        .first();
+        .collect();
+      task = (args.puppyId ? candidates.find((c) => c.puppyId === args.puppyId) : candidates[0]) || null;
     }
 
+    const todayDateStr = new Date().toISOString().split('T')[0];
+
     if (!task) {
+      if (args.title) {
+        return await ctx.db.insert("tasks", {
+          userId,
+          puppyId: args.puppyId || "pup-1",
+          title: args.title,
+          category: "custom",
+          time: "10:00 AM",
+          durationMin: 15,
+          completed: args.completed,
+          skipped: false,
+          period: "morning",
+          date: todayDateStr,
+          completedAt: args.completed ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+        });
+      }
       return null;
     }
 
     await ctx.db.patch(task._id, {
       completed: args.completed,
       skipped: false,
+      date: todayDateStr,
       completedAt: args.completed ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
     });
     return task._id;
@@ -118,30 +162,52 @@ export const skipTask = mutation({
   args: {
     id: v.optional(v.id("tasks")),
     title: v.optional(v.string()),
+    puppyId: v.optional(v.string()),
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     let task = null;
     if (args.id) {
       task = await ctx.db.get(args.id);
-    } else if (args.title && userId) {
-      task = await ctx.db
+      if (task && task.userId !== userId) {
+        throw new Error("Unauthorized: Task does not belong to user");
+      }
+    }
+    if (!task && args.title) {
+      const candidates = await ctx.db
         .query("tasks")
         .withIndex("by_user", (q) => q.eq("userId", userId))
         .filter((q) => q.eq(q.field("title"), args.title))
-        .first();
+        .collect();
+      task = (args.puppyId ? candidates.find((c) => c.puppyId === args.puppyId) : candidates[0]) || null;
     }
 
+    const todayDateStr = new Date().toISOString().split('T')[0];
+
     if (!task) {
+      if (args.title) {
+        return await ctx.db.insert("tasks", {
+          userId,
+          puppyId: args.puppyId || "pup-1",
+          title: args.title,
+          category: "custom",
+          time: "10:00 AM",
+          durationMin: 15,
+          completed: false,
+          skipped: true,
+          period: "morning",
+          date: todayDateStr,
+        });
+      }
       return null;
     }
 
     await ctx.db.patch(task._id, {
       skipped: true,
       completed: false,
+      date: todayDateStr,
     });
     return task._id;
   },
@@ -153,11 +219,10 @@ export const deleteTask = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const task = await ctx.db.get(args.id);
-    if (!task || (userId && task.userId !== userId)) {
+    if (!task || task.userId !== userId) {
       throw new Error("Task not found or unauthorized");
     }
 
@@ -187,9 +252,7 @@ export const saveTasksBatch = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const existing = await ctx.db
       .query("tasks")
@@ -224,4 +287,66 @@ export const saveTasksBatch = mutation({
     }
     return true;
   },
+});
+
+export const resetDailyTasks = mutation({
+  args: {
+    userId: v.optional(v.string()),
+    puppyId: v.optional(v.string()),
+    force: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    const tasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const todayDateStr = new Date().toISOString().split('T')[0];
+    let resetCount = 0;
+    for (const task of tasks) {
+      if (!args.puppyId || task.puppyId === args.puppyId || task.puppyId.startsWith('pup-')) {
+        const isPastOrEmpty = !task.date || task.date < todayDateStr;
+        if (args.force || isPastOrEmpty) {
+          await ctx.db.patch(task._id, {
+            completed: false,
+            skipped: false,
+            completedAt: undefined,
+            date: todayDateStr,
+          });
+          resetCount++;
+        }
+      }
+    }
+    return { reset: resetCount };
+  },
+});
+
+export const cleanupDuplicateTasks = mutation({
+  args: { userId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    const tasks = await ctx.db.query("tasks").withIndex("by_user", (q) => q.eq("userId", userId)).collect();
+
+    const groups = new Map<string, any[]>();
+    for (const t of tasks) {
+      const key = `${t.userId}_${t.puppyId}_${t.date}_${t.title}`.trim().toLowerCase();
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(t);
+    }
+
+    let deleted = 0;
+    for (const [, group] of groups) {
+      if (group.length > 1) {
+        group.sort((a, b) => (b.completed ? 1 : 0) - (a.completed ? 1 : 0));
+        for (let i = 1; i < group.length; i++) {
+          await ctx.db.delete(group[i]._id);
+          deleted++;
+        }
+      }
+    }
+    return { deleted };
+  }
 });

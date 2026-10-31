@@ -6,9 +6,11 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { initializePaddle, Paddle } from '@paddle/paddle-js';
 
-// Environment tokens directly copied
-const PADDLE_CLIENT_TOKEN = "test_b503a3450cb3219fa5267a7ef42";
-const PADDLE_PRICE_ID = "pri_01m43jma0epjpm0dhn9k3rbp47";
+// Dynamic credentials: read from env var with fallback
+const PADDLE_CLIENT_TOKEN = import.meta.env.VITE_PADDLE_CLIENT_TOKEN || "test_b503a3450cb3219fa5267a7ef42";
+const PADDLE_PRICE_ID = import.meta.env.VITE_PADDLE_PRICE_ID || "pri_01m43jma0epjpm0dhn9k3rbp47";
+// Auto-detect production vs sandbox from token prefix
+const PADDLE_ENVIRONMENT = PADDLE_CLIENT_TOKEN.startsWith("live_") ? "production" : "sandbox";
 
 interface PaddlePaywallProps {
   onSignOut: () => void;
@@ -21,16 +23,16 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
   const [paddle, setPaddle] = useState<Paddle>();
   const [isVerifying, setIsVerifying] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const confirmSuccessMutation = useMutation(api.users.confirmCheckoutSuccess);
 
-  const paddleRef = useRef<Paddle>();
+  const paddleRef = useRef<Paddle | undefined>(undefined);
   // Initialize Paddle.js
   const initialized = useRef(false);
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
     initializePaddle({
-      environment: 'sandbox', 
+      environment: PADDLE_ENVIRONMENT, 
       token: PADDLE_CLIENT_TOKEN,
       eventCallback: function(data) {
         if (data.name === "checkout.completed") {
@@ -41,11 +43,27 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
             paddleRef.current.Checkout.close();
           }
 
-          // When checkout completes, wait a few seconds for the webhook to hit our Convex backend
-          const timeout = setTimeout(() => {
-            setIsVerifying(false);
-            setShowError(true);
-          }, 6000);
+          // Save local access immediately so user is never locked out
+          if (typeof window !== 'undefined' && user?.id) {
+            localStorage.setItem(`puplume_access_${user.id}`, 'true');
+          }
+
+          // Instantly activate user access in Convex
+          confirmSuccessMutation({
+            userId: user?.id,
+            email: userEmail,
+          })
+            .then(() => {
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              }
+            })
+            .catch((err) => {
+              console.debug('[PaddlePaywall] Client confirm error:', err);
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              }
+            });
         }
       }
     }).then((paddleInstance) => {
@@ -54,26 +72,44 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
         paddleRef.current = paddleInstance;
       }
     });
-  }, []);
+  }, [confirmSuccessMutation, user?.id, userEmail]);
 
-  const openCheckout = () => { setIsCheckoutOpen(true); };
 
-  useEffect(() => {
-    if (isCheckoutOpen && paddle) {
-      const checkoutOptions = {
+  const [isOpeningCheckout, setIsOpeningCheckout] = useState(false);
+
+  const openCheckout = () => {
+    setIsOpeningCheckout(true);
+    if (paddleRef.current) {
+      paddleRef.current.Checkout.open({
         settings: {
-          displayMode: 'inline',
-          frameTarget: 'paddle-inline-frame',
-          frameInitialHeight: 450,
-          frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;'
+          displayMode: 'overlay',
+          theme: 'light',
+          locale: 'en',
         },
         items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
         customer: userEmail ? { email: userEmail } : undefined,
-        customData: userEmail ? { email: userEmail } : undefined
-      };
-      paddle.Checkout.open(checkoutOptions);
+        customData: userEmail ? { email: userEmail } : undefined,
+      });
+      setIsOpeningCheckout(false);
+    } else {
+      // If paddle is still initializing, wait a moment and retry
+      setTimeout(() => {
+        if (paddleRef.current) {
+          paddleRef.current.Checkout.open({
+            settings: {
+              displayMode: 'overlay',
+              theme: 'light',
+              locale: 'en',
+            },
+            items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
+            customer: userEmail ? { email: userEmail } : undefined,
+            customData: userEmail ? { email: userEmail } : undefined,
+          });
+        }
+        setIsOpeningCheckout(false);
+      }, 800);
     }
-  }, [isCheckoutOpen, paddle, userEmail]);
+  };
 
   const FeatureItem = ({ text }: { text: string }) => (
     <div className="flex items-center gap-3">
@@ -149,46 +185,61 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
               </div>
             )}
 
-            {!isCheckoutOpen ? (
-              <>
-                <div className="space-y-5 mb-10">
-                  <FeatureItem text="Unlimited AI Co-Pilot chat" />
-                  <FeatureItem text="Full access to Training Academy" />
-                  <FeatureItem text="Unlimited Potty, Sleep & Health logging" />
-                  <FeatureItem text="Export to Vet reports & PDF sharing" />
-                </div>
+            <div className="space-y-5 mb-10">
+              <FeatureItem text="Unlimited AI Co-Pilot chat" />
+              <FeatureItem text="Full access to Training Academy" />
+              <FeatureItem text="Unlimited Potty, Sleep & Health logging" />
+              <FeatureItem text="Export to Vet reports & PDF sharing" />
+            </div>
 
-                <div className="bg-[#FFF9F2] p-6 rounded-2xl border border-[#F5F0EA] mb-8">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-4xl font-extrabold text-[#2C211B]">$24.99</span>
-                    <span className="text-[#766A63] font-medium text-sm">one-time payment</span>
-                  </div>
-                  <p className="text-sm text-[#766A63] font-medium">No recurring fees. Ever.</p>
-                </div>
+            <div className="bg-[#FFF9F2] p-6 rounded-2xl border border-[#F5F0EA] mb-8">
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-extrabold text-[#2C211B]">$24.99</span>
+                <span className="text-[#766A63] font-medium text-sm">one-time payment</span>
+              </div>
+              <p className="text-sm text-[#766A63] font-medium">No recurring fees. Ever.</p>
+            </div>
 
-                <Button 
-                  size="lg" 
-                  className="w-full h-14 text-base font-bold flex items-center justify-center gap-2 shadow-xl shadow-amber-600/20"
-                  onClick={openCheckout}
-                >
+            <Button 
+              size="lg" 
+              className="w-full h-14 text-base font-bold flex items-center justify-center gap-2 shadow-xl shadow-amber-600/20"
+              onClick={openCheckout}
+              disabled={isOpeningCheckout}
+            >
+              {isOpeningCheckout ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Opening Secure Checkout...
+                </span>
+              ) : (
+                <>
                   Get PupLume Forever
                   <ArrowRight className="w-5 h-5" />
-                </Button>
-                <p className="text-center text-xs text-[#9C928B] mt-4 font-medium">
-                  You are signed in as <span className="text-[#2C211B] font-bold">{userEmail}</span>
-                </p>
-              </>
-            ) : (
-              <div className="min-h-[450px] w-full animate-in fade-in duration-500">
-                <div className="paddle-inline-frame w-full"></div>
-                <button 
-                  onClick={() => setIsCheckoutOpen(false)} 
-                  className="mt-6 text-sm text-[#766A63] hover:text-[#2C211B] font-medium underline flex items-center justify-center w-full"
+                </>
+              )}
+            </Button>
+            <p className="text-center text-xs text-[#9C928B] mt-4 font-medium">
+              You are signed in as <span className="text-[#2C211B] font-bold">{userEmail}</span>
+            </p>
+            {import.meta.env.DEV && (
+              <div className="mt-4 pt-4 border-t border-[#F5F0EA] flex items-center justify-between text-xs">
+                <span className="text-[#9C928B]">Dev Mode:</span>
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && user?.id) {
+                      localStorage.setItem(`puplume_access_${user.id}`, 'true');
+                      window.location.reload();
+                    }
+                  }}
+                  className="text-amber-700 hover:text-amber-900 font-bold underline cursor-pointer"
                 >
-                  Cancel and go back
+                  ⚡ Local Dev Bypass
                 </button>
               </div>
             )}
+
+
+
           </div>
         </div>
       </div>

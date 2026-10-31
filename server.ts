@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { processAIChat } from './src/server/geminiService.ts';
-import { uploadToCloudinary } from './src/server/cloudinaryService.ts';
+import { uploadToCloudinary, deleteFromCloudinary } from './src/server/cloudinaryService.ts';
 
 dotenv.config();
 
@@ -27,14 +27,19 @@ app.post('/api/ai/assistant', async (req, res) => {
   }
 });
 
-// Server-side Cloudinary upload route
+// Server-side Cloudinary upload route (with auto previous image cleanup)
 const handleUpload = async (req: express.Request, res: express.Response) => {
   try {
-    const { file, folder, tags } = req.body;
+    const { file, folder, tags, previousImageUrl, previousPublicId } = req.body;
     if (!file) {
       return res.status(400).json({ error: 'No image file provided' });
     }
-    const result = await uploadToCloudinary(file, { folder, tags });
+    const result = await uploadToCloudinary(file, {
+      folder,
+      tags,
+      previousImageUrl,
+      previousPublicId,
+    });
     return res.json({ success: true, ...result });
   } catch (error: any) {
     console.error('Server error uploading to Cloudinary:', error);
@@ -42,8 +47,26 @@ const handleUpload = async (req: express.Request, res: express.Response) => {
   }
 };
 
+// Server-side Cloudinary delete route
+const handleDelete = async (req: express.Request, res: express.Response) => {
+  try {
+    const { url, publicId } = req.body;
+    const target = url || publicId;
+    if (!target) {
+      return res.status(400).json({ error: 'No image url or publicId provided' });
+    }
+    const result = await deleteFromCloudinary(target);
+    return res.json(result);
+  } catch (error: any) {
+    console.error('Server error deleting from Cloudinary:', error);
+    return res.status(500).json({ error: error?.message || 'Cloudinary delete failed' });
+  }
+};
+
 app.post('/api/upload', handleUpload);
 app.post('/api/cloudinary/upload', handleUpload);
+app.post('/api/cloudinary/delete', handleDelete);
+app.post('/api/delete-image', handleDelete);
 
 // Serve Vite build assets
 const distPath = path.resolve(__dirname, 'dist');

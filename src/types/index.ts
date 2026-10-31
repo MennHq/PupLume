@@ -20,6 +20,27 @@ export interface PuppyProfile {
   insurancePolicyNumber?: string;
   favoriteTreat?: string;
   createdAt: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyNotes?: string;
+  isLost?: boolean;
+  rewardAmount?: string;
+  hasSmartTagPass?: boolean;
+  ownerInstagram?: string;
+  ownerFacebook?: string;
+  ownerWhatsApp?: string;
+  ownerTelegram?: string;
+  ownerSlack?: string;
+  communicationLinks?: CommunicationLinkItem[];
+}
+
+export interface CommunicationLinkItem {
+  id: string;
+  platform: string;
+  value: string;
+  label?: string;
 }
 
 export type TaskCategory = 
@@ -238,12 +259,13 @@ export interface GroomingTask {
   frequencyDays: number;
 }
 
-export type SocializationStatus = 'not_started' | 'introduced' | 'comfortable' | 'needs_work';
+export type SocializationStatus = 'not_started' | 'introduced' | 'comfortable' | 'needs_work' | 'unexposed' | 'positive' | 'neutral';
 
 export interface SocializationItem {
   id: string;
   category: string;
   title: string;
+  name?: string;
   description: string;
   status: SocializationStatus;
   lastUpdated?: string;
@@ -275,7 +297,7 @@ export interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  category: 'tasks' | 'health' | 'calendar' | 'ai' | 'family' | 'system';
+  category: 'tasks' | 'health' | 'calendar' | 'ai' | 'family' | 'system' | 'potty' | 'reminder';
   timestamp: string;
   read: boolean;
   actionUrl?: string;
@@ -289,7 +311,9 @@ export type AIActionType =
   | 'LOG_FEEDING'
   | 'LOG_SLEEP'
   | 'ADD_EXPENSE'
-  | 'CREATE_TRAINING_PLAN';
+  | 'CREATE_TRAINING_PLAN'
+  | 'SAVE_MEMORY'
+  | 'NAVIGATE';
 
 export interface AIActionProposal {
   id: string;
@@ -318,4 +342,27 @@ export interface UserSession {
   email: string;
   name: string;
   plan: 'free' | 'premium';
+}
+
+export type PottyIntervalMode = 'age_dynamic' | 'custom';
+
+export interface UserSettings {
+  pottyAlerts: boolean;
+  feedingAlerts: boolean;
+  trainingAlerts: boolean;
+  medAlerts: boolean;
+  taskAlerts?: boolean;
+  units: 'imperial' | 'metric';
+  activePuppyId?: string;
+  hasCompletedOnboarding?: boolean;
+  hasCompletedChecklist?: boolean;
+  pottyIntervalMode?: PottyIntervalMode;
+  pottyCustomIntervalHours?: number;
+  quietHoursEnabled?: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  taskAdvanceMinutes?: number;
+  headsUpDurationSec?: number;
+  snoozeDurationMin?: number;
+  chimeSound?: boolean;
 }

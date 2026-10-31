@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const listFeedingLogs = query({
   args: { 
@@ -7,8 +8,7 @@ export const listFeedingLogs = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     return await ctx.db
@@ -30,9 +30,7 @@ export const addFeedingLog = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const { userId: _, ...data } = args;
 
@@ -40,5 +38,23 @@ export const addFeedingLog = mutation({
       ...data,
       userId,
     });
+  },
+});
+
+export const deleteFeedingLog = mutation({
+  args: {
+    id: v.id("feedingLogs"),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+
+    const record = await ctx.db.get(args.id);
+    if (!record || record.userId !== userId) {
+      throw new Error("Log not found or unauthorized");
+    }
+
+    await ctx.db.delete(args.id);
+    return args.id;
   },
 });

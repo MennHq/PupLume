@@ -6,7 +6,7 @@ import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { processAIChat, processAIOnboardingChat } from './src/server/geminiService.ts';
-import { uploadToCloudinary } from './src/server/cloudinaryService.ts';
+import { uploadToCloudinary, deleteFromCloudinary } from './src/server/cloudinaryService.ts';
 
 function serverApiPlugin(): Plugin {
   return {
@@ -55,7 +55,7 @@ function serverApiPlugin(): Plugin {
           return;
         }
 
-        // Cloudinary Upload endpoint
+        // Cloudinary Upload endpoint (with automatic previous image deletion)
         if ((req.url === '/api/upload' || req.url === '/api/cloudinary/upload') && req.method === 'POST') {
           let body = '';
           req.on('data', (chunk) => {
@@ -64,20 +64,52 @@ function serverApiPlugin(): Plugin {
           req.on('end', async () => {
             try {
               const payload = JSON.parse(body || '{}');
-              const { file, folder, tags } = payload;
+              const { file, folder, tags, previousImageUrl, previousPublicId } = payload;
               if (!file) {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: 'No image file provided' }));
-                return;
               }
-              const result = await uploadToCloudinary(file, { folder, tags });
+              const result = await uploadToCloudinary(file, {
+                folder,
+                tags,
+                previousImageUrl,
+                previousPublicId,
+              });
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ success: true, ...result }));
             } catch (err: any) {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ error: err?.message || 'Cloudinary upload failed' }));
+            }
+          });
+          return;
+        }
+
+        // Cloudinary Delete endpoint
+        if ((req.url === '/api/cloudinary/delete' || req.url === '/api/delete-image') && req.method === 'POST') {
+          let body = '';
+          req.on('data', (chunk) => {
+            body += chunk;
+          });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const target = payload.url || payload.publicId;
+              if (!target) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'No image url or publicId provided' }));
+                return;
+              }
+              const result = await deleteFromCloudinary(target);
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(result));
+            } catch (err: any) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err?.message || 'Cloudinary delete failed' }));
             }
           });
           return;
@@ -136,6 +168,7 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
+          importScripts: ['/sw.js'],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {
@@ -178,6 +211,36 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': import.meta.dirname,
+      },
+    },
+    build: {
+      target: 'esnext',
+      minify: 'esbuild',
+      cssMinify: true,
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react-dom') || id.includes('react/') || id.includes('react-router')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@clerk')) {
+                return 'vendor-clerk';
+              }
+              if (id.includes('convex')) {
+                return 'vendor-convex';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
+              if (id.includes('framer-motion')) {
+                return 'vendor-motion';
+              }
+              return 'vendor-libs';
+            }
+          },
+        },
       },
     },
     server: {

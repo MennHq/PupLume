@@ -3,16 +3,21 @@ import { uploadToCloudinary } from '../src/server/cloudinaryService';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(455).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { file, folder, tags } = req.body || {};
+    const { file, folder, tags, previousImageUrl, previousPublicId } = req.body || {};
     if (!file) {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    const result = await uploadToCloudinary(file, { folder, tags });
+    const result = await uploadToCloudinary(file, {
+      folder,
+      tags,
+      previousImageUrl,
+      previousPublicId,
+    });
     return res.status(200).json({ success: true, ...result });
   } catch (error: any) {
     console.error('[API upload] Error:', error);

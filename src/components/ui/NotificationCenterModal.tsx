@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Bell, CheckCheck, Calendar, Activity, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Bell, CheckCheck, Calendar, Activity, Sparkles, CheckCircle2, Volume2, ShieldCheck, Droplets } from 'lucide-react';
 import { Modal } from './Modal';
 import { storage } from '../../lib/storage';
 import { NotificationItem } from '../../types';
+import { engine as notificationEngine } from '../../lib/NotificationEngine';
 
 interface NotificationCenterModalProps {
   isOpen: boolean;
@@ -17,6 +18,17 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(storage.getNotifications());
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [permission, setPermission] = useState<NotificationPermission>(() => 
+    notificationEngine.getPermissionStatus()
+  );
+  const [testSent, setTestSent] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setNotifications(storage.getNotifications());
+      setPermission(notificationEngine.getPermissionStatus());
+    }
+  }, [isOpen]);
 
   const filtered = notifications.filter(n => filter === 'all' || !n.read);
 
@@ -34,6 +46,18 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
     }
   };
 
+  const handleEnablePush = async () => {
+    const res = await notificationEngine.requestPermission();
+    setPermission(res);
+  };
+
+  const handleTestPush = async () => {
+    setTestSent(true);
+    await notificationEngine.testNotification();
+    setNotifications(storage.getNotifications());
+    setTimeout(() => setTestSent(false), 3000);
+  };
+
   const getIcon = (cat: string) => {
     switch (cat) {
       case 'health':
@@ -42,6 +66,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
         return <Calendar className="w-4 h-4 text-amber-600" />;
       case 'ai':
         return <Sparkles className="w-4 h-4 text-[#8B5E3C]" />;
+      case 'potty':
+        return <Droplets className="w-4 h-4 text-amber-600" />;
       default:
         return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
     }
@@ -56,6 +82,55 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
       maxWidth="md"
     >
       <div className="space-y-3">
+        {/* Web Push Notification Status Banner */}
+        <div className="p-3 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`p-1.5 rounded-xl shrink-0 ${
+              permission === 'granted' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+            }`}>
+              {permission === 'granted' ? <ShieldCheck className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+            </div>
+            <div className="min-w-0">
+              <h5 className="text-xs font-bold text-[#2C211B] flex items-center gap-1.5">
+                <span>{permission === 'granted' ? 'Background Alerts Active' : 'Enable Device Push Alerts'}</span>
+                {permission === 'granted' && (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">
+                    Live
+                  </span>
+                )}
+              </h5>
+              <p className="text-[11px] text-[#766A63] truncate">
+                {permission === 'granted'
+                  ? 'Fires potty alarms & task reminders even when tab is closed'
+                  : 'Get phone & desktop alerts when potty breaks are due'}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-1.5">
+            {permission === 'granted' ? (
+              <button
+                type="button"
+                onClick={handleTestPush}
+                disabled={testSent}
+                className="px-2.5 py-1 rounded-xl bg-white text-[#2C211B] border border-[#E8DDD3] hover:bg-[#F3E7DA] text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 shadow-2xs"
+                title="Send a sample notification to your device"
+              >
+                <Volume2 className="w-3 h-3 text-[#8B5E3C]" />
+                <span>{testSent ? 'Sent!' : 'Test Alert'}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleEnablePush}
+                className="px-3 py-1.5 rounded-xl bg-[#8B5E3C] hover:bg-[#724C30] text-white text-[11px] font-bold cursor-pointer transition-all shadow-xs"
+              >
+                Enable
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Controls */}
         <div className="flex items-center justify-between pb-2 border-b border-[#E8DDD3]">
           <div className="flex gap-1.5">
@@ -88,7 +163,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
         </div>
 
         {/* List */}
-        <div className="space-y-2.5 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-2.5 max-h-[55vh] overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#766A63]">
               <Bell className="w-8 h-8 text-[#E8DDD3] mx-auto mb-2" />

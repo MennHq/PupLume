@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const listJournalEntries = query({
   args: { 
@@ -7,8 +8,7 @@ export const listJournalEntries = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     return await ctx.db
@@ -29,9 +29,7 @@ export const addJournalEntry = mutation({
     milestoneBadge: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const { userId: _, ...data } = args;
 
@@ -48,11 +46,10 @@ export const deleteJournalEntry = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await requireAuthUser(ctx, args.userId);
 
     const entry = await ctx.db.get(args.id);
-    if (!entry || (userId && entry.userId !== userId)) {
+    if (!entry || entry.userId !== userId) {
       throw new Error("Journal entry not found or unauthorized");
     }
 

@@ -39,7 +39,7 @@ export const Badge: React.FC<BadgeProps> = ({
     training: 'bg-[#8B5E3C]/10 text-[#5F3E29] border border-[#8B5E3C]/20',
     sleep: 'bg-indigo-50 text-indigo-800 border border-indigo-200/70',
     walk: 'bg-teal-50 text-teal-800 border border-teal-200/70',
-    health: 'bg-rose-50 text-rose-800 border border-rose-200/70',
+    health: 'bg-[#F8EBE3] text-[#8C3F24] border border-[#EACEC3]',
     grooming: 'bg-purple-50 text-purple-800 border border-purple-200/70',
     social: 'bg-sky-50 text-sky-800 border border-sky-200/70',
     neutral: 'bg-[#F3E7DA] text-[#5F3E29] border border-[#E8DDD3]',

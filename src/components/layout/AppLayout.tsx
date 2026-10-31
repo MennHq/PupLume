@@ -14,7 +14,8 @@ import {
   Activity,
   Droplet,
   DollarSign,
-  Heart
+  Heart,
+  Settings
 } from 'lucide-react';
 import { PupLumeLogo } from '../common/PupLumeLogo';
 import { PuppyProfile } from '../../types';
@@ -33,6 +34,12 @@ interface AppLayoutProps {
   children: React.ReactNode;
   onSelectLesson?: (lessonId: string) => void;
   onOpenNewPuppyWizard?: () => void;
+  isNotificationsOpen?: boolean;
+  onOpenNotifications?: () => void;
+  onCloseNotifications?: () => void;
+  isSearchOpen?: boolean;
+  onOpenSearch?: () => void;
+  onCloseSearch?: () => void;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -41,15 +48,45 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   puppy,
   children,
   onSelectLesson,
-  onOpenNewPuppyWizard
+  onOpenNewPuppyWizard,
+  isNotificationsOpen: propIsNotificationsOpen,
+  onOpenNotifications: propOnOpenNotifications,
+  onCloseNotifications: propOnCloseNotifications,
+  isSearchOpen: propIsSearchOpen,
+  onOpenSearch: propOnOpenSearch,
+  onCloseSearch: propOnCloseSearch,
 }) => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [internalSearchOpen, setInternalSearchOpen] = useState(false);
+  const [internalNotifsOpen, setInternalNotifsOpen] = useState(false);
   const [isPuppyDropdownOpen, setIsPuppyDropdownOpen] = useState(false);
   const puppyDropdownRef = React.useRef<HTMLDivElement>(null);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(() => 
     storage.getNotifications().filter(n => !n.read).length
   );
+
+  const isSearchOpen = propIsSearchOpen !== undefined ? propIsSearchOpen : internalSearchOpen;
+  const isNotificationsOpen = propIsNotificationsOpen !== undefined ? propIsNotificationsOpen : internalNotifsOpen;
+
+  const handleOpenSearch = () => {
+    if (propOnOpenSearch) propOnOpenSearch();
+    else setInternalSearchOpen(true);
+  };
+
+  const handleCloseSearch = () => {
+    if (propOnCloseSearch) propOnCloseSearch();
+    else setInternalSearchOpen(false);
+  };
+
+  const handleOpenNotifications = () => {
+    if (propOnOpenNotifications) propOnOpenNotifications();
+    else setInternalNotifsOpen(true);
+  };
+
+  const handleCloseNotifications = () => {
+    if (propOnCloseNotifications) propOnCloseNotifications();
+    else setInternalNotifsOpen(false);
+    setUnreadNotifsCount(storage.getNotifications().filter(n => !n.read).length);
+  };
 
   // Close puppy dropdown when clicking outside or pressing Escape
   React.useEffect(() => {
@@ -90,7 +127,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       if (isSearchShortcut) {
         e.preventDefault();
         e.stopPropagation();
-        setIsSearchOpen(true);
+        handleOpenSearch();
       }
     };
     
@@ -107,7 +144,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'more', label: 'More', icon: <Menu className="w-5 h-5" /> }
   ];
 
-  const allPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
+  const rawPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
+  // Deduplicate puppies in header dropdown by unique name
+  const allPuppies = rawPuppies.filter((p, index, self) => {
+    const nameKey = (p.name || '').trim().toLowerCase();
+    return index === self.findIndex((o) => (
+      o.id === p.id || (nameKey && (o.name || '').trim().toLowerCase() === nameKey)
+    ));
+  });
 
   return (
     <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
@@ -157,7 +201,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                             if (!isSelected) {
                               storage.setActivePuppyId(p.id);
                             }
-                            onNavigate('puppy');
                           }}
                           className={`flex items-center gap-2.5 px-3 py-2 hover:bg-[#FFF9F2] cursor-pointer transition-colors ${
                             isSelected ? 'bg-[#FFF9F2]/80 font-bold' : ''
@@ -224,7 +267,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             
 
             <button
-              onClick={() => setIsSearchOpen(true)}
+              onClick={handleOpenSearch}
               className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
               title="Search (⌘K)"
             >
@@ -232,20 +275,37 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </button>
 
             <button
-              onClick={() => setIsNotificationsOpen(true)}
+              onClick={handleOpenNotifications}
               className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
                   {unreadNotifsCount}
                 </span>
               )}
             </button>
 
+            {/* Settings Quick Access Button (Matches Search & Notifications styling) */}
+            <button
+              onClick={() => onNavigate('settings')}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer group ${
+                currentView === 'settings'
+                  ? 'border-[#8B5E3C] bg-[#8B5E3C] text-white shadow-2xs'
+                  : 'border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29]'
+              }`}
+              title="Settings & Preferences"
+              aria-label="Settings"
+            >
+              <Settings className={`w-4 h-4 ${currentView === 'settings' ? 'rotate-45' : 'group-hover:rotate-45'} transition-transform duration-300`} />
+            </button>
+
+            {/* Subtle Divider */}
+            <div className="h-5 w-px bg-[#E8DDD3] mx-1 hidden sm:block" />
+
             {/* Clerk Authentication Controls */}
-            <div className="pl-1">
+            <div className="pl-0.5">
               <ClerkAuthControls />
             </div>
           </div>
@@ -296,20 +356,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       {/* Global Search Modal */}
       <GlobalSearchModal
         isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={handleCloseSearch}
         onNavigate={onNavigate}
       />
 
       {/* Notification Center Modal */}
       <NotificationCenterModal
         isOpen={isNotificationsOpen}
-        onClose={() => {
-          setIsNotificationsOpen(false);
-          setUnreadNotifsCount(storage.getNotifications().filter(n => !n.read).length);
-        }}
+        onClose={handleCloseNotifications}
         onSelectAction={(url) => {
-          if (url === 'tasks' || url === 'health' || url === 'academy' || url === 'potty') {
-            onNavigate(url);
+          const target = url ? url.replace(/^\/+/, '').split('?')[0] : '';
+          if (target) {
+            onNavigate(target === 'plan' ? 'tasks' : target);
           }
         }}
       />

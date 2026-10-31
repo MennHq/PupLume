@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuthUser, getAuthUser } from "./authHelper";
 
 export const listGroomingTasks = query({
   args: { 
@@ -7,8 +8,7 @@ export const listGroomingTasks = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
+    const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
     return await ctx.db
@@ -33,18 +33,18 @@ export const saveGroomingTasks = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || args.userId;
-    if (!userId) throw new Error("Authentication or userId required");
+    const userId = await requireAuthUser(ctx, args.userId);
 
-    // Remove existing grooming tasks for this puppy
+    // Remove existing grooming tasks for this puppy belonging to this user
     const existing = await ctx.db
       .query("groomingTasks")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
     for (const item of existing) {
-      await ctx.db.delete(item._id);
+      if (item.puppyId === args.puppyId) {
+        await ctx.db.delete(item._id);
+      }
     }
 
     // Insert new

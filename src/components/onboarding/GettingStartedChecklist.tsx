@@ -7,15 +7,21 @@ import {
   Dog, 
   CheckCircle2, 
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Trophy
 } from 'lucide-react';
 import { PuppyProfile } from '../../types';
 import { storage } from '../../lib/storage';
 import { useUser } from '@clerk/react';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { FullScreenConfetti } from '../ui/FullScreenConfetti';
+import { playVictoryFanfare } from '../../lib/sound';
 
 interface GettingStartedChecklistProps {
   puppy: PuppyProfile;
   onNavigate: (view: string) => void;
+  backendCompleted?: boolean;
 }
 
 interface ChecklistItem {
@@ -27,21 +33,29 @@ interface ChecklistItem {
   onAction: () => void;
 }
 
-export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ puppy, onNavigate }) => {
+export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ 
+  puppy, 
+  onNavigate,
+  backendCompleted = false
+}) => {
   const { user } = useUser();
   const userName = user?.firstName || user?.fullName || 'Pup Parent';
+
+  const dismissChecklistMutation = useMutation(api.settings.dismissChecklistForever);
 
   const permanentKey = `puplume_checklist_finished_forever_${puppy.id}`;
   const dismissedKey = `puplume_checklist_dismissed_${puppy.id}`;
   const minimizedKey = `puplume_checklist_minimized_${puppy.id}`;
 
-  // If 100% was ever achieved, NEVER EVER show this box again
+  // If backend says completed or 100% was ever achieved, NEVER EVER show this box again
   const [isPermanentlyFinished, setIsPermanentlyFinished] = useState<boolean>(() => {
+    if (backendCompleted) return true;
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(permanentKey) === 'true';
   });
 
   const [isDismissed, setIsDismissed] = useState<boolean>(() => {
+    if (backendCompleted) return true;
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(dismissedKey) === 'true';
   });
@@ -51,7 +65,8 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
     return localStorage.getItem(minimizedKey) === 'true';
   });
 
-  const [celebrationCountdown, setCelebrationCountdown] = useState<number | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [isCelebrating, setIsCelebrating] = useState(false);
 
   // Reactive state for automatic detection only (no manual ticking allowed)
   const [tasks, setTasks] = useState(() => storage.getTasks());
@@ -85,7 +100,14 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
 
   const handleDismiss = () => {
     setIsDismissed(true);
+    setIsPermanentlyFinished(true);
     localStorage.setItem(dismissedKey, 'true');
+    localStorage.setItem(permanentKey, 'true');
+    if (user?.id) {
+      dismissChecklistMutation({ userId: user.id }).catch((err) => {
+        console.debug('[GettingStartedChecklist] handleDismiss sync:', err);
+      });
+    }
   };
 
   const handleToggleMinimize = () => {
@@ -160,64 +182,113 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   const totalCount = checklistItems.length;
   const percentCompleted = Math.round((completedCount / totalCount) * 100);
 
-  // Permanently close once 100% is reached
-  useEffect(() => {
-    if (percentCompleted === 100 && !isPermanentlyFinished) {
-      localStorage.setItem(permanentKey, 'true');
-      localStorage.setItem(dismissedKey, 'true');
-      storage.saveSettings({
-        ...storage.getSettings(),
-        hasCompletedOnboarding: true,
+  const handlePermanentClose = () => {
+    localStorage.setItem(permanentKey, 'true');
+    localStorage.setItem(dismissedKey, 'true');
+    storage.saveSettings({
+      ...storage.getSettings(),
+      hasCompletedOnboarding: true,
+      hasCompletedChecklist: true,
+    });
+
+    if (user?.id) {
+      dismissChecklistMutation({ userId: user.id }).catch((err) => {
+        console.debug('[GettingStartedChecklist] dismissal sync:', err);
       });
-
-      // Start 3 second closing animation
-      setCelebrationCountdown(3);
-      const interval = setInterval(() => {
-        setCelebrationCountdown((prev) => {
-          if (prev !== null && prev <= 1) {
-            clearInterval(interval);
-            setIsPermanentlyFinished(true);
-            return null;
-          }
-          return prev !== null ? prev - 1 : null;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
     }
-  }, [percentCompleted, isPermanentlyFinished, permanentKey, dismissedKey]);
 
-  // NEVER show if permanently finished or dismissed
-  if (isPermanentlyFinished || isDismissed) return null;
+    setIsPermanentlyFinished(true);
+    setIsDismissed(true);
+  };
+
+  // When 100% is reached: Trigger full-screen confetti, celebratory fanfare, and permanently vanish
+  useEffect(() => {
+    if (percentCompleted === 100 && !isPermanentlyFinished && !isDismissed && !isCelebrating) {
+      setIsCelebrating(true);
+      setShowConfetti(true);
+      playVictoryFanfare();
+
+      // Automatically vanish the box after celebration animation
+      const timer = setTimeout(() => {
+        handlePermanentClose();
+      }, 3500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [percentCompleted, isPermanentlyFinished, isDismissed, isCelebrating]);
+
+  // If permanently finished or dismissed, only show the confetti overlay if it's currently animating
+  if (backendCompleted || isPermanentlyFinished || isDismissed) {
+    return showConfetti ? (
+      <FullScreenConfetti onComplete={() => setShowConfetti(false)} />
+    ) : null;
+  }
+
+  // Active Celebration Card before vanishing
+  if (isCelebrating) {
+    return (
+      <>
+        {showConfetti && <FullScreenConfetti onComplete={() => setShowConfetti(false)} />}
+        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[360px] max-w-sm animate-in zoom-in-95 duration-300">
+          <div className="bg-gradient-to-br from-[#FFF9F2] via-white to-amber-50 rounded-3xl border-2 border-amber-400/80 shadow-[0_16px_50px_rgba(217,119,6,0.25)] p-6 text-center space-y-3.5 relative overflow-hidden">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl shadow-inner animate-bounce">
+              🏆
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-700 bg-amber-100 px-3 py-0.5 rounded-full border border-amber-300">
+                100% Completed
+              </span>
+              <h3 className="text-base font-black text-[#2C211B] mt-2">
+                Superstar Puppy Parent! 🎉
+              </h3>
+              <p className="text-xs text-[#766A63] mt-1 leading-relaxed">
+                All 5 onboarding milestones complete! You and {puppy.name} are officially ready to thrive.
+              </p>
+            </div>
+            <button
+              onClick={handlePermanentClose}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#8B5E3C] text-white hover:bg-[#6F472C] transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Awesome, Let&apos;s Go! 🐾
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // Minimized Floating Pill Mode
   if (isMinimized) {
     return (
-      <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 animate-in fade-in slide-in-from-bottom-2 duration-200">
-        <button
-          onClick={handleToggleMinimize}
-          className="flex items-center gap-3 px-4 py-2.5 bg-white border border-[#E8DDD3] rounded-2xl shadow-xl hover:shadow-2xl transition-all cursor-pointer group hover:border-[#8B5E3C]"
-        >
-          <div className="w-6 h-6 rounded-lg bg-[#F3E7DA] text-[#8B5E3C] flex items-center justify-center font-black text-xs">
-            🐾
-          </div>
-          <div className="text-left">
-            <div className="text-xs font-extrabold text-[#2C211B] flex items-center gap-1.5">
-              Getting Started
-              <span className="text-[10px] font-bold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.2 rounded-full border border-[#E8DDD3]">
-                {completedCount}/{totalCount}
-              </span>
+      <>
+        {showConfetti && <FullScreenConfetti onComplete={() => setShowConfetti(false)} />}
+        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <button
+            onClick={handleToggleMinimize}
+            className="flex items-center gap-3 px-4 py-2.5 bg-white border border-[#E8DDD3] rounded-2xl shadow-xl hover:shadow-2xl transition-all cursor-pointer group hover:border-[#8B5E3C]"
+          >
+            <div className="w-6 h-6 rounded-lg bg-[#F3E7DA] text-[#8B5E3C] flex items-center justify-center font-black text-xs">
+              🐾
             </div>
-            <div className="w-24 bg-[#E8DDD3] h-1.5 rounded-full overflow-hidden mt-1">
-              <div 
-                className="bg-[#8B5E3C] h-full transition-all duration-300" 
-                style={{ width: `${percentCompleted}%` }} 
-              />
+            <div className="text-left">
+              <div className="text-xs font-extrabold text-[#2C211B] flex items-center gap-1.5">
+                Getting Started
+                <span className="text-[10px] font-bold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.2 rounded-full border border-[#E8DDD3]">
+                  {completedCount}/{totalCount}
+                </span>
+              </div>
+              <div className="w-24 bg-[#E8DDD3] h-1.5 rounded-full overflow-hidden mt-1">
+                <div 
+                  className="bg-[#8B5E3C] h-full transition-all duration-300" 
+                  style={{ width: `${percentCompleted}%` }} 
+                />
+              </div>
             </div>
-          </div>
-          <ChevronUp className="w-4 h-4 text-[#766A63] group-hover:text-[#2C211B] transition-transform" />
-        </button>
-      </div>
+            <ChevronUp className="w-4 h-4 text-[#766A63] group-hover:text-[#2C211B] transition-transform" />
+          </button>
+        </div>
+      </>
     );
   }
 
@@ -336,19 +407,6 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
             </div>
           ))}
         </div>
-
-        {/* 100% Completion Celebration Banner & Auto-Exit */}
-        {percentCompleted === 100 && (
-          <div className="mt-3.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center animate-in zoom-in-95 duration-200">
-            <span className="text-xs font-extrabold text-emerald-800 flex items-center justify-center gap-1.5 mb-1">
-              🎉 100% Completed! You&apos;re an official PupLume Superstar!
-            </span>
-            <p className="text-[11px] text-emerald-700 font-medium">
-              Closing forever in {celebrationCountdown || 3}s...
-            </p>
-          </div>
-        )}
-
       </div>
     </div>
   );

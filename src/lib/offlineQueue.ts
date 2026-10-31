@@ -103,14 +103,18 @@ class OfflineMutationQueue {
     if (queue.length === 0) return true;
 
     this.isProcessing = true;
-    console.log(`[OfflineQueue] Flushing ${queue.length} mutations...`);
+    const initialCount = queue.length;
+    console.log(`[OfflineQueue] Flushing ${initialCount} mutations...`);
 
     const remaining: QueuedMutation[] = [];
+    let syncedCount = 0;
 
     for (const item of queue) {
       try {
         const success = await this.executeMutation(item);
-        if (!success) {
+        if (success) {
+          syncedCount++;
+        } else {
           item.retries += 1;
           if (item.retries < 5) {
             remaining.push(item);
@@ -129,7 +133,12 @@ class OfflineMutationQueue {
 
     this.saveQueue(remaining);
     this.isProcessing = false;
-    console.log(`[OfflineQueue] Flush finished. Remaining: ${remaining.length}`);
+    console.log(`[OfflineQueue] Flush finished. Synced: ${syncedCount}, Remaining: ${remaining.length}`);
+
+    if (syncedCount > 0 && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('offline-queue-flushed', { detail: { count: syncedCount } }));
+    }
+
     return remaining.length === 0;
   }
 
@@ -137,54 +146,133 @@ class OfflineMutationQueue {
     const { type, payload } = item;
 
     switch (type) {
+      // Tasks
       case 'tasks:createTask':
         await convex.mutation(api.tasks.createTask, payload);
         return true;
       case 'tasks:toggleTask':
         await convex.mutation(api.tasks.toggleTask, payload);
         return true;
-      case 'tasks:deleteTask':
-        await convex.mutation(api.tasks.deleteTask, payload);
+      case 'tasks:skipTask':
+        await convex.mutation(api.tasks.skipTask, payload);
         return true;
       case 'tasks:updateTask':
         await convex.mutation(api.tasks.updateTask, payload);
         return true;
+      case 'tasks:deleteTask':
+        await convex.mutation(api.tasks.deleteTask, payload);
+        return true;
+      case 'tasks:resetDailyTasks':
+        await convex.mutation(api.tasks.resetDailyTasks, payload);
+        return true;
+
+      // Puppies
       case 'puppies:savePuppy':
         await convex.mutation(api.puppies.savePuppy, payload);
         return true;
+      case 'puppies:deletePuppy':
+        await convex.mutation(api.puppies.deletePuppy, payload);
+        return true;
+
+      // Potty Logs
+      case 'potty:addPottyLog':
       case 'potty:logPotty':
-        await convex.mutation(api.potty.logPotty, payload);
+        await convex.mutation(api.potty.addPottyLog, payload);
         return true;
+      case 'potty:deletePottyLog':
+        await convex.mutation(api.potty.deletePottyLog, payload);
+        return true;
+
+      // Feeding Logs
+      case 'feeding:addFeedingLog':
       case 'feeding:logFeeding':
-        await convex.mutation(api.feeding.logFeeding, payload);
+        await convex.mutation(api.feeding.addFeedingLog, payload);
         return true;
+      case 'feeding:deleteFeedingLog':
+        await convex.mutation(api.feeding.deleteFeedingLog, payload);
+        return true;
+
+      // Sleep Logs
+      case 'sleep:addSleepLog':
       case 'sleep:logSleep':
-        await convex.mutation(api.sleep.logSleep, payload);
+        await convex.mutation(api.sleep.addSleepLog, payload);
         return true;
+      case 'sleep:deleteSleepLog':
+        await convex.mutation(api.sleep.deleteSleepLog, payload);
+        return true;
+
+      // Walk Logs
+      case 'walk:addWalkLog':
       case 'walk:logWalk':
-        await convex.mutation(api.walk.logWalk, payload);
+        await convex.mutation(api.walk.addWalkLog, payload);
         return true;
+      case 'walk:deleteWalkLog':
+        await convex.mutation(api.walk.deleteWalkLog, payload);
+        return true;
+
+      // Health
+      case 'health:addVaccination':
       case 'health:saveVaccination':
-        await convex.mutation(api.health.saveVaccination, payload);
+        await convex.mutation(api.health.addVaccination, payload);
         return true;
+      case 'health:addMedication':
       case 'health:saveMedication':
-        await convex.mutation(api.health.saveMedication, payload);
+        await convex.mutation(api.health.addMedication, payload);
         return true;
+      case 'health:addAppointment':
       case 'health:saveAppointment':
-        await convex.mutation(api.health.saveAppointment, payload);
+        await convex.mutation(api.health.addAppointment, payload);
         return true;
+      case 'health:deleteVaccination':
+        await convex.mutation(api.health.deleteVaccination, payload);
+        return true;
+      case 'health:deleteMedication':
+        await convex.mutation(api.health.deleteMedication, payload);
+        return true;
+      case 'health:deleteAppointment':
+        await convex.mutation(api.health.deleteAppointment, payload);
+        return true;
+
+      // Expenses
+      case 'expenses:addExpense':
       case 'expenses:saveExpense':
-        await convex.mutation(api.expenses.saveExpense, payload);
+        await convex.mutation(api.expenses.addExpense, payload);
         return true;
+      case 'expenses:deleteExpense':
+        await convex.mutation(api.expenses.deleteExpense, payload);
+        return true;
+
+      // Documents
+      case 'documents:addDocument':
       case 'documents:saveDocument':
-        await convex.mutation(api.documents.saveDocument, payload);
+        await convex.mutation(api.documents.addDocument, payload);
         return true;
+      case 'documents:deleteDocument':
+        await convex.mutation(api.documents.deleteDocument, payload);
+        return true;
+
+      // Journal
+      case 'journal:addJournalEntry':
       case 'journal:saveJournalEntry':
-        await convex.mutation(api.journal.saveJournalEntry, payload);
+        await convex.mutation(api.journal.addJournalEntry, payload);
         return true;
+      case 'journal:deleteJournalEntry':
+        await convex.mutation(api.journal.deleteJournalEntry, payload);
+        return true;
+
+      // Behavior
+      case 'behavior:addBehaviorLog':
+        await convex.mutation(api.behavior.addBehaviorLog, payload);
+        return true;
+
+      // Settings
       case 'settings:saveSettings':
         await convex.mutation(api.settings.saveSettings, payload);
         return true;
+      case 'settings:dismissChecklistForever':
+        await convex.mutation(api.settings.dismissChecklistForever, payload);
+        return true;
+
       default:
         console.warn(`[OfflineQueue] Unknown mutation type: ${type}`);
         return true; // Mark done so it doesn't block queue

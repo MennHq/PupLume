@@ -14,7 +14,12 @@ import {
   Utensils,
   Award,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Phone,
+  Globe,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare
 } from 'lucide-react';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
 import { Button } from '../components/ui/Button';
@@ -22,6 +27,10 @@ import { PuppyProfile, TaskItem, TaskCategory } from '../types';
 import { storage } from '../lib/storage';
 import { completeAIOnboardingInConvex } from '../lib/convex';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
+import { CommunicationLinksInput, CommunicationLinkItem } from '../components/common/CommunicationLinksInput';
+import { RewardSettingInput } from '../components/common/RewardSettingInput';
+import { CountryPhoneInput } from '../components/common/CountryPhoneInput';
+import { validatePhoneNumber, validateFinderInstructions, sanitizePhoneInput, preventLetterInput } from '../lib/validation';
 
 interface OnboardingWizardProps {
   onComplete: (puppy: PuppyProfile) => void;
@@ -150,6 +159,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   }, [birthDate]);
   const [photoUrl, setPhotoUrl] = useState('');
 
+  // Smart Collar Tag Emergency & Social Info (Owner Phone & Finder Instructions are COMPULSORY)
+  const [ownerPhone, setOwnerPhone] = useState('');
+  const [emergencyNotes, setEmergencyNotes] = useState('');
+  const [rewardAmount, setRewardAmount] = useState('');
+  const [communicationLinks, setCommunicationLinks] = useState<CommunicationLinkItem[]>([
+    { id: 'onboard-default-wa', platform: 'whatsapp', value: '' }
+  ]);
+  const [step2Error, setStep2Error] = useState<string | null>(null);
+
+  const phoneValidation = validatePhoneNumber(ownerPhone);
+  const notesValidation = validateFinderInstructions(emergencyNotes);
+
   // Household timings
   const [wakeTime, setWakeTime] = useState('07:00 AM');
   const [breakfastTime, setBreakfastTime] = useState('07:30 AM');
@@ -259,6 +280,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
       const finalBirthDate = birthDate || new Date(Date.now() - 12 * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+      const validLinks = communicationLinks.filter((l) => l.value.trim() !== '');
+      const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value;
+      const igLink = communicationLinks.find((l) => l.platform === 'instagram')?.value;
+      const fbLink = communicationLinks.find((l) => l.platform === 'facebook' || l.platform === 'messenger')?.value;
+      const tgLink = communicationLinks.find((l) => l.platform === 'telegram')?.value;
+      const slackLink = communicationLinks.find((l) => l.platform === 'slack')?.value;
+
       const newPuppy: PuppyProfile = {
         id: `pup-${Date.now()}`,
         name: puppyName.trim() || 'My Puppy',
@@ -269,6 +297,15 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         photoUrl: photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=600',
         temperament: 'Playful, affectionate, and learning fast',
         favoriteTreat: 'Small training bites',
+        ownerPhone: ownerPhone.trim(),
+        emergencyNotes: emergencyNotes.trim(),
+        rewardAmount: rewardAmount.trim() || undefined,
+        communicationLinks: validLinks,
+        ownerWhatsApp: waLink || undefined,
+        ownerInstagram: igLink || undefined,
+        ownerFacebook: fbLink || undefined,
+        ownerTelegram: tgLink || undefined,
+        ownerSlack: slackLink || undefined,
         createdAt: new Date().toISOString(),
       };
 
@@ -630,7 +667,100 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                   )}
                 </div>
               </div>
+
+              {/* Safety Tag & Emergency Contact Information (Compulsory Phone & Instructions) */}
+              <div className="pt-3 border-t border-[#E8DDD3] space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5" /> Emergency Collar Tag Details
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                    Required for Safety
+                  </span>
+                </div>
+
+                {/* Owner Phone (REQUIRED) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+                      Owner Phone Number <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
+                    </label>
+                    {phoneValidation.isValid && ownerPhone.trim() && (
+                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Valid
+                      </span>
+                    )}
+                  </div>
+                  <CountryPhoneInput
+                    value={ownerPhone}
+                    required
+                    onChange={(val) => {
+                      setOwnerPhone(val);
+                      if (step2Error) setStep2Error(null);
+                    }}
+                    placeholder="+1 (555) 123-4567 or 03XX XXXXXXX"
+                    inputClassName="p-3 bg-[#FAF6F0] rounded-2xl"
+                  />
+                  <p className="text-[11px] text-[#766A63] font-medium mt-1">
+                    Printed directly on the physical collar tag so finders can reach you immediately.
+                  </p>
+                </div>
+
+                {/* Finder Instructions (REQUIRED) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+                      Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
+                    </label>
+                    {notesValidation.isValid && emergencyNotes.trim() ? (
+                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Valid
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-[#766A63]">Shown on public tag</span>
+                    )}
+                  </div>
+                  <textarea
+                    rows={2}
+                    required
+                    value={emergencyNotes}
+                    onChange={(e) => {
+                      setEmergencyNotes(e.target.value);
+                      if (step2Error) setStep2Error(null);
+                    }}
+                    placeholder="e.g. Friendly, loves treats, answers to whistle, do not chase. Clean tap water is safe."
+                    className="w-full p-3.5 bg-[#FAF6F0] border border-[#E8DDD3] focus:ring-[#8B5E3C] rounded-2xl text-xs font-semibold text-[#2C211B] focus:outline-none focus:ring-2 resize-none"
+                  />
+                  <p className="text-[11px] text-[#766A63] font-medium mt-1">
+                    Care notes shown to anyone who scans your tag to keep {puppyName || 'your puppy'} safe.
+                  </p>
+                </div>
+
+                {/* Reward Setting (DROPDOWN) */}
+                <div>
+                  <RewardSettingInput
+                    value={rewardAmount}
+                    onChange={(val) => setRewardAmount(val)}
+                  />
+                </div>
+
+                {/* Direct Chat & International Apps Input */}
+                <div className="pt-2">
+                  <CommunicationLinksInput
+                    links={communicationLinks}
+                    onChange={setCommunicationLinks}
+                    maxRecommended={3}
+                  />
+                </div>
+              </div>
             </div>
+
+            {step2Error && (
+              <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs font-semibold text-amber-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{step2Error}</span>
+              </div>
+            )}
 
             <div className="pt-4 border-t border-[#E8DDD3] flex items-center justify-between">
               <Button
@@ -642,8 +772,28 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               </Button>
               <Button
                 variant="primary"
-                onClick={() => setCurrentStep(3)}
-                disabled={!breed.trim() || !isBirthDateValid}
+                onClick={() => {
+                  if (!breed.trim()) {
+                    setStep2Error("Please select or enter your puppy's breed.");
+                    return;
+                  }
+                  if (!isBirthDateValid) {
+                    setStep2Error("Please select a valid birth date.");
+                    return;
+                  }
+                  const phoneRes = validatePhoneNumber(ownerPhone);
+                  if (!phoneRes.isValid) {
+                    setStep2Error(phoneRes.error || "Please enter a valid owner phone number.");
+                    return;
+                  }
+                  const notesRes = validateFinderInstructions(emergencyNotes);
+                  if (!notesRes.isValid) {
+                    setStep2Error(notesRes.error || "Please enter care instructions for finder (at least 5 characters).");
+                    return;
+                  }
+                  setStep2Error(null);
+                  setCurrentStep(3);
+                }}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
                 Next: Photo

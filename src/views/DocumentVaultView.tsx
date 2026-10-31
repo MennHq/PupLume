@@ -16,21 +16,26 @@ import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
+import { deleteImageFromCloudinary } from '../lib/cloudinary';
 
 interface DocumentVaultViewProps {
   puppy: PuppyProfile;
 }
 
 export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) => {
-  const [documents, setDocuments] = useState<DocumentRecord[]>(() => storage.getDocuments());
+  const [documents, setDocuments] = useState<DocumentRecord[]>(() => storage.getDocuments(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentRecord | null>(null);
 
   useEffect(() => {
+    setDocuments(storage.getDocuments(puppy.id));
+  }, [puppy.id]);
+
+  useEffect(() => {
     return storage.subscribe(() => {
-      setDocuments(storage.getDocuments());
+      setDocuments(storage.getDocuments(puppy.id));
     });
-  }, []);
+  }, [puppy.id]);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -52,7 +57,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
       fileUrl: fileUrl || undefined,
       notes
     });
-    setDocuments(storage.getDocuments());
+    setDocuments(storage.getDocuments(puppy.id));
     setIsAddOpen(false);
     setTitle('');
     setNotes('');
@@ -60,8 +65,12 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
   };
 
   const handleDelete = (id: string) => {
+    const doc = documents.find((d) => d.id === id);
+    if (doc?.fileUrl) {
+      deleteImageFromCloudinary(doc.fileUrl).catch(() => {});
+    }
     storage.deleteDocument(id);
-    setDocuments(storage.getDocuments());
+    setDocuments(storage.getDocuments(puppy.id));
   };
 
   return (
