@@ -390,17 +390,26 @@ export default function App() {
       <div className="min-h-screen flex flex-col">
         <OfflineAlert />
         <div className="flex-1">
-          <OnboardingWizard
-            userId={user?.id}
-            onComplete={(newPuppy) => {
-              setPuppy(newPuppy);
-              setCurrentView('home');
-              showToast(`Welcome ${newPuppy.name}! Your puppy's schedule is ready.`);
-            }}
-            onCancel={() => {
-              if (activePuppy) setCurrentView('home');
-            }}
-          />
+          <Suspense fallback={
+            <div className="min-h-screen bg-[#FAF6F0] flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-semibold text-[#766A63]">Loading AI Onboarding...</span>
+              </div>
+            </div>
+          }>
+            <OnboardingWizard
+              userId={user?.id}
+              onComplete={(newPuppy) => {
+                setPuppy(newPuppy);
+                setCurrentView('home');
+                showToast(`Welcome ${newPuppy.name}! Your puppy's schedule is ready.`);
+              }}
+              onCancel={() => {
+                if (activePuppy) setCurrentView('home');
+              }}
+            />
+          </Suspense>
         </div>
       </div>
     );
