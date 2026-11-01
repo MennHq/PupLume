@@ -28,12 +28,32 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
             <p className="text-xs text-[#766A63] leading-relaxed">
               We encountered a minor hiccup loading your puppy data. Please reload the page to reconnect.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-5 py-2.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
-            >
-              Reload PupLume
-            </button>
+            {this.state.error && (
+              <details className="w-full text-left bg-red-50/80 border border-red-200/60 rounded-xl p-3 text-[11px] text-red-700">
+                <summary className="cursor-pointer font-bold select-none text-red-800">Error Details</summary>
+                <div className="mt-2 font-mono whitespace-pre-wrap break-words">{this.state.error.message || String(this.state.error)}</div>
+              </details>
+            )}
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full pt-1">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full sm:flex-1 px-5 py-2.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
+              >
+                Reload PupLume
+              </button>
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                  } catch (_) {}
+                  window.location.href = '/';
+                }}
+                className="w-full sm:flex-1 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-[#5F3E29] font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                Reset Cache
+              </button>
+            </div>
           </div>
         </div>
       );

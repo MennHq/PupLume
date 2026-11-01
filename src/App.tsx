@@ -7,6 +7,7 @@ import { storage } from './lib/storage';
 
 // Layout
 import { AppLayout } from './components/layout/AppLayout';
+import { PupLumeLogo } from './components/common/PupLumeLogo';
 
 // Views
 import { HomeScreen } from './views/HomeScreen';
@@ -93,6 +94,19 @@ const MarketingCarousel = () => {
   );
 };
 
+const VALID_VIEWS = new Set([
+  'home', 'tasks', 'ai', 'academy', 'more', 'potty', 'health', 
+  'expenses', 'vault', 'socialization', 'journal', 'recap', 
+  'puppy', 'sharing', 'settings', 'onboarding'
+]);
+
+function sanitizeView(view: string | null | undefined): string {
+  if (!view) return 'home';
+  const clean = view.replace(/^\/+/, '').split('?')[0].trim().toLowerCase();
+  if (clean === 'plan') return 'tasks';
+  return VALID_VIEWS.has(clean) ? clean : 'home';
+}
+
 export default function App() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { signOut } = useClerk();
@@ -102,11 +116,9 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const viewParam = params.get('view');
       if (viewParam) {
-        return viewParam === 'plan' ? 'tasks' : viewParam;
+        return sanitizeView(viewParam);
       }
-      let path = window.location.pathname.replace(/^\/+/, '');
-      if (path === 'plan') path = 'tasks';
-      return path || 'home';
+      return sanitizeView(window.location.pathname);
     }
     return 'home';
   });
@@ -132,12 +144,10 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const viewParam = params.get('view');
       if (viewParam) {
-        setCurrentView(viewParam === 'plan' ? 'tasks' : viewParam);
+        setCurrentView(sanitizeView(viewParam));
         return;
       }
-      let path = window.location.pathname.replace(/^\/+/, '');
-      if (path === 'plan') path = 'tasks';
-      setCurrentView(path || 'home');
+      setCurrentView(sanitizeView(window.location.pathname));
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
