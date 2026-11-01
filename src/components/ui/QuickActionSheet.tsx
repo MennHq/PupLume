@@ -256,7 +256,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
   return (
     <>
       {/* Floating Action Button for Mobile & Desktop */}
-      <div className="fixed bottom-20 sm:bottom-8 right-4 sm:right-8 z-40">
+      <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-8 right-4 sm:right-8 z-40">
         <button
           id="quick-action-fab"
           onClick={() => setIsOpen(true)}

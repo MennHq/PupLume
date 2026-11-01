@@ -306,13 +306,20 @@ export default function App() {
         </div>
 
         {/* Right Side: Auth Widget */}
-        <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 relative bg-[#FFF9F2]">
+        <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 relative bg-[#FFF9F2] min-h-screen md:min-h-0">
           <div className="absolute top-4 w-full px-4">
             <OfflineAlert />
           </div>
           
-          <div className="w-full max-w-md mx-auto flex flex-col items-center">
-            {/* We can remove the custom logo header since we will let Clerk show its own header, or we can keep a small logo above it */}
+          <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
+            {/* Mobile Brand Header */}
+            <div className="md:hidden flex flex-col items-center mb-6 text-center">
+              <PupLumeLogo variant="full" size="lg" />
+              <p className="text-xs text-[#766A63] mt-2 font-medium">
+                Your AI companion for happy, healthy puppies
+              </p>
+            </div>
+
             <div className="w-full flex justify-center">
               <SignIn 
                 appearance={{
@@ -324,7 +331,7 @@ export default function App() {
                   elements: {
                     rootBox: "w-full",
                     cardBox: "!shadow-none",
-                    card: "bg-[#FFF9F2] !shadow-none rounded-3xl border border-[#E8DDD3] w-full max-w-md p-8",
+                    card: "bg-[#FFF9F2] !shadow-none rounded-3xl border border-[#E8DDD3] w-full max-w-md p-5 sm:p-8",
                     footer: "!bg-transparent !border-none !shadow-none",
                     headerTitle: "text-2xl font-black text-[#2C211B] mb-1",
                     headerSubtitle: "text-[#766A63] font-medium text-base",

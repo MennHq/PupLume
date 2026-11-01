@@ -163,9 +163,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-4 sm:px-8 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo & Puppy Switcher */}
-          <div className="flex items-center gap-4">
-            <div onClick={() => onNavigate('home')} className="cursor-pointer">
-              <PupLumeLogo variant="full" size="md" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div onClick={() => onNavigate('home')} className="cursor-pointer shrink-0">
+              <PupLumeLogo variant="full" size="sm" className="sm:hidden" />
+              <PupLumeLogo variant="full" size="md" className="hidden sm:inline-flex" />
             </div>
 
             <div className="hidden sm:block h-6 w-px bg-[#E8DDD3]" />
@@ -313,25 +314,25 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-8 py-5">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-3 sm:pt-5 pb-28 md:pb-8">
         {children}
       </main>
 
-                        {/* Mobile Bottom Tab Bar (Uniform & Clean) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-lg border-t border-[#E8DDD3]/60 shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
-        <div className="grid grid-cols-5 h-[68px] max-w-md mx-auto items-center px-1 pb-3 pt-1">
+      {/* Mobile Bottom Tab Bar (Uniform & Clean with iOS Safe Area) */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-lg border-t border-[#E8DDD3]/70 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="grid grid-cols-5 h-[64px] max-w-md mx-auto items-center px-1">
           {navItems.map((item) => {
             const isActive = currentView === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center justify-center h-full transition-all duration-200 cursor-pointer ${
+                className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-200 cursor-pointer ${
                   isActive ? 'text-[#8B5E3C] -translate-y-0.5' : 'text-[#A39B96] hover:text-[#8B5E3C]'
                 }`}
               >
                 <div className={`p-1.5 rounded-xl transition-all duration-200 mb-0.5 relative ${
-                  isActive ? 'bg-[#FFF9F2] shadow-sm border border-[#E8DDD3]/50' : 'bg-transparent border border-transparent'
+                  isActive ? 'bg-[#FFF9F2] shadow-sm border border-[#E8DDD3]/60' : 'bg-transparent border border-transparent'
                 }`}>
                   {/* Clone the icon to inject dynamic stroke width if needed, or just let CSS cascade handle it */}
                   {item.icon}
