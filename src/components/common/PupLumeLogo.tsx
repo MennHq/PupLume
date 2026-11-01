@@ -111,7 +111,7 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
           <div className={`font-black tracking-tight text-[#2C211B] ${textSize}`} style={{ fontFamily: "'Grandstander', cursive" }}>
             Pup<span className="text-[#8B5E3C]">Lume</span>
           </div>
-          <span className={`font-bold uppercase text-[#766A63] ${subSize}`}>
+          <span className={`font-bold uppercase text-[#766A63] ${subSize} hidden sm:block`}>
             Your Puppy Digital Home
           </span>
         </div>

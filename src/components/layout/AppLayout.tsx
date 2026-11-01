@@ -154,16 +154,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
       {/* Offline Status Alert */}
       <OfflineIndicator />
 
       
       {/* Desktop & Tablet Top Navigation */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-4 sm:px-8 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-3 sm:px-8 py-2.5 sm:py-3 w-full max-w-full overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full flex items-center justify-between gap-2">
           {/* Logo & Puppy Switcher */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div onClick={() => onNavigate('home')} className="cursor-pointer shrink-0">
               <PupLumeLogo variant="full" size="sm" className="sm:hidden" />
               <PupLumeLogo variant="full" size="md" className="hidden sm:inline-flex" />
@@ -172,18 +172,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="hidden sm:block h-6 w-px bg-[#E8DDD3]" />
 
             {/* Puppy Picker */}
-            <div className="relative" ref={puppyDropdownRef}>
+            <div className="relative shrink-0" ref={puppyDropdownRef}>
               <button
                 onClick={() => setIsPuppyDropdownOpen(!isPuppyDropdownOpen)}
-                className="flex items-center gap-2 p-1.5 pr-3 rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] transition-colors cursor-pointer"
               >
                 <img
                   src={puppy.photoUrl}
                   alt={puppy.name}
-                  className="w-7 h-7 rounded-xl object-cover border border-[#8B5E3C]"
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0"
                 />
-                <span className="text-xs font-bold text-[#2C211B]">{puppy.name}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
+                <span className="text-xs font-bold text-[#2C211B] truncate max-w-[70px] sm:max-w-none">{puppy.name}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 shrink-0 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isPuppyDropdownOpen && (
@@ -264,12 +264,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </nav>
 
           {/* Right Action Icons */}
-          <div className="flex items-center gap-2">
-            
-
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={handleOpenSearch}
-              className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+              className="hidden sm:flex p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
               title="Search (⌘K)"
             >
               <Search className="w-4 h-4" />
@@ -277,7 +275,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
             <button
               onClick={handleOpenNotifications}
-              className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+              className="hidden sm:flex p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -291,7 +289,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             {/* Settings Quick Access Button (Matches Search & Notifications styling) */}
             <button
               onClick={() => onNavigate('settings')}
-              className={`p-2.5 rounded-xl border transition-all cursor-pointer group ${
+              className={`hidden sm:flex p-2.5 rounded-xl border transition-all cursor-pointer group ${
                 currentView === 'settings'
                   ? 'border-[#8B5E3C] bg-[#8B5E3C] text-white shadow-2xs'
                   : 'border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29]'
@@ -306,7 +304,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="h-5 w-px bg-[#E8DDD3] mx-1 hidden sm:block" />
 
             {/* Clerk Authentication Controls */}
-            <div className="pl-0.5">
+            <div className="pl-0.5 shrink-0">
               <ClerkAuthControls />
             </div>
           </div>

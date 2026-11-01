@@ -62,6 +62,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
 
   const [isMinimized, setIsMinimized] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
+    if (window.innerWidth < 768) return true;
     return localStorage.getItem(minimizedKey) === 'true';
   });
 
@@ -229,7 +230,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
     return (
       <>
         {showConfetti && <FullScreenConfetti onComplete={() => setShowConfetti(false)} />}
-        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[360px] max-w-sm animate-in zoom-in-95 duration-300">
+        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-[360px] max-w-sm z-40 animate-in zoom-in-95 duration-300">
           <div className="bg-gradient-to-br from-[#FFF9F2] via-white to-amber-50 rounded-3xl border-2 border-amber-400/80 shadow-[0_16px_50px_rgba(217,119,6,0.25)] p-6 text-center space-y-3.5 relative overflow-hidden">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl shadow-inner animate-bounce">
               🏆
@@ -263,7 +264,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
     return (
       <>
         {showConfetti && <FullScreenConfetti onComplete={() => setShowConfetti(false)} />}
-        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-3 sm:left-auto sm:right-6 z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <button
             onClick={handleToggleMinimize}
             className="flex items-center gap-3 px-4 py-2.5 bg-white border border-[#E8DDD3] rounded-2xl shadow-xl hover:shadow-2xl transition-all cursor-pointer group hover:border-[#8B5E3C]"
@@ -293,7 +294,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   }
 
   return (
-    <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[360px] max-w-sm animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-[360px] max-w-sm z-40 animate-in fade-in zoom-in-95 duration-200">
       <div className="bg-white rounded-3xl border border-[#E8DDD3] shadow-[0_12px_40px_rgba(0,0,0,0.16)] p-5 overflow-hidden relative">
         
         {/* Header Bar */}
