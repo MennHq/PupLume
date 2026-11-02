@@ -29,6 +29,7 @@ const PublicPupSafetyPage = lazy(() => import('./views/PublicPupSafetyPage').the
 const PaddleLogPage = lazy(() => import('./views/PaddleLogPage').then(m => ({ default: m.PaddleLogPage })));
 const RecapView = lazy(() => import('./views/RecapView').then(m => ({ default: m.RecapView })));
 const PrivacyPolicyView = lazy(() => import('./views/PrivacyPolicyView').then(m => ({ default: m.PrivacyPolicyView })));
+const TermsOfServiceView = lazy(() => import('./views/TermsOfServiceView').then(m => ({ default: m.TermsOfServiceView })));
 const ProPaywallModal = lazy(() => import('./components/ui/ProPaywallModal').then(m => ({ default: m.ProPaywallModal })));
 import { Dog, Sparkles, ShieldCheck, Heart } from 'lucide-react';
 import { clearUserDataInConvex } from './lib/convex';
@@ -98,7 +99,7 @@ const MarketingCarousel = () => {
 const VALID_VIEWS = new Set([
   'home', 'tasks', 'ai', 'academy', 'more', 'potty', 'health', 
   'expenses', 'vault', 'socialization', 'journal', 'recap', 
-  'puppy', 'sharing', 'settings', 'onboarding', 'privacy'
+  'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms'
 ]);
 
 function sanitizeView(view: string | null | undefined): string {
@@ -623,6 +624,10 @@ export default function App() {
 
       {currentView === 'privacy' && (
         <PrivacyPolicyView onBack={() => setCurrentView('more')} />
+      )}
+
+      {currentView === 'terms' && (
+        <TermsOfServiceView onBack={() => setCurrentView('more')} />
       )}
 
       {currentView === 'settings' && (

@@ -323,8 +323,15 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
       <footer className="bg-white border-t border-[#E8DDD3] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <PupLumeLogo variant="full" size="sm" />
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs font-bold text-[#766A63]">
+            <a href="https://puplume.pet/legal/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-[#8B5E3C] transition-colors">Privacy Policy</a>
+            <a href="https://puplume.pet/legal/terms" target="_blank" rel="noopener noreferrer" className="hover:text-[#8B5E3C] transition-colors">Terms of Service</a>
+            <a href="https://puplume.pet/legal/refund" target="_blank" rel="noopener noreferrer" className="hover:text-[#8B5E3C] transition-colors">Refund Policy</a>
+            <a href="https://puplume.pet/legal/cookies" target="_blank" rel="noopener noreferrer" className="hover:text-[#8B5E3C] transition-colors">Cookies</a>
+            <a href="mailto:support@puplume.pet" className="hover:text-[#8B5E3C] transition-colors">Support</a>
+          </div>
           <p className="text-xs text-[#766A63] text-center sm:text-right">
-            © 2026 PupLume Inc. All rights reserved. Positive reinforcement first.
+            &copy; 2026 PupLume. All rights reserved. Positive reinforcement first.
           </p>
         </div>
       </footer>

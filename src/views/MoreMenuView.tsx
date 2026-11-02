@@ -76,7 +76,8 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
     {
       title: 'Legal & Transparency',
       items: [
-        { id: 'privacy', label: 'Privacy Policy', desc: 'Sub-processors, COPPA & data protection', icon: <ShieldCheck className="w-5 h-5 text-emerald-600" /> }
+        { id: 'privacy', label: 'Privacy Policy', desc: 'Sub-processors, COPPA & data protection', icon: <ShieldCheck className="w-5 h-5 text-emerald-600" /> },
+        { id: 'terms', label: 'Terms of Service & Refunds', desc: 'Warranty disclaimer, liability cap & 14-day exceptions', icon: <FileText className="w-5 h-5 text-[#8B5E3C]" /> }
       ]
     }
   ];
