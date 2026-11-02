@@ -117,8 +117,8 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
                   <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
                 ))}
               </div>
-              <span className="font-semibold text-[#2C211B]">4.9 / 5</span>
-              <span>from 12,000+ owners</span>
+              <span className="font-semibold text-[#2C211B]">Science-backed</span>
+              <span>daily puppy care</span>
             </div>
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-[#8B5E3C]" />
