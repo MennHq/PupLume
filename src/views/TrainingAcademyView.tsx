@@ -133,31 +133,33 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Academy Header Card */}
-      <div className="bg-gradient-to-r from-[#FFF9F2] via-[#F3E7DA]/60 to-[#FFF9F2] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#FFF9F2] via-[#F3E7DA]/60 to-[#FFF9F2] rounded-2xl sm:rounded-3xl border border-[#E8DDD3] p-3.5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B]">
-              PupLume Training Academy
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-base sm:text-2xl font-extrabold text-[#2C211B]">
+              Training Academy
             </h1>
-            <span className="text-xs font-bold bg-[#8B5E3C] text-white px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <Award className="w-3.5 h-3.5" />
+            <span className="text-[10px] sm:text-xs font-bold bg-[#8B5E3C] text-white px-2 py-0.5 sm:px-2.5 rounded-full flex items-center gap-1">
+              <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               {masteredCount} Mastered
             </span>
           </div>
-          <p className="text-xs text-[#766A63] mt-1 max-w-lg">
+          <p className="hidden sm:block text-xs text-[#766A63] mt-1 max-w-lg">
             Science-backed positive reinforcement curriculum for {puppy.name}. 5-minute micro-drills keep sessions fun, engaged, and frustration-free.
           </p>
         </div>
 
         {/* Progress meter */}
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E8DDD3] shadow-xs text-center min-w-[130px]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
-            Curriculum Mastery
-          </span>
-          <div className="text-xl font-black text-[#2C211B] mt-0.5">
-            {Math.round((masteredCount / lessons.length) * 100)}%
+        <div className="w-full sm:w-auto bg-white px-3 py-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-[#E8DDD3] shadow-2xs flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:min-w-[130px]">
+          <div className="flex sm:flex-col items-center gap-2 sm:gap-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+              Mastery
+            </span>
+            <span className="text-xs sm:text-xl font-black text-[#2C211B] sm:mt-0.5">
+              {Math.round((masteredCount / lessons.length) * 100)}%
+            </span>
           </div>
-          <div className="w-full bg-[#E8DDD3] h-1.5 rounded-full mt-1.5 overflow-hidden">
+          <div className="w-24 sm:w-full bg-[#E8DDD3] h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-[#8B5E3C] h-full rounded-full transition-all duration-500"
               style={{ width: `${(masteredCount / lessons.length) * 100}%` }}

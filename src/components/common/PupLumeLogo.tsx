@@ -67,7 +67,7 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
           <g transform="translate(6, 4) scale(0.19)">
             <path
               d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z"
-              fill="url(#logoPupGrad)"
+              fill="#8B5E3C"
             />
             {/* Floppy Left Ear */}
             <path
@@ -97,7 +97,7 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
             <g transform="translate(295, 45)">
               <path
                 d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z"
-                fill="url(#logoLumeStar)"
+                fill="#F59E0B"
               />
               <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
             </g>

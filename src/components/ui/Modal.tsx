@@ -26,6 +26,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
+    touchCurrentY.current = e.touches[0].clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -34,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   const handleTouchEnd = () => {
     const diff = touchCurrentY.current - touchStartY.current;
-    if (diff > 70) {
+    if (diff > 45) {
       onClose();
     }
     touchStartY.current = 0;
@@ -84,6 +85,14 @@ export const Modal: React.FC<ModalProps> = ({
             animate={isBottomSheet ? { y: 0, opacity: 1 } : { scale: 1, opacity: 1 }}
             exit={isBottomSheet ? { y: '100%', opacity: 0 } : { scale: 0.95, opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            drag={isBottomSheet ? "y" : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.7 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 45 || info.velocity.y > 200) {
+                onClose();
+              }
+            }}
             className={`relative z-10 w-full ${maxWidthClass} bg-white rounded-t-3xl sm:rounded-2xl border border-[#E8DDD3] shadow-xl overflow-hidden max-h-[92vh] flex flex-col`}
           >
             {/* Mobile Grab Bar with Swipe-to-Dismiss */}

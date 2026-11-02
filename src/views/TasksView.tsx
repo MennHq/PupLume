@@ -286,29 +286,30 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
-      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E8DDD3] p-3.5 sm:p-6 shadow-xs">
         {/* Top: Title & Action */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B] tracking-tight">
-                Daily Routine & Planner
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-2xl font-extrabold text-[#2C211B] tracking-tight">
+                Daily Routine
               </h1>
-              <span className="text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] sm:text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2 py-0.5 rounded-full">
                 {completedCount} / {tasks.length} done
               </span>
             </div>
-            <p className="text-xs text-[#766A63] mt-1 max-w-xl">
+            <p className="hidden sm:block text-xs text-[#766A63] mt-1 max-w-xl">
               Predictable rhythms establish security, house training, and emotional calm for {puppy.name}.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="primary"
               size="sm"
               onClick={() => setIsAddOpen(true)}
-              leftIcon={<Plus className="w-4 h-4" />}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              className="text-xs px-2.5 py-1.5 sm:px-3 sm:py-2"
             >
               Add Task
             </Button>
@@ -327,14 +328,14 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               }
             }}
             title="Click to jump to this task"
-            className="mt-4 pt-3.5 border-t border-[#F3E7DA] flex items-center justify-between gap-3 cursor-pointer group hover:bg-[#FFFDF9] -mx-1 px-2 py-1.5 rounded-xl transition-colors"
+            className="mt-2.5 pt-2 sm:mt-4 sm:pt-3.5 border-t border-[#F3E7DA] flex items-center justify-between gap-2 cursor-pointer group hover:bg-[#FFFDF9] -mx-1 px-1.5 py-1 rounded-xl transition-colors"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
               <span className="relative flex h-2 w-2 shrink-0">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${nextTask.isDue ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${nextTask.isDue ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8B5E3C] shrink-0 flex items-center gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#8B5E3C] shrink-0 flex items-center gap-1">
                 <Clock className="w-3 h-3 text-[#8B5E3C]" />
                 Up Next
               </span>
@@ -343,23 +344,23 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                 {nextTask.title}
               </span>
               {nextTask.relativeTime && nextTask.relativeTime !== nextTask.time && (
-                <span className="text-[11px] font-medium text-[#766A63] shrink-0">
+                <span className="text-[10px] sm:text-[11px] font-medium text-[#766A63] shrink-0">
                   ({nextTask.relativeTime})
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-semibold text-[#8B5E3C] bg-[#FFF9F2] px-2.5 py-0.5 rounded-lg border border-[#E8DDD3] shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.5 rounded-lg border border-[#E8DDD3] shadow-2xs">
                 {nextTask.time}
               </span>
-              <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[10px] sm:text-[11px] font-bold text-[#8B5E3C] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                 Jump <ArrowRight className="w-3 h-3" />
               </span>
             </div>
           </div>
         ) : tasks.length > 0 && completedCount === tasks.length ? (
-          <div className="mt-4 pt-3.5 border-t border-[#F3E7DA] flex items-center gap-2 text-xs font-bold text-[#1E6B37]">
+          <div className="mt-2.5 pt-2 sm:mt-4 sm:pt-3.5 border-t border-[#F3E7DA] flex items-center gap-2 text-xs font-bold text-[#1E6B37]">
             <CheckCircle2 className="w-4 h-4 text-[#2E9E52]" />
             <span>All tasks completed for today! Great job with {puppy.name}. 🎉</span>
           </div>
@@ -409,7 +410,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
       </div>
 
       {/* Task List */}
-      <div className="space-y-2.5">
+      <div className="space-y-2 sm:space-y-2.5">
         {tasks.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-3xl border border-[#E8DDD3] shadow-xs">
             <div className="w-12 h-12 rounded-2xl bg-[#F3E7DA] text-[#8B5E3C] flex items-center justify-center mx-auto mb-3">
@@ -439,7 +440,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               key={task.id}
               id={`task-card-${task.id}`}
               tabIndex={0}
-              className={`relative p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 focus:outline-none focus:border-[#8B5E3C] focus:ring-4 focus:ring-[#8B5E3C]/10 ${
+              className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all flex items-center justify-between gap-2.5 focus:outline-none focus:border-[#8B5E3C] focus:ring-4 focus:ring-[#8B5E3C]/10 ${
                 task.completed
                   ? 'bg-[#FFF9F2]/60 border-[#E8DDD3]/70 opacity-65'
                   : 'bg-white border-[#E8DDD3] hover:border-[#8B5E3C]/40 shadow-xs'
@@ -461,7 +462,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                 setActiveMenuTaskId(task.id);
               }}
             >
-              <div className="flex items-start gap-3.5 min-w-0">
+              <div className="flex items-start gap-2.5 sm:gap-3.5 min-w-0 flex-1">
                 <button
                   type="button"
                   title={task.completed ? "Mark incomplete" : "Mark complete"}
@@ -469,18 +470,18 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                     e.stopPropagation();
                     handleToggle(task.id);
                   }}
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 mt-0.5 ${
+                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5 ${
                     task.completed
                       ? 'bg-emerald-600 text-white'
                       : 'border-2 border-[#E8DDD3] hover:border-[#8B5E3C] bg-white'
                   }`}
                 >
-                  {task.completed && <Check className="w-4 h-4 stroke-[3]" />}
+                  {task.completed && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />}
                 </button>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                    <h3 className={`text-sm font-bold text-[#2C211B] break-words line-clamp-2 sm:line-clamp-1 ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                    <h3 className={`text-xs sm:text-sm font-bold text-[#2C211B] break-words line-clamp-1 ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
                       {task.title}
                     </h3>
                     <Badge variant={task.category as any} size="sm">
@@ -488,13 +489,13 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                     </Badge>
                   </div>
                   {task.description && (
-                    <p className="text-xs text-[#766A63] mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
+                    <p className="text-[11px] sm:text-xs text-[#766A63] mt-0.5 leading-snug line-clamp-1 sm:line-clamp-none">
                       {task.description}
                     </p>
                   )}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-[11px] text-[#766A63]">
-                    <span className="inline-flex items-center gap-1 font-semibold text-[#5F3E29] bg-[#FFF9F2] px-2 py-0.5 rounded-md border border-[#E8DDD3]/60 whitespace-nowrap">
-                      <Clock className="w-3.5 h-3.5 text-[#8B5E3C]" /> {task.time} ({task.durationMin} min)
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 mt-1 sm:mt-2 text-[10px] sm:text-[11px] text-[#766A63]">
+                    <span className="inline-flex items-center gap-1 font-semibold text-[#5F3E29] bg-[#FFF9F2] px-1.5 py-0.5 sm:px-2 rounded-md border border-[#E8DDD3]/60 whitespace-nowrap">
+                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8B5E3C]" /> {task.time} ({task.durationMin} min)
                     </span>
                     {!task.completed && (
                       <a 
@@ -502,9 +503,9 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                         target="_blank" 
                         rel="noopener noreferrer" 
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-[#4285F4] hover:text-[#3367D6] font-bold transition-colors bg-blue-50/50 px-2 py-0.5 rounded-md border border-blue-100 whitespace-nowrap"
+                        className="inline-flex items-center gap-1 text-[#4285F4] hover:text-[#3367D6] font-bold transition-colors bg-blue-50/50 px-1.5 py-0.5 sm:px-2 rounded-md border border-blue-100 whitespace-nowrap"
                       >
-                        <Calendar className="w-3 h-3" /> GCal
+                        <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> GCal
                       </a>
                     )}
                     <span className="capitalize text-[#766A63] whitespace-nowrap">• {task.period}</span>

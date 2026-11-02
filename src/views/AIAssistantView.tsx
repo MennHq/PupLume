@@ -274,7 +274,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-185px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto pb-2">
+    <div className="flex flex-col h-[calc(100vh-140px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto">
       
 
             {/* Sleek Professional Chat Header */}

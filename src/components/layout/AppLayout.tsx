@@ -160,7 +160,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
       
       {/* Desktop & Tablet Top Navigation */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-3 sm:px-8 py-2.5 sm:py-3 w-full max-w-full overflow-hidden">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-3 sm:px-8 py-2.5 sm:py-3 w-full max-w-full">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between gap-2">
           {/* Logo & Puppy Switcher */}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -316,7 +316,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-3 sm:pt-5 pb-28 md:pb-8">
+      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-20 md:pb-6' : 'pb-28 md:pb-8'}`}>
         {children}
       </main>
 
