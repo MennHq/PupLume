@@ -72,6 +72,12 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
         { id: 'puppy', label: `${puppy.name}’s Profile`, desc: 'Weight, breed details & emergency vet phone', icon: <Dog className="w-5 h-5 text-[#8B5E3C]" /> },
         { id: 'settings', label: 'App Settings & Backup', desc: 'Reminders, measurement units & JSON restore', icon: <Settings className="w-5 h-5 text-[#766A63]" /> }
       ]
+    },
+    {
+      title: 'Legal & Transparency',
+      items: [
+        { id: 'privacy', label: 'Privacy Policy', desc: 'Sub-processors, COPPA & data protection', icon: <ShieldCheck className="w-5 h-5 text-emerald-600" /> }
+      ]
     }
   ];
 
