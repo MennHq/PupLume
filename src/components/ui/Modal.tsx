@@ -21,6 +21,26 @@ export const Modal: React.FC<ModalProps> = ({
   maxWidth = 'md',
   isBottomSheet = true
 }) => {
+  const touchStartY = React.useRef(0);
+  const touchCurrentY = React.useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchCurrentY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchCurrentY.current - touchStartY.current;
+    if (diff > 70) {
+      onClose();
+    }
+    touchStartY.current = 0;
+    touchCurrentY.current = 0;
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -66,14 +86,25 @@ export const Modal: React.FC<ModalProps> = ({
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             className={`relative z-10 w-full ${maxWidthClass} bg-white rounded-t-3xl sm:rounded-2xl border border-[#E8DDD3] shadow-xl overflow-hidden max-h-[92vh] flex flex-col`}
           >
-            {/* Mobile Grab Bar */}
-            <div className="sm:hidden pt-2.5 pb-1 flex justify-center">
-              <div className="w-12 h-1.5 bg-[#E8DDD3] rounded-full" />
+            {/* Mobile Grab Bar with Swipe-to-Dismiss */}
+            <div
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="sm:hidden pt-3 pb-2 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none"
+              title="Swipe down to close"
+            >
+              <div className="w-14 h-1.5 bg-[#D4C3B3] hover:bg-[#8B5E3C] rounded-full transition-colors" />
             </div>
 
             {/* Header */}
             {(title || subtitle) && (
-              <div className="flex items-start justify-between px-5 pt-3 sm:pt-5 pb-3 border-b border-[#E8DDD3]/60">
+              <div
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="flex items-start justify-between px-5 pt-3 sm:pt-5 pb-3 border-b border-[#E8DDD3]/60 cursor-grab active:cursor-grabbing"
+              >
                 <div>
                   {title && <h3 className="text-lg font-bold text-[#2C211B] leading-snug">{title}</h3>}
                   {subtitle && <p className="text-xs text-[#766A63] mt-0.5">{subtitle}</p>}

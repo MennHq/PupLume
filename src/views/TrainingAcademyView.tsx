@@ -131,7 +131,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Academy Header Card */}
       <div className="bg-gradient-to-r from-[#FFF9F2] via-[#F3E7DA]/60 to-[#FFF9F2] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

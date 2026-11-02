@@ -101,7 +101,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   }, {});
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -118,7 +118,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Hidden file input for receipt scanner */}
           <label className="cursor-pointer">
             <input

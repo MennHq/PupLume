@@ -165,8 +165,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           {/* Logo & Puppy Switcher */}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div onClick={() => onNavigate('home')} className="cursor-pointer shrink-0">
-              <PupLumeLogo variant="full" size="sm" className="sm:hidden" />
-              <PupLumeLogo variant="full" size="md" className="hidden sm:inline-flex" />
+              <div className="sm:hidden flex items-center">
+                <PupLumeLogo variant="full" size="sm" />
+              </div>
+              <div className="hidden sm:flex items-center">
+                <PupLumeLogo variant="full" size="md" />
+              </div>
             </div>
 
             <div className="hidden sm:block h-6 w-px bg-[#E8DDD3]" />
@@ -182,7 +186,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   alt={puppy.name}
                   className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0"
                 />
-                <span className="text-xs font-bold text-[#2C211B] truncate max-w-[70px] sm:max-w-none">{puppy.name}</span>
+                <span className="text-xs font-bold text-[#2C211B] truncate max-w-[65px] sm:max-w-none">{puppy.name}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 shrink-0 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -345,12 +349,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
       </nav>
 
-      {/* Central Quick Logging FAB and Modal */}
-      <QuickActionSheet
-        onActionComplete={(msg) => {
-          // Log complete notification
-        }}
-      />
+      {/* Central Quick Logging FAB and Modal (Hidden on Ask AI view to prevent send button collision) */}
+      {currentView !== 'ai' && (
+        <QuickActionSheet
+          onActionComplete={(msg) => {
+            // Log complete notification
+          }}
+        />
+      )}
 
       {/* Global Search Modal */}
       <GlobalSearchModal

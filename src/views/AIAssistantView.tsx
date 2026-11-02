@@ -274,7 +274,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-145px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto pb-4">
+    <div className="flex flex-col h-[calc(100vh-185px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto pb-2">
       
 
             {/* Sleek Professional Chat Header */}
@@ -307,6 +307,42 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto px-1 space-y-3.5 pr-2">
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center p-4 text-center my-auto min-h-[320px]">
+            <div className="w-14 h-14 rounded-3xl bg-[#FFF9F2] border-2 border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] mb-3 shadow-xs">
+              <PupLumeLogo variant="icon" size="md" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#2C211B] mb-1">
+              PupLume AI Coach for {puppy.name}
+            </h3>
+            <p className="text-xs text-[#766A63] max-w-sm mb-5 leading-relaxed">
+              Ask any puppy question, generate personalized training drills, or log routines with veterinary safety guardrails.
+            </p>
+
+            {/* Quick Starter Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md text-left">
+              {[
+                { icon: '🚽', title: 'Potty Schedule', query: `When should ${puppy.name} go out for potty next?` },
+                { icon: '🦷', title: 'Teething & Mouthing', query: `How do I stop ${puppy.name} from nipping hands?` },
+                { icon: '🌙', title: 'Crate & Sleep', query: `Why won't ${puppy.name} settle in the crate at night?` },
+                { icon: '📋', title: 'Daily Routine', query: `Create a custom daily schedule for ${puppy.name}.` },
+              ].map((card) => (
+                <button
+                  key={card.title}
+                  type="button"
+                  onClick={() => handleSend(card.query)}
+                  className="p-3 rounded-2xl border border-[#E8DDD3] bg-white hover:bg-[#FFF9F2] hover:border-[#8B5E3C]/40 text-left transition-all cursor-pointer shadow-2xs group"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-base">{card.icon}</span>
+                    <span className="text-xs font-bold text-[#2C211B] group-hover:text-[#8B5E3C] transition-colors">{card.title}</span>
+                  </div>
+                  <p className="text-[11px] text-[#766A63] line-clamp-1">{card.query}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         
         {messages.map((msg) => (

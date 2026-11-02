@@ -180,7 +180,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   ];
 
   return (
-    <div className="max-w-6xl mx-auto pb-24">
+    <div className="max-w-6xl mx-auto pb-6">
       <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* Main Feed Column (8 cols on lg desktop) */}
         <div className="lg:col-span-8 space-y-6">

@@ -76,7 +76,7 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Puppy Card in More */}
       <div 
         onClick={() => onNavigate('puppy')}

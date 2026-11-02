@@ -83,7 +83,7 @@ export const WeeklyRecapBanner: React.FC<WeeklyRecapBannerProps> = ({ puppy, onO
               </span>
             </div>
 
-            <h3 className="text-sm sm:text-base font-extrabold text-[#2C211B] mt-1 flex items-center gap-1.5 truncate">
+            <h3 className="text-sm sm:text-base font-extrabold text-[#2C211B] mt-1 flex items-center gap-1.5 break-words">
               {isOffTrack
                 ? `🐾 ${puppy.name}'s Routine Needs Focus`
                 : isNeedsWork

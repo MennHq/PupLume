@@ -106,7 +106,7 @@ export const RecapView: React.FC<RecapViewProps> = ({ puppy, onNavigate }) => {
   const isNeedsWork = currentScore.score < 6.5;
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto pb-24 animate-in fade-in duration-200">
+    <div className="space-y-5 max-w-3xl mx-auto pb-6 animate-in fade-in duration-200">
       {showConfetti && <FullScreenConfetti />}
 
       {/* Floating Toast Notification */}
