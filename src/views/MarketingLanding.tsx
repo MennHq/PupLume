@@ -30,7 +30,6 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
   onSignIn,
   onExploreDemo
 }) => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
 
   return (
     <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B]">
@@ -232,89 +231,73 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-16 sm:py-24">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[#8B5E3C] mb-2">
-              Flexible Plans
-            </h2>
-            <h3 className="text-2xl sm:text-4xl font-extrabold text-[#2C211B]">
-              Transparent pricing for every puppy family
-            </h3>
-            <p className="text-sm text-[#766A63] mt-2">
-              Start free today. Upgrade whenever you need unlimited AI assistance and family collaboration.
-            </p>
-
-            {/* Toggle */}
-            <div className="inline-flex items-center gap-3 p-1 rounded-xl bg-[#F3E7DA] mt-6 border border-[#E8DDD3]">
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                  billingCycle === 'monthly' ? 'bg-white text-[#2C211B] shadow-xs' : 'text-[#766A63]'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('annual')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  billingCycle === 'annual' ? 'bg-[#8B5E3C] text-white shadow-xs' : 'text-[#766A63]'
-                }`}
-              >
-                Annual <span className="text-[10px] bg-amber-200 text-amber-900 px-1 py-0.2 rounded font-extrabold">SAVE 30%</span>
-              </button>
+      <section id="pricing" className="py-16 sm:py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#8B5E3C]/10 text-[#8B5E3C] font-bold text-xs border border-[#8B5E3C]/20 mb-3">
+              <span>🔥 Limited-Time Launch Offer</span>
             </div>
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-[#2C211B] tracking-tight">
+              One Honest Price. Lifetime Care.
+            </h3>
+            <p className="text-sm sm:text-base text-[#766A63] mt-2">
+              Limited introductory offer: pay once and get full lifetime access for your puppy. Never pay a monthly subscription.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="p-8 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs flex flex-col justify-between">
-              <div>
-                <h4 className="text-lg font-bold text-[#2C211B]">Puppy Starter</h4>
-                <p className="text-xs text-[#766A63] mt-1 mb-6">For single puppy basic tracking</p>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-[#2C211B]">$0</span>
-                  <span className="text-xs text-[#766A63]">/ forever</span>
-                </div>
-                <ul className="space-y-3 text-xs text-[#2C211B] mb-8">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> Daily task checklist & schedule</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> Potty & feeding logs</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> 10 Foundation training lessons</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> Basic health & vaccine records</li>
-                </ul>
-              </div>
-              <Button variant="outline" size="md" onClick={onGetStarted} className="w-full">
-                Get Started Free
-              </Button>
+          <div className="max-w-md mx-auto bg-gradient-to-br from-[#FFF9F2] to-white rounded-3xl border-2 border-[#8B5E3C] shadow-xl overflow-hidden p-8 sm:p-10 text-center relative">
+            <div className="inline-block px-3.5 py-1 rounded-full bg-[#8B5E3C] text-white text-xs font-bold uppercase tracking-wider mb-5">
+              Limited Offer • $24.99 One-Time
             </div>
 
-            {/* Premium Plan */}
-            <div className="p-8 rounded-3xl bg-[#FFF9F2] border-2 border-[#8B5E3C] shadow-md flex flex-col justify-between relative">
-              <div className="absolute -top-3 right-6 bg-[#8B5E3C] text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider">
-                Most Popular
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-[#2C211B]">PupLume Premium</h4>
-                <p className="text-xs text-[#766A63] mt-1 mb-6">Complete AI co-pilot & veterinary vault</p>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-[#2C211B]">
-                    {billingCycle === 'annual' ? '$7.99' : '$11.99'}
-                  </span>
-                  <span className="text-xs text-[#766A63]">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-[#2C211B] mb-8">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> <strong>Unlimited AI Assistant</strong> with action proposals</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> Full 6-module Training Academy curriculum</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> Predictive potty countdown & sleep analytics</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> Google & Apple Calendar two-way ICS sync</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> Receipt scanner & expense analytics</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#8B5E3C]" /> Unlimited family caregiver sharing</li>
-                </ul>
-              </div>
-              <Button variant="primary" size="md" onClick={onGetStarted} className="w-full">
-                Start 7-Day Free Trial
-              </Button>
+            <div className="flex items-baseline justify-center gap-1.5 mb-2">
+              <span className="text-5xl sm:text-6xl font-black text-[#2C211B]">$24.99</span>
+              <span className="text-sm font-bold text-[#766A63]">USD</span>
             </div>
+
+            <p className="text-xs font-semibold text-[#766A63] mb-6">
+              One-time payment • Never pay monthly fees
+            </p>
+
+            <ul className="space-y-3 text-left mb-8 text-xs sm:text-sm text-[#2C211B]">
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span><strong>Unlimited 24/7 AI Co-Pilot</strong> with instant advice</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Full 6-module Training Academy curriculum</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Predictive potty countdown &amp; routine tracking</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Complete medical, vaccine &amp; vet record vault</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Multi-caregiver family &amp; sitter sync</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Free future updates &amp; new features forever</span>
+              </li>
+            </ul>
+
+            <Button 
+              variant="primary" 
+              size="lg" 
+              onClick={onGetStarted} 
+              className="w-full py-4 text-base font-bold shadow-md hover:shadow-lg active:scale-95"
+            >
+              <span>Claim Limited Offer — $24.99</span>
+            </Button>
+
+            <p className="text-[11px] text-[#766A63] mt-4 font-medium">
+              🔒 14-Day Money-Back Guarantee • Zero Recurring Charges
+            </p>
           </div>
         </div>
       </section>
