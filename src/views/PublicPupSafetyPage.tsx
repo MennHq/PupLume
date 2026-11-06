@@ -17,6 +17,8 @@ import {
   Globe
 } from 'lucide-react';
 import { storage } from '../lib/storage';
+import { copyToClipboard } from '../lib/clipboard';
+import { ShareModal } from '../components/common/ShareModal';
 import { COMMUNICATION_PLATFORMS, getPlatformFaviconUrl } from '../lib/communicationPlatforms';
 
 interface ErrorBoundaryProps {
@@ -60,12 +62,17 @@ export const PublicPupSafetyPage: React.FC = () => {
 };
 
 const PublicPupSafetyContent: React.FC = () => {
-  // Extract identifier from /pup/:id or /pup/:name
+  // Extract identifier from /pup/:slug, /safety/:slug, or ?pup=...
   const [identifier] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryId = searchParams.get('pup') || searchParams.get('id') || searchParams.get('name');
+      if (queryId) return decodeURIComponent(queryId).trim();
+
       const parts = window.location.pathname.split('/').filter(Boolean);
-      if (parts[0] === 'pup' && parts[1]) {
-        return decodeURIComponent(parts[1]);
+      const prefix = parts[0]?.toLowerCase();
+      if ((prefix === 'pup' || prefix === 'safety' || prefix === 'p') && parts[1]) {
+        return decodeURIComponent(parts[1]).trim();
       }
     }
     return '';
@@ -156,6 +163,7 @@ const PublicPupSafetyContent: React.FC = () => {
 
 export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'locating' | 'success' | 'error'>('idle');
   const [locationLink, setLocationLink] = useState<string | null>(null);
 
@@ -168,10 +176,12 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
     );
   }
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(label);
-    setTimeout(() => setCopiedField(null), 2500);
+  const handleCopyText = async (text: string, label: string) => {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedField(label);
+      setTimeout(() => setCopiedField(null), 2500);
+    }
   };
 
   const handleShareLocation = () => {
@@ -282,9 +292,19 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
           </div>
 
           <div className="flex-1 space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FAF6F0] border border-[#E8DDD3] rounded-full text-xs font-bold text-[#8B5E3C]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Verified PupLume Safety Tag
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FAF6F0] border border-[#E8DDD3] rounded-full text-xs font-bold text-[#8B5E3C]">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                Verified PupLume Safety Tag
+              </div>
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="px-2.5 py-1 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold shadow-2xs"
+                title="Share this puppy profile"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share</span>
+              </button>
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-black text-[#2C211B] tracking-tight">
@@ -382,7 +402,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
               <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between gap-2">
                 <span className="truncate text-[11px] font-mono">{locationLink}</span>
                 <button
-                  onClick={() => copyToClipboard(locationLink, 'gps')}
+                  onClick={() => handleCopyText(locationLink, 'gps')}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-[10px] font-bold shrink-0 cursor-pointer"
                 >
                   {copiedField === 'gps' ? 'Copied!' : 'Copy'}
@@ -522,7 +542,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
               </span>
               {activePup.microchipNumber && (
                 <button
-                  onClick={() => copyToClipboard(activePup.microchipNumber!, 'microchip')}
+                  onClick={() => handleCopyText(activePup.microchipNumber!, 'microchip')}
                   className="p-1.5 hover:bg-[#FAF6F0] rounded-lg text-[#766A63] hover:text-[#2C211B] transition-colors cursor-pointer"
                   title="Copy Microchip ID"
                 >
@@ -597,6 +617,16 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         </div>
 
       </div>
+
+      {/* Instagram-Style Share Sheet Modal */}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        puppy={activePup}
+        url={typeof window !== 'undefined' ? window.location.href : `https://puplume.pet/pup/${encodeURIComponent(activePup.name?.toLowerCase() || '')}`}
+        title={`Share ${activePup.name}'s Profile 🐾`}
+        isEmergency={Boolean(activePup.isLost)}
+      />
     </div>
   );
 };

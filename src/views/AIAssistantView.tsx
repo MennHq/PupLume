@@ -60,9 +60,11 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     return unsub;
   }, []);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom only when there are messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, isLoading]);
 
   const handleSend = async (textToSend?: string) => {
@@ -274,7 +276,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100dvh-140px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto">
       
 
             {/* Sleek Professional Chat Header */}
@@ -308,9 +310,9 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto px-1 space-y-3.5 pr-2">
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center p-4 text-center my-auto min-h-[320px]">
-            <div className="w-14 h-14 rounded-3xl bg-[#FFF9F2] border-2 border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] mb-3 shadow-xs">
-              <PupLumeLogo variant="icon" size="md" />
+          <div className="min-h-full flex flex-col items-center justify-start sm:justify-center p-4 pt-6 sm:pt-8 pb-6 text-center">
+            <div className="flex items-center justify-center mb-3">
+              <PupLumeLogo variant="icon" size="lg" showBackground={false} />
             </div>
             <h3 className="text-base sm:text-lg font-extrabold text-[#2C211B] mb-1">
               PupLume AI Coach for {puppy.name}

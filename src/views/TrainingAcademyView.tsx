@@ -13,10 +13,13 @@ import {
   AlertCircle,
   HelpCircle,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Share2
 } from 'lucide-react';
 import { PuppyProfile, TrainingLesson } from '../types';
 import { storage } from '../lib/storage';
+import { nativeBridge } from '../lib/nativeBridge';
+import { playNotificationChime } from '../lib/sound';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
@@ -62,17 +65,28 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
     }
   }, [activeLessonId]);
 
-  // Timer tick
+  // Screen Wake Lock & Timer tick
   React.useEffect(() => {
     let interval: any = null;
     if (isTimerRunning && timerSeconds > 0) {
+      nativeBridge.wakeLock.request('academy-timer');
       interval = setInterval(() => {
         setTimerSeconds(s => s - 1);
       }, 1000);
     } else if (timerSeconds === 0) {
+      if (isTimerRunning) {
+        nativeBridge.haptics.success();
+        playNotificationChime();
+      }
       setIsTimerRunning(false);
+      nativeBridge.wakeLock.release('academy-timer');
+    } else {
+      nativeBridge.wakeLock.release('academy-timer');
     }
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      nativeBridge.wakeLock.release('academy-timer');
+    };
   }, [isTimerRunning, timerSeconds]);
 
   const modules = [
@@ -108,6 +122,12 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
   const handleToggleMastered = (lessonId: string) => {
     if (!activeLesson) return;
     const isNowMastered = !activeLesson.mastered;
+    if (isNowMastered) {
+      nativeBridge.haptics.success();
+      playNotificationChime();
+    } else {
+      nativeBridge.haptics.light();
+    }
     const updated = storage.updateLessonStatus(lessonId, true, isNowMastered);
     localStorage.setItem('puplume_did_academy', 'true');
     window.dispatchEvent(new CustomEvent('puplume-action-completed', { detail: { action: 'academy' } }));
@@ -117,6 +137,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
 
   const handleMarkPracticed = (lessonId: string) => {
     if (!activeLesson) return;
+    nativeBridge.haptics.success();
     const updated = storage.updateLessonStatus(lessonId, true, activeLesson.mastered);
     localStorage.setItem('puplume_did_academy', 'true');
     window.dispatchEvent(new CustomEvent('puplume-action-completed', { detail: { action: 'academy' } }));
@@ -352,24 +373,41 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
             </div>
 
             {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-4 border-t border-[#E8DDD3]">
-              <Button
-                variant={activeLesson.completed ? 'outline' : 'secondary'}
-                onClick={() => handleMarkPracticed(activeLesson.id)}
-                className="w-full sm:w-1/2"
-                leftIcon={<Check className="w-4 h-4" />}
-              >
-                {activeLesson.completed ? 'Practiced Today ✓' : 'Mark as Practiced'}
-              </Button>
+            <div className="flex flex-col gap-2.5 pt-4 border-t border-[#E8DDD3]">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                <Button
+                  variant={activeLesson.completed ? 'outline' : 'secondary'}
+                  onClick={() => handleMarkPracticed(activeLesson.id)}
+                  className="w-full sm:w-1/2"
+                  leftIcon={<Check className="w-4 h-4" />}
+                >
+                  {activeLesson.completed ? 'Practiced Today ✓' : 'Mark as Practiced'}
+                </Button>
 
-              <Button
-                variant={activeLesson.mastered ? 'outline' : 'primary'}
-                onClick={() => handleToggleMastered(activeLesson.id)}
-                className="w-full sm:w-1/2"
-                leftIcon={<Award className="w-4 h-4" />}
-              >
-                {activeLesson.mastered ? 'Mastered! (Click to Unmark)' : 'Mark Mastered 🎉'}
-              </Button>
+                <Button
+                  variant={activeLesson.mastered ? 'outline' : 'primary'}
+                  onClick={() => handleToggleMastered(activeLesson.id)}
+                  className="w-full sm:w-1/2"
+                  leftIcon={<Award className="w-4 h-4" />}
+                >
+                  {activeLesson.mastered ? 'Mastered! (Click to Unmark)' : 'Mark Mastered 🎉'}
+                </Button>
+              </div>
+
+              {(activeLesson.mastered || activeLesson.completed) && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    nativeBridge.haptics.medium();
+                    nativeBridge.share.achievement(activeLesson.title, puppy.name);
+                  }}
+                  className="w-full text-[#8B5E3C] border-[#8B5E3C]/30 hover:bg-[#FFF9F2]"
+                  leftIcon={<Share2 className="w-4 h-4 text-[#8B5E3C]" />}
+                  title="Share trick badge via WhatsApp, Messages, AirDrop"
+                >
+                  Share {puppy.name}&apos;s Achievement 🏆
+                </Button>
+              )}
             </div>
           </div>
         )}

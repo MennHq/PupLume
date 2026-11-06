@@ -33,6 +33,7 @@ const TermsOfServiceView = lazy(() => import('./views/TermsOfServiceView').then(
 const ProPaywallModal = lazy(() => import('./components/ui/ProPaywallModal').then(m => ({ default: m.ProPaywallModal })));
 import { Dog, Sparkles, ShieldCheck, Heart } from 'lucide-react';
 import { clearUserDataInConvex } from './lib/convex';
+import { nativeBridge } from './lib/nativeBridge';
 import { OfflineAlert } from './components/pwa/OfflineAlert';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
 import { FirstTimeWelcomeTour } from './components/ui/FirstTimeWelcomeTour';
@@ -133,6 +134,18 @@ export default function App() {
   // Sync currentView to clean URL paths (e.g. /academy)
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      // NEVER overwrite public routes (like /pup/*, /safety/*, or /paddlelog)
+      if (
+        path.startsWith('/pup/') || 
+        path === '/pup' || 
+        path.startsWith('/safety/') || 
+        path === '/safety' || 
+        path === '/paddlelog'
+      ) {
+        return;
+      }
+
       const targetPath = currentView === 'home' ? '/' : `/${currentView}`;
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ view: currentView }, '', targetPath);
@@ -245,9 +258,15 @@ export default function App() {
     const unsubscribe = storage.subscribe(() => {
       const current = storage.getPuppy();
       setPuppy(current ? { ...current } : null);
+      nativeBridge.badge.updateFromTasks(current?.id);
     });
     return unsubscribe;
   }, []);
+
+  // Update app icon notification badge on puppy change
+  useEffect(() => {
+    nativeBridge.badge.updateFromTasks(puppy?.id);
+  }, [puppy?.id]);
 
   // Hydrate from Convex reactive cloud subscription (No fake data!)
   useEffect(() => {
@@ -277,9 +296,25 @@ export default function App() {
     return () => notificationEngine.stop();
   }, []);
 
-  // 0. Public zero-auth emergency page for collar tag scans (/pup/*)
-  if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/pup/') || window.location.pathname === '/pup')) {
-    return <Suspense fallback={<div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}><PublicPupSafetyPage /></Suspense>;
+  // 0. Public zero-auth emergency page for collar tag scans (/pup/* and /safety/*)
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname.toLowerCase();
+    if (
+      path.startsWith('/pup/') || 
+      path === '/pup' || 
+      path.startsWith('/safety/') || 
+      path === '/safety'
+    ) {
+      return (
+        <Suspense fallback={
+          <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center">
+            <div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
+          <PublicPupSafetyPage />
+        </Suspense>
+      );
+    }
   }
 
   // Temporary /paddlelog diagnostic page

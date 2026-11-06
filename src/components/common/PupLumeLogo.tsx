@@ -5,13 +5,15 @@ interface PupLumeLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   onClick?: () => void;
+  showBackground?: boolean;
 }
 
 export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
   variant = 'full',
   size = 'md',
   className = '',
-  onClick
+  onClick,
+  showBackground = true
 }) => {
   const iconDimensions = {
     sm: { w: 32, h: 32 },
@@ -61,7 +63,9 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
           </defs>
 
           {/* Squircle base */}
-          <rect width="100" height="100" rx="28" fill="#FFF9F2" stroke="#E8DDD3" strokeWidth="2.5" />
+          {showBackground && (
+            <rect width="100" height="100" rx="28" fill="#FFF9F2" stroke="#E8DDD3" strokeWidth="2.5" />
+          )}
 
           {/* Puppy Head & Floppy Ears */}
           <g transform="translate(6, 4) scale(0.19)">

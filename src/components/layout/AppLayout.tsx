@@ -26,6 +26,7 @@ import { NotificationCenterModal } from '../ui/NotificationCenterModal';
 import { ClerkAuthControls } from '../auth/ClerkAuthControls';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
 import { OfflineIndicator } from '../pwa/OfflineIndicator';
+import { nativeBridge } from '../../lib/nativeBridge';
 
 interface AppLayoutProps {
   currentView: string;
@@ -328,7 +329,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                onClick={() => {
+                  nativeBridge.haptics.light();
+                  onNavigate(item.id);
+                }}
                 className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-200 cursor-pointer ${
                   isActive ? 'text-[#8B5E3C] -translate-y-0.5' : 'text-[#A39B96] hover:text-[#8B5E3C]'
                 }`}

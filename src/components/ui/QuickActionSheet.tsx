@@ -15,6 +15,8 @@ import {
 import { Modal } from './Modal';
 import { Button } from './Button';
 import { storage } from '../../lib/storage';
+import { nativeBridge } from '../../lib/nativeBridge';
+import { playNotificationChime } from '../../lib/sound';
 import { Camera, Scissors, Smile, Meh, Frown, Heart } from 'lucide-react';
 import { CloudinaryImageUploader } from './CloudinaryImageUploader';
 
@@ -25,6 +27,12 @@ interface QuickActionSheetProps {
 export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComplete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  const handleActionDone = (msg: string) => {
+    nativeBridge.haptics.success();
+    playNotificationChime();
+    onActionComplete(msg);
+  };
 
   // Form states
   const [pottyType, setPottyType] = useState<'pee' | 'poop' | 'both' | 'accident'>('pee');
@@ -66,7 +74,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       notes: pottyNotes || `${pottyType.toUpperCase()} at ${pottyLocation}`
     });
     setActiveModal(null);
-    onActionComplete(`Logged ${pottyType} for ${activePuppy.name}`);
+    handleActionDone(`Logged ${pottyType} for ${activePuppy.name}`);
   };
 
   const handleSaveFood = (e: React.FormEvent) => {
@@ -80,7 +88,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       notes: foodNotes
     });
     setActiveModal(null);
-    onActionComplete(`Logged ${mealType} for ${activePuppy.name}`);
+    handleActionDone(`Logged ${mealType} for ${activePuppy.name}`);
   };
 
   const handleSaveWater = () => {
@@ -92,7 +100,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       notes: 'Refilled water bowl'
     });
     setIsOpen(false);
-    onActionComplete(`Logged fresh water bowl for ${activePuppy.name}`);
+    handleActionDone(`Logged fresh water bowl for ${activePuppy.name}`);
   };
 
   const handleSaveSleep = (e: React.FormEvent) => {
@@ -107,7 +115,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       notes: `${sleepType === 'crate' ? 'Crate rest' : 'Sleep'} logged`
     });
     setActiveModal(null);
-    onActionComplete(`Logged ${duration}m sleep for ${activePuppy.name}`);
+    handleActionDone(`Logged ${duration}m sleep for ${activePuppy.name}`);
   };
 
   const handleSaveWalk = (e: React.FormEvent) => {
@@ -124,7 +132,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       notes: 'Logged via quick actions'
     });
     setActiveModal(null);
-    onActionComplete(`Logged ${dur}m walk for ${activePuppy.name}`);
+    handleActionDone(`Logged ${dur}m walk for ${activePuppy.name}`);
   };
 
   const handleSaveExpense = (e: React.FormEvent) => {
@@ -142,7 +150,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
     setActiveModal(null);
     setExpenseTitle('');
     setExpenseAmount('');
-    onActionComplete(`Added $${amount.toFixed(2)} expense for ${activePuppy.name}`);
+    handleActionDone(`Added $${amount.toFixed(2)} expense for ${activePuppy.name}`);
   };
 
   const handleSaveNote = (e: React.FormEvent) => {
@@ -156,7 +164,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
     });
     setActiveModal(null);
     setNoteText('');
-    onActionComplete(`Saved observation for ${activePuppy.name}`);
+    handleActionDone(`Saved observation for ${activePuppy.name}`);
   };
 
   const handleSaveMemory = (e: React.FormEvent) => {
@@ -174,13 +182,13 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
     setMemoryTitle('');
     setMemoryPhotoUrl('');
     setMemoryNotes('');
-    onActionComplete(`Saved memory photo for ${activePuppy.name} 📸`);
+    handleActionDone(`Saved memory photo for ${activePuppy.name} 📸`);
   };
 
   const handleMarkSocial = (itemId: string, status: 'positive' | 'neutral' | 'needs_work') => {
     storage.updateSocializationStatus(itemId, status);
     setSocialItems(prev => prev.filter(s => s.id !== itemId));
-    onActionComplete(`Logged socialization experience! 🐾`);
+    handleActionDone(`Logged socialization experience! 🐾`);
   };
 
   const actions = [
@@ -259,7 +267,10 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-8 right-4 sm:right-8 z-40">
         <button
           id="quick-action-fab"
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            nativeBridge.haptics.medium();
+            setIsOpen(true);
+          }}
           className="w-14 h-14 rounded-full bg-[#8B5E3C] hover:bg-[#5F3E29] active:bg-[#4A2F1E] text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-transform active:scale-95 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B5E3C]"
           aria-label="Quick puppy action menu"
         >

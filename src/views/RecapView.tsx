@@ -28,6 +28,7 @@ import {
 } from '../lib/recapEngine';
 import { FullScreenConfetti } from '../components/ui/FullScreenConfetti';
 import { Button } from '../components/ui/Button';
+import { nativeBridge } from '../lib/nativeBridge';
 
 interface RecapViewProps {
   puppy: PuppyProfile;
@@ -70,20 +71,12 @@ export const RecapView: React.FC<RecapViewProps> = ({ puppy, onNavigate }) => {
     const recapType = isWeekly ? 'weekly' : 'monthly';
     const shareText = formatRecapShareText(recapType, activeData, puppy);
 
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({
-          title: `${puppy.name}'s ${isWeekly ? 'Weekly' : 'Monthly'} Paw-gress Report`,
-          text: shareText,
-        });
-        return;
-      } catch (e) {
-        // Fallback to clipboard
-      }
-    }
+    const res = await nativeBridge.share.custom({
+      title: `${puppy.name}'s ${isWeekly ? 'Weekly' : 'Monthly'} Paw-gress Report 🐾`,
+      text: shareText,
+    });
 
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(shareText);
+    if (res.method === 'clipboard') {
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 3000);
     }

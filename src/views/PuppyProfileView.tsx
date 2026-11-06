@@ -32,6 +32,9 @@ import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';
+import { nativeBridge } from '../lib/nativeBridge';
+import { copyToClipboard } from '../lib/clipboard';
+import { ShareModal } from '../components/common/ShareModal';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
@@ -62,6 +65,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isFlyerOpen, setIsFlyerOpen] = useState(false);
   const [isCollarTagPrintOpen, setIsCollarTagPrintOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareModalConfig, setShareModalConfig] = useState<{ isEmergency: boolean; title: string }>({ isEmergency: false, title: '' });
 
   // QR Code State
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -192,10 +197,13 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const bDate = new Date(puppy.birthDate);
   const ageWeeks = Math.max(1, Math.floor((new Date().getTime() - bDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(publicUrl);
-    setCopiedUrl(true);
-    setTimeout(() => setCopiedUrl(false), 2500);
+  const handleCopyLink = async () => {
+    nativeBridge.haptics.light();
+    const ok = await copyToClipboard(publicUrl);
+    if (ok) {
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2500);
+    }
   };
 
   const handleUnlockSmartTag = () => {
@@ -296,6 +304,48 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const handleOpenFlyer = () => {
     saveContactInfoSilently();
     setIsFlyerOpen(true);
+  };
+
+  const handleSharePassport = async () => {
+    nativeBridge.haptics.medium();
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: `${puppy.name}'s PupLume Pet Passport 🐾`,
+          text: `Meet ${puppy.name}! Check out their digital puppy profile and verified safety tag.`,
+          url: publicUrl
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    setShareModalConfig({ isEmergency: false, title: `Share ${puppy.name}'s Passport 🐾` });
+    setIsShareModalOpen(true);
+  };
+
+  const handleShareSafetyTag = async () => {
+    nativeBridge.haptics.medium();
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: `${puppy.name}'s PupLume Smart Tag 🐾`,
+          text: `Scan or visit ${puppy.name}'s digital collar tag & safety information:`,
+          url: publicUrl
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    setShareModalConfig({ isEmergency: false, title: `${puppy.name}'s Smart Collar Tag 🐾` });
+    setIsShareModalOpen(true);
+  };
+
+  const handleShareEmergencyAlert = async () => {
+    nativeBridge.haptics.warning();
+    setShareModalConfig({ isEmergency: true, title: `🚨 Missing Puppy Alert: ${puppy.name}` });
+    setIsShareModalOpen(true);
   };
 
   const handleSaveEmergencyContact = () => {
@@ -488,7 +538,16 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 self-center sm:self-start">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 self-center sm:self-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSharePassport}
+                  leftIcon={<Share2 className="w-4 h-4 text-[#8B5E3C]" />}
+                  title="Share pet passport via WhatsApp, Messages, AirDrop"
+                >
+                  Share Passport
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -614,6 +673,15 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
               <div className="flex items-center gap-2 shrink-0">
                 <button
+                  onClick={handleShareSafetyTag}
+                  className="px-3 py-1.5 bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Share safety tag via native mobile share"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share Tag</span>
+                </button>
+
+                <button
                   onClick={handleCopyLink}
                   className="px-3 py-1.5 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
@@ -721,10 +789,20 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                         isLost ? 'bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20' : ''
                       }`}
                     >
-                      🚨 Open Printable Lost Dog Flyer
+                      🚨 Open Printable Flyer
                     </Button>
-                    <span className="text-[11px] text-[#766A63]">
-                      Ready-to-print 8.5&quot; x 11&quot; poster with photo & QR
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShareEmergencyAlert}
+                      leftIcon={<Share2 className="w-4 h-4 text-rose-600" />}
+                      className="w-full sm:w-auto font-bold text-xs border-rose-300 text-rose-700 hover:bg-rose-50"
+                      title="Instantly broadcast missing alert via WhatsApp, Messages, or AirDrop"
+                    >
+                      Broadcast Missing Alert
+                    </Button>
+                    <span className="text-[11px] text-[#766A63] hidden sm:inline">
+                      1-tap share with neighbors & family
                     </span>
                   </div>
                 </div>
@@ -1122,6 +1200,16 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         qrDataUrl={qrDataUrl}
         publicUrl={publicUrl}
         onClose={() => setIsCollarTagPrintOpen(false)}
+      />
+
+      {/* Instagram-Style Native Share Sheet Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        puppy={currentTagPuppy}
+        url={publicUrl}
+        title={shareModalConfig.title}
+        isEmergency={shareModalConfig.isEmergency}
       />
 
     </div>

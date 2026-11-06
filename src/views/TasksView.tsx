@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { PuppyProfile, TaskItem } from '../types';
 import { storage } from '../lib/storage';
+import { nativeBridge } from '../lib/nativeBridge';
+import { playNotificationChime } from '../lib/sound';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
@@ -55,6 +57,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
 
   React.useEffect(() => {
     setTasks(storage.getTasks(puppy.id));
+    nativeBridge.badge.updateFromTasks(puppy.id);
   }, [puppy.id]);
   
   // Form states
@@ -171,8 +174,16 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
   };
 
   const handleToggle = (taskId: string) => {
-    storage.toggleTask(taskId);
+    const updated = storage.toggleTask(taskId);
+    const target = updated.find((t) => t.id === taskId);
+    if (target?.completed) {
+      nativeBridge.haptics.success();
+      playNotificationChime();
+    } else {
+      nativeBridge.haptics.light();
+    }
     setTasks([...storage.getTasks(puppy.id)]);
+    nativeBridge.badge.updateFromTasks(puppy.id);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
