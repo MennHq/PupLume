@@ -34,6 +34,7 @@ import { useUser } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { engine as notificationEngine } from '../lib/NotificationEngine';
+import { localAlarms } from '../lib/localAlarms';
 
 interface SettingsViewProps {
   puppy: PuppyProfile;
@@ -389,6 +390,69 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
               Enable Notifications
             </Button>
           )}
+        </div>
+
+        {/* Native PWA Mobile Capabilities Card */}
+        <div className="p-4 rounded-2xl bg-linear-to-br from-[#FFF9F2] to-amber-50/40 border border-[#E8DDD3] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#8B5E3C] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                ⚡
+              </div>
+              <div>
+                <h4 className="text-xs font-extrabold text-[#2C211B] flex items-center gap-1.5">
+                  Zero-Internet Offline Alarms & App Shortcuts
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-sm">
+                    Native PWA
+                  </span>
+                </h4>
+                <p className="text-[11px] text-[#766A63] mt-0.5">
+                  Home screen 3D Touch quick actions (Potty, Meals, SOS) and hardware-level alarms that buzz even in Airplane Mode or out on hikes without WiFi.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                const ok = await localAlarms.schedule({
+                  title: `🐾 ${puppy.name}'s Potty Rhythm (Offline Alarm)`,
+                  body: "This alarm was scheduled on your device hardware — rings even without internet or WiFi!",
+                  targetTimestamp: Date.now() + 5000,
+                  category: 'potty',
+                  actionUrl: '/?action=potty'
+                });
+                if (ok) {
+                  showStatus('Offline alarm scheduled! Lock your phone or wait 5 seconds.');
+                } else {
+                  showStatus('Please allow notifications to test offline alarms.');
+                }
+              }}
+              className="text-xs shrink-0 whitespace-nowrap border-[#8B5E3C]/30 text-[#8B5E3C] hover:bg-[#FFF9F2]"
+            >
+              Test Offline Alarm (5s)
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
+            <div className="p-2 rounded-xl bg-white/80 border border-[#E8DDD3] flex items-center gap-1.5">
+              <span className="text-sm">🚽</span>
+              <span className="font-bold text-[#2C211B]">3D Touch Potty</span>
+            </div>
+            <div className="p-2 rounded-xl bg-white/80 border border-[#E8DDD3] flex items-center gap-1.5">
+              <span className="text-sm">🍖</span>
+              <span className="font-bold text-[#2C211B]">Quick Meal Log</span>
+            </div>
+            <div className="p-2 rounded-xl bg-white/80 border border-[#E8DDD3] flex items-center gap-1.5">
+              <span className="text-sm">📸</span>
+              <span className="font-bold text-[#2C211B]">Camera Roll Share</span>
+            </div>
+            <div className="p-2 rounded-xl bg-white/80 border border-[#E8DDD3] flex items-center gap-1.5">
+              <span className="text-sm">✈️</span>
+              <span className="font-bold text-[#2C211B]">Airplane Alarms</span>
+            </div>
+          </div>
         </div>
 
         {/* 1. Smart Potty Cadence Calculation */}

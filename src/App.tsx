@@ -168,6 +168,28 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Handle Home Screen App Shortcuts (3D Touch / Launchers) & Native Web Share Target
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+
+    if (action) {
+      if (action === 'potty' || action === 'feeding' || action === 'meal' || action === 'sleep') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('open-quick-action', { detail: { action } }));
+        }, 350);
+      } else if (action === 'sos') {
+        setCurrentView('puppy');
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('open-sos-alert'));
+        }, 350);
+      } else if (action === 'shared-media' || action === 'shared-photo') {
+        setCurrentView('journal');
+      }
+    }
+  }, []);
+
   // Listen for Service Worker navigation messages (when user clicks Windows / Android push notification)
   useEffect(() => {
     const handleSwMessage = (e: MessageEvent) => {

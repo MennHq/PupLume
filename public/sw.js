@@ -44,6 +44,38 @@ self.addEventListener('activate', (event) => {
 
 // Fetch cache-first / stale-while-revalidate
 self.addEventListener('fetch', (event) => {
+  // Web Share Target API: handle media shared directly from Camera Roll or external apps
+  if (event.request.method === 'POST' && event.request.url.includes('/share-target')) {
+    event.respondWith(
+      (async () => {
+        try {
+          const formData = await event.request.formData();
+          const mediaFile = formData.get('media') || formData.get('photo') || formData.get('file');
+          const title = formData.get('title') || '';
+          const text = formData.get('text') || '';
+
+          if (mediaFile && mediaFile instanceof Blob) {
+            const cache = await caches.open('puplume-shared-media');
+            await cache.put(
+              '/shared-media-latest',
+              new Response(mediaFile, {
+                headers: {
+                  'content-type': mediaFile.type || 'image/jpeg',
+                  'x-shared-title': encodeURIComponent(title || text || 'Puppy Memory')
+                }
+              })
+            );
+          }
+          return Response.redirect('/journal?action=shared-media', 303);
+        } catch (err) {
+          console.error('[SW] Share target processing error:', err);
+          return Response.redirect('/journal', 303);
+        }
+      })()
+    );
+    return;
+  }
+
   // Pass through non-GET, API calls, and external auth calls directly to network
   if (
     event.request.method !== 'GET' ||
@@ -251,6 +283,60 @@ self.addEventListener('message', (event) => {
           vibrate: [200, 100, 200],
           requireInteraction: true,
           ...options,
+        });
+      })()
+    );
+  }
+
+  // -------------------------------------------------------------
+  // Zero-Internet "Airplane Mode" Local Alarms Scheduler
+  // -------------------------------------------------------------
+  if (event.data && event.data.type === 'SCHEDULE_OFFLINE_ALARM') {
+    const { title, options, targetTimestamp } = event.data;
+    event.waitUntil(
+      (async () => {
+        // Method A: Native TimestampTrigger (Chromium / modern Android)
+        if ('showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined') {
+          try {
+            await self.registration.showNotification(title, {
+              icon: '/pwa-192x192.png',
+              badge: '/icon.svg',
+              vibrate: [200, 100, 200],
+              ...options,
+              showTrigger: new TimestampTrigger(targetTimestamp)
+            });
+            return;
+          } catch (triggerErr) {
+            console.debug('[SW] TimestampTrigger fallback to SW timer:', triggerErr);
+          }
+        }
+
+        // Method B: Service Worker Background Timer Fallback
+        const delay = Math.max(0, targetTimestamp - Date.now());
+        if (delay < 2147483647) {
+          setTimeout(async () => {
+            await self.registration.showNotification(title, {
+              icon: '/pwa-192x192.png',
+              badge: '/icon.svg',
+              vibrate: [200, 100, 200],
+              ...options
+            });
+          }, delay);
+        }
+      })()
+    );
+  }
+
+  if (event.data && event.data.type === 'CANCEL_OFFLINE_ALARMS') {
+    event.waitUntil(
+      (async () => {
+        const notifs = await self.registration.getNotifications();
+        notifs.forEach(n => {
+          if (event.data.tag) {
+            if (n.tag === event.data.tag) n.close();
+          } else {
+            n.close();
+          }
         });
       })()
     );

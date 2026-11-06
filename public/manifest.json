@@ -40,5 +40,71 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Potty Break",
+      "short_name": "Potty",
+      "description": "Quick 1-tap pee, poo, or accident log",
+      "url": "/?action=potty",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Log Meal & Water",
+      "short_name": "Meal",
+      "description": "Quick log puppy food & water bowl",
+      "url": "/?action=feeding",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Training Academy",
+      "short_name": "Academy",
+      "description": "Puppy drills with hands-free timer",
+      "url": "/academy",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Lost Dog SOS Alert",
+      "short_name": "Lost Dog SOS",
+      "description": "Emergency missing puppy broadcast & flyer",
+      "url": "/?action=sos",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  }
 }

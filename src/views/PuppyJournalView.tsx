@@ -35,6 +35,42 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
     });
   }, [puppy.id]);
 
+  // Check if launched via Web Share Target from Camera Roll or WhatsApp
+  React.useEffect(() => {
+    const checkSharedMedia = async () => {
+      if (typeof window === 'undefined' || !('caches' in window)) return;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('action') === 'shared-media' || params.get('action') === 'shared-photo') {
+        try {
+          const cache = await caches.open('puplume-shared-media');
+          const res = await cache.match('/shared-media-latest');
+          if (res) {
+            const blob = await res.blob();
+            const titleHeader = res.headers.get('x-shared-title');
+            const decodedTitle = titleHeader ? decodeURIComponent(titleHeader) : 'Shared Puppy Memory';
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (typeof reader.result === 'string') {
+                setPhotoUrl(reader.result);
+                setTitle(decodedTitle !== 'Puppy Memory' ? decodedTitle : puppy.name + ' Photo Memory');
+                setBody('Saved from camera roll via native share');
+                setIsAddOpen(true);
+              }
+            };
+            reader.readAsDataURL(blob);
+
+            // Clean up cache entry
+            await cache.delete('/shared-media-latest');
+          }
+        } catch (e) {
+          console.debug('[PuppyJournal] Error retrieving shared media:', e);
+        }
+      }
+    };
+    checkSharedMedia();
+  }, [puppy.name]);
+
   // Form states
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');

@@ -17,6 +17,7 @@ import { Button } from './Button';
 import { storage } from '../../lib/storage';
 import { nativeBridge } from '../../lib/nativeBridge';
 import { playNotificationChime } from '../../lib/sound';
+import { localAlarms } from '../../lib/localAlarms';
 import { Camera, Scissors, Smile, Meh, Frown, Heart } from 'lucide-react';
 import { CloudinaryImageUploader } from './CloudinaryImageUploader';
 
@@ -27,6 +28,19 @@ interface QuickActionSheetProps {
 export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComplete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const handleQuickAction = (e: any) => {
+      const action = e.detail?.action;
+      if (action === 'potty') setActiveModal('potty');
+      else if (action === 'feeding' || action === 'meal') setActiveModal('feeding');
+      else if (action === 'sleep' || action === 'nap') setActiveModal('sleep');
+      else if (action === 'memory') setActiveModal('memory');
+      else if (action === 'sheet') setIsOpen(true);
+    };
+    window.addEventListener('open-quick-action', handleQuickAction as any);
+    return () => window.removeEventListener('open-quick-action', handleQuickAction as any);
+  }, []);
 
   const handleActionDone = (msg: string) => {
     nativeBridge.haptics.success();
@@ -87,6 +101,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       timestamp: new Date().toISOString(),
       notes: foodNotes
     });
+    localAlarms.scheduleMealReminder(activePuppy.name, 'evening meal', 240);
     setActiveModal(null);
     handleActionDone(`Logged ${mealType} for ${activePuppy.name}`);
   };

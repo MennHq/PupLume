@@ -342,6 +342,14 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     setIsShareModalOpen(true);
   };
 
+  React.useEffect(() => {
+    const handleSos = () => {
+      handleShareEmergencyAlert();
+    };
+    window.addEventListener('open-sos-alert', handleSos);
+    return () => window.removeEventListener('open-sos-alert', handleSos);
+  }, [puppy.name]);
+
   const handleShareEmergencyAlert = async () => {
     nativeBridge.haptics.warning();
     setShareModalConfig({ isEmergency: true, title: `🚨 Missing Puppy Alert: ${puppy.name}` });
