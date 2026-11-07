@@ -115,6 +115,13 @@ function serverApiPlugin(): Plugin {
           return;
         }
 
+        // PWA Web Share Target endpoint
+        if (req.url?.startsWith('/share-target')) {
+          res.writeHead(303, { Location: '/journal?action=shared-media' });
+          res.end();
+          return;
+        }
+
         next();
       });
     },
@@ -128,7 +135,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'icon.svg', 'puplume-logo.svg', 'icon-color.png', 'offline.html'],
+        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'icon.svg', 'puplume-logo.svg', 'icon-color.png', 'offline.html', 'sw-custom.js'],
         manifest: {
           id: '/',
           name: 'PupLume — AI Puppy Manager',
@@ -241,7 +248,8 @@ export default defineConfig(() => {
           },
         },
         workbox: {
-          importScripts: ['/sw.js'],
+          importScripts: ['/sw-custom.js'],
+          navigateFallbackDenylist: [/^\/api\//, /^\/share-target/],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {
