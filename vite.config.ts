@@ -128,12 +128,12 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'icon.svg', 'puplume-logo.svg', 'offline.html'],
+        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'icon.svg', 'puplume-logo.svg', 'icon-color.png', 'offline.html'],
         manifest: {
           id: '/',
           name: 'PupLume — AI Puppy Manager',
           short_name: 'PupLume',
-          description: 'Intelligent, warm, mobile-first AI puppy manager for training, daily routines, veterinary-grade potty cadence, and emergency smart collar tags.',
+          description: "PupLume is your puppy's intelligent companion, allowing anyone to master potty training, daily care, and veterinary safety.",
           theme_color: '#8B5E3C',
           background_color: '#FFF9F2',
           display: 'standalone',
@@ -175,6 +175,22 @@ export default defineConfig(() => {
               sizes: 'any',
               type: 'image/svg+xml',
               purpose: 'any',
+            },
+          ],
+          screenshots: [
+            {
+              src: '/icon-color.png',
+              sizes: '540x540',
+              type: 'image/png',
+              form_factor: 'wide',
+              label: 'PupLume Desktop View',
+            },
+            {
+              src: '/icon-color.png',
+              sizes: '540x540',
+              type: 'image/png',
+              form_factor: 'narrow',
+              label: 'PupLume Mobile View',
             },
           ],
           shortcuts: [
