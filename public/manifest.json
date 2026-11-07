@@ -2,13 +2,26 @@
   "id": "/",
   "name": "PupLume — AI Puppy Manager",
   "short_name": "PupLume",
-  "description": "Intelligent, warm, mobile-first AI puppy manager for training, routines, health records, potty tracking, and daily care.",
-  "start_url": "/",
+  "description": "Intelligent, warm, mobile-first AI puppy manager for training, daily routines, veterinary-grade potty cadence, and emergency smart collar tags.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
   "background_color": "#FFF9F2",
   "theme_color": "#8B5E3C",
+  "categories": [
+    "lifestyle",
+    "productivity",
+    "utilities"
+  ],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/pwa-192x192.png",
@@ -39,6 +52,50 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-1.jpg",
+      "sizes": "1080x2436",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "PupLume Daily Routine & Progress Dashboard"
+    },
+    {
+      "src": "/screenshots/screenshot-2.jpg",
+      "sizes": "1080x2436",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Full Puppy Planner & Scheduled Tasks"
+    },
+    {
+      "src": "/screenshots/screenshot-3.jpg",
+      "sizes": "1080x2436",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Veterinary-Grade Potty Rhythm Calculator"
+    },
+    {
+      "src": "/screenshots/screenshot-4.jpg",
+      "sizes": "1080x2436",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Puppy Training Academy Drills & Mastered Tricks"
+    },
+    {
+      "src": "/screenshots/screenshot-5.jpg",
+      "sizes": "1080x2436",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Smart QR Collar Tag & Emergency Missing Broadcast"
+    },
+    {
+      "src": "/screenshots/screenshot-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "PupLume Desktop Command Center"
     }
   ],
   "shortcuts": [
@@ -102,7 +159,9 @@
       "files": [
         {
           "name": "media",
-          "accept": ["image/*"]
+          "accept": [
+            "image/*"
+          ]
         }
       ]
     }
