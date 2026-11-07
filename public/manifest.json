@@ -54,50 +54,6 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/screenshot-1.jpg",
-      "sizes": "1080x2436",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "PupLume Daily Routine & Progress Dashboard"
-    },
-    {
-      "src": "/screenshots/screenshot-2.jpg",
-      "sizes": "1080x2436",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Full Puppy Planner & Scheduled Tasks"
-    },
-    {
-      "src": "/screenshots/screenshot-3.jpg",
-      "sizes": "1080x2436",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Veterinary-Grade Potty Rhythm Calculator"
-    },
-    {
-      "src": "/screenshots/screenshot-4.jpg",
-      "sizes": "1080x2436",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Puppy Training Academy Drills & Mastered Tricks"
-    },
-    {
-      "src": "/screenshots/screenshot-5.jpg",
-      "sizes": "1080x2436",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Smart QR Collar Tag & Emergency Missing Broadcast"
-    },
-    {
-      "src": "/screenshots/screenshot-wide.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "PupLume Desktop Command Center"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Log Potty Break",
