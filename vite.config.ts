@@ -140,7 +140,7 @@ export default defineConfig(() => {
           id: '/',
           name: 'PupLume — AI Puppy Manager',
           short_name: 'PupLume',
-          description: "PupLume is your puppy's intelligent companion, allowing anyone to master potty training, daily care, and veterinary safety.",
+          description: 'PupLume is your clean, premium AI puppy companion — effortlessly managing potty routines, nutrition, wellness, and veterinary safety.',
           theme_color: '#8B5E3C',
           background_color: '#FFF9F2',
           display: 'standalone',
@@ -186,18 +186,18 @@ export default defineConfig(() => {
           ],
           screenshots: [
             {
-              src: '/icon-color.png',
-              sizes: '540x540',
-              type: 'image/png',
-              form_factor: 'wide',
-              label: 'PupLume Desktop View',
-            },
-            {
-              src: '/icon-color.png',
-              sizes: '540x540',
+              src: '/screenshots/puplume-mobile-preview.png',
+              sizes: '720x1280',
               type: 'image/png',
               form_factor: 'narrow',
-              label: 'PupLume Mobile View',
+              label: 'PupLume Clean Premium Mobile Preview',
+            },
+            {
+              src: '/screenshots/puplume-desktop-preview.png',
+              sizes: '1280x720',
+              type: 'image/png',
+              form_factor: 'wide',
+              label: 'PupLume Clean Premium Desktop View',
             },
           ],
           shortcuts: [

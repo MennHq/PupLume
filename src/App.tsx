@@ -42,6 +42,7 @@ import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import { PupLumeSkeleton } from './components/common/PupLumeSkeleton';
+import { PupLumeAntigravityInstallModal } from './components/pwa/PupLumeAntigravityInstallModal';
 import posthog from 'posthog-js';
 
 // Create a small component for the animated marketing text
@@ -341,6 +342,30 @@ export default function App() {
     return <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading logs..." />}><PaddleLogPage /></Suspense>;
   }
 
+  // URL trigger to preview and test the skeleton anytime (?skeleton or ?loading)
+  if (typeof window !== 'undefined' && (window.location.search.includes('skeleton') || window.location.search.includes('loading'))) {
+    return <PupLumeSkeleton label="PupLume Skeleton Preview" />;
+  }
+
+  // URL trigger to preview and test Google Antigravity-style PWA Rich Install sheet (?install or ?pwa)
+  if (typeof window !== 'undefined' && (window.location.search.includes('install') || window.location.search.includes('pwa'))) {
+    return (
+      <div className="min-h-screen bg-[#FFF9F2] relative">
+        <PupLumeSkeleton label="PupLume" />
+        <PupLumeAntigravityInstallModal 
+          isOpen={true} 
+          onClose={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('install');
+            url.searchParams.delete('pwa');
+            const newSearch = url.searchParams.toString();
+            window.history.replaceState({}, '', url.pathname + (newSearch ? `?${newSearch}` : ''));
+            window.location.reload();
+          }} 
+        />
+      </div>
+    );
+  }
 
   if (!isLoaded) {
     return <PupLumeSkeleton label="Loading PupLume..." />;

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Smartphone, Sparkles } from 'lucide-react';
+import { Download, X, Sparkles } from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { PupLumeAntigravityInstallModal } from './PupLumeAntigravityInstallModal';
 
 export const PWAInstallBanner: React.FC = () => {
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const { isInstallable, isInstalled, install } = usePWAInstall();
   const [dismissed, setDismissed] = useState(false);
-  const [showIOSModal, setShowIOSModal] = useState(false);
+  const [showRichModal, setShowRichModal] = useState(false);
 
   useEffect(() => {
     // Check if dismissed previously in session
@@ -31,7 +32,7 @@ export const PWAInstallBanner: React.FC = () => {
         setDismissed(true);
       }
     } else {
-      setShowIOSModal(true);
+      setShowRichModal(true);
     }
   };
 
@@ -90,53 +91,11 @@ export const PWAInstallBanner: React.FC = () => {
         </div>
       </div>
 
-      {/* Guide modal if native prompt cannot be automatically invoked */}
-      {showIOSModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl bg-[#FFF9F2] p-6 shadow-2xl border border-[#E8DDD3] text-[#2C211B] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E8DDD3]/70">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-[#8B5E3C]" />
-                <h3 className="text-sm font-bold text-[#2C211B]">Install on Your Device</h3>
-              </div>
-              <button
-                onClick={() => setShowIOSModal(false)}
-                className="p-1 rounded-full text-[#7A6B63] hover:bg-[#E8DDD3]/50 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3 text-xs text-[#4A3B32]">
-              {isIOS ? (
-                <>
-                  <p className="text-[#7A6B63]">To install on iPhone or iPad:</p>
-                  <ol className="space-y-2.5 list-decimal pl-4 font-medium">
-                    <li>Tap the <strong>Share</strong> icon at the bottom of Safari.</li>
-                    <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-                    <li>Tap <strong>Add</strong> in the top-right corner.</li>
-                  </ol>
-                </>
-              ) : (
-                <>
-                  <p className="text-[#7A6B63]">To install in your browser:</p>
-                  <ol className="space-y-2.5 list-decimal pl-4 font-medium">
-                    <li>Click the <strong>Install</strong> icon in the address bar (or browser menu ⋮).</li>
-                    <li>Select <strong>Install PupLume</strong> to add it to your desktop or apps launcher.</li>
-                  </ol>
-                </>
-              )}
-            </div>
-
-            <button
-              onClick={() => setShowIOSModal(false)}
-              className="mt-5 w-full py-2 rounded-xl bg-[#8B5E3C] text-white text-xs font-semibold shadow-xs hover:bg-[#734927] cursor-pointer"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Google Antigravity-style Rich Modal fallback */}
+      <PupLumeAntigravityInstallModal
+        isOpen={showRichModal}
+        onClose={() => setShowRichModal(false)}
+      />
     </>
   );
 };
