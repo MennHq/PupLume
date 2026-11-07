@@ -28,6 +28,7 @@ import { Badge } from '../components/ui/Badge';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { Modal } from '../components/ui/Modal';
 import { WeeklyRecapBanner } from '../components/recap/WeeklyRecapBanner';
+import { PupLumeSkeleton } from '../components/common/PupLumeSkeleton';
 import { CareMilestonesHub } from '../components/home/CareMilestonesHub';
 import { Scissors, Activity } from 'lucide-react';
 
@@ -456,16 +457,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </h4>
             <span className="text-[10px] text-[#766A63]">Week {ageWeeks} Focus</span>
           </div>
-          <p className="text-xs text-[#5F3E29] mt-1 leading-relaxed">
+          <div className="mt-1">
             {isInsightLoading ? (
-              <span className="flex items-center gap-2 text-[#766A63] animate-pulse">
-                <span className="w-3 h-3 rounded-full border-2 border-[#8B5E3C] border-t-transparent animate-spin" />
-                Analyzing recent data for {puppy.name}...
-              </span>
+              <PupLumeSkeleton variant="insight" label={`Analyzing recent data for ${puppy.name}...`} />
             ) : (
-              aiInsight
+              <p className="text-xs text-[#5F3E29] leading-relaxed">{aiInsight}</p>
             )}
-          </p>
+          </div>
           <div className="mt-2.5 flex items-center gap-2">
             <button
               onClick={() => onNavigate('ai')}

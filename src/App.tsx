@@ -41,6 +41,7 @@ import { GettingStartedChecklist } from './components/onboarding/GettingStartedC
 import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
+import { PupLumeSkeleton } from './components/common/PupLumeSkeleton';
 import posthog from 'posthog-js';
 
 // Create a small component for the animated marketing text
@@ -328,11 +329,7 @@ export default function App() {
       path === '/safety'
     ) {
       return (
-        <Suspense fallback={
-          <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center">
-            <div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
-          </div>
-        }>
+        <Suspense fallback={<PupLumeSkeleton label="Loading puppy safety card..." />}>
           <PublicPupSafetyPage />
         </Suspense>
       );
@@ -341,22 +338,12 @@ export default function App() {
 
   // Temporary /paddlelog diagnostic page
   if (typeof window !== 'undefined' && window.location.pathname === '/paddlelog') {
-    return <Suspense fallback={<div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}><PaddleLogPage /></Suspense>;
+    return <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading logs..." />}><PaddleLogPage /></Suspense>;
   }
 
 
   if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-[#FAF6F0] flex flex-col">
-        <OfflineAlert />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-semibold text-[#766A63]">Loading PupLume...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return <PupLumeSkeleton label="Loading PupLume..." />;
   }
 
   // 2. Unauthenticated: Split-screen layout (Marketing on left, Clerk on right)
@@ -425,17 +412,7 @@ export default function App() {
 
   // 3. Waiting for user's cloud data to load before making routing decision
   if (cloudData === undefined && !puppy) {
-    return (
-      <div className="min-h-screen bg-[#FAF6F0] flex flex-col">
-        <OfflineAlert />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-semibold text-[#766A63]">Loading your puppy profile...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return <PupLumeSkeleton label="Loading your puppy profile..." />;
   }
 
   // 4. Paddle Paywall Gate
@@ -466,14 +443,7 @@ export default function App() {
       <div className="min-h-screen flex flex-col">
         <OfflineAlert />
         <div className="flex-1">
-          <Suspense fallback={
-            <div className="min-h-screen bg-[#FAF6F0] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-semibold text-[#766A63]">Loading AI Onboarding...</span>
-              </div>
-            </div>
-          }>
+          <Suspense fallback={<PupLumeSkeleton label="Loading AI Onboarding..." />}>
             <OnboardingWizard
               userId={user?.id}
               onComplete={(newPuppy) => {
@@ -571,7 +541,7 @@ export default function App() {
       <OnboardingGuideTip />
 
       {/* Main View Router */}
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center p-12"><div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" /></div>}>
+      <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading view..." />}>
       {currentView === 'home' && (
         <HomeScreen
           puppy={activePuppy}

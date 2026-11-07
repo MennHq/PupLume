@@ -2,6 +2,9 @@ import React, { Component, ErrorInfo, Suspense } from "react";
 import { ClerkProvider, useAuth } from "@clerk/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexProvider } from "convex/react";
+import { SkulletProvider } from "skullet/react";
+import "skullet/styles.css";
+import { PupLumeSkeleton } from "../common/PupLumeSkeleton";
 import { convex } from "../../lib/convex";
 
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -66,30 +69,34 @@ const defaultClerkKey = "pk_test_aGVscGZ1bC1ndWxsLTkwMTQuY2xlcmsuYWNjb3VudHMuZGV
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || defaultClerkKey;
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const loadingFallback = (
-    <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-semibold text-[#766A63]">Loading PupLume...</span>
-      </div>
-    </div>
-  );
-
   return (
     <ErrorBoundary>
-      <Suspense fallback={loadingFallback}>
-        {clerkPublishableKey ? (
-          <ClerkProvider publishableKey={clerkPublishableKey}>
-            <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+      <SkulletProvider
+        reveal="smart"
+        theme={{
+          light: {
+            base: "rgba(139, 94, 60, 0.08)",
+            highlight: "rgba(255, 249, 242, 0.75)",
+          },
+          radius: "16px",
+          animation: "shimmer",
+          speed: "fast",
+        }}
+      >
+        <Suspense fallback={<PupLumeSkeleton label="Loading PupLume..." />}>
+          {clerkPublishableKey ? (
+            <ClerkProvider publishableKey={clerkPublishableKey}>
+              <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+                {children}
+              </ConvexProviderWithClerk>
+            </ClerkProvider>
+          ) : (
+            <ConvexProvider client={convex}>
               {children}
-            </ConvexProviderWithClerk>
-          </ClerkProvider>
-        ) : (
-          <ConvexProvider client={convex}>
-            {children}
-          </ConvexProvider>
-        )}
-      </Suspense>
+            </ConvexProvider>
+          )}
+        </Suspense>
+      </SkulletProvider>
     </ErrorBoundary>
   );
 };
