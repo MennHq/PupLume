@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Busboy from 'busboy';
-import { uploadToCloudinary } from '../src/server/cloudinaryService';
 
 // Disable default Vercel body parser so busboy can stream the multipart/form-data
 export const config = {
@@ -29,56 +28,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let text = '';
 
     await new Promise<void>((resolve, reject) => {
-      const busboy = Busboy({ headers: req.headers });
+      try {
+        const busboy = Busboy({ headers: req.headers });
 
-      busboy.on('file', (_name, file, info) => {
-        mimeType = info.mimeType || 'image/jpeg';
-        const chunks: Buffer[] = [];
-        file.on('data', (data) => chunks.push(data));
-        file.on('end', () => {
-          fileBuffer = Buffer.concat(chunks);
+        busboy.on('file', (_name, file, info) => {
+          mimeType = info.mimeType || 'image/jpeg';
+          const chunks: Buffer[] = [];
+          file.on('data', (data) => chunks.push(data));
+          file.on('end', () => {
+            fileBuffer = Buffer.concat(chunks);
+          });
         });
-      });
 
-      busboy.on('field', (name, val) => {
-        if (name === 'title') title = val;
-        if (name === 'text') text = val;
-      });
+        busboy.on('field', (name, val) => {
+          if (name === 'title') title = val;
+          if (name === 'text') text = val;
+        });
 
-      busboy.on('finish', () => resolve());
-      busboy.on('error', (err) => reject(err));
+        busboy.on('finish', () => resolve());
+        busboy.on('error', (err) => reject(err));
 
-      req.pipe(busboy);
+        req.pipe(busboy);
+      } catch (bbErr) {
+        reject(bbErr);
+      }
     });
 
     const photoTitle = title || text || 'Puppy Photo Memory';
 
-    // 1. Try uploading to Cloudinary
     if (fileBuffer) {
       const base64Data = `data:${mimeType};base64,${(fileBuffer as Buffer).toString('base64')}`;
-      try {
-        const uploadResult = await uploadToCloudinary(base64Data, {
-          folder: 'puplume/journal',
-          tags: ['puplume', 'share-target', 'journal']
-        });
 
-        if (uploadResult?.url) {
-          const redirectUrl = `/journal?action=shared-media&sharedPhotoUrl=${encodeURIComponent(
-            uploadResult.url
-          )}&title=${encodeURIComponent(photoTitle)}`;
-          res.writeHead(303, { Location: redirectUrl });
-          return res.end();
-        }
-      } catch (cloudErr) {
-        console.warn('[ShareTarget API] Cloudinary upload fallback to client cache:', cloudErr);
-      }
-
-      // 2. Fallback: Return client-side script that populates the PWA cache and redirects
+      // Return client-side script that populates the PWA cache and redirects to journal
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       return res.end(`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Opening PupLume...</title>
   <style>
     body {
@@ -91,11 +78,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       justify-content: center;
       height: 100vh;
       margin: 0;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  <h2>Importing shared photo into PupLume...</h2>
+  <p>Importing shared photo into PupLume...</p>
   <script>
     (async function() {
       try {
@@ -112,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }));
         }
       } catch(e) {
-        console.warn('Cache write note:', e);
+        console.warn('Cache write error:', e);
       }
       window.location.replace('/journal?action=shared-media');
     })();
@@ -121,7 +110,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>`);
     }
 
-    // No file was included in the share
+    // No file buffer received
     res.writeHead(303, { Location: '/journal?action=shared-media' });
     return res.end();
   } catch (err: any) {
