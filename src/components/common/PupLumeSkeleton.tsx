@@ -1,5 +1,4 @@
 import React from 'react';
-import { SkeletonBox } from 'skullet/react';
 
 interface PupLumeSkeletonProps {
   label?: string;
@@ -10,112 +9,147 @@ export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
   label = 'Loading PupLume...',
   variant = 'app'
 }) => {
+  // Inline text skeleton for AI daily tips & insights
   if (variant === 'insight') {
     return (
       <div className="space-y-2 py-1 w-full" aria-busy="true" aria-label={label}>
-        <SkeletonBox width="85%" height="13px" radius="6px" />
-        <SkeletonBox width="65%" height="13px" radius="6px" />
+        <div className="w-[85%] h-3.5 rounded-md puplume-shimmer" />
+        <div className="w-[60%] h-3.5 rounded-md puplume-shimmer" />
       </div>
     );
   }
 
+  // Card skeleton for lazy-loaded modals and views
   if (variant === 'card') {
     return (
-      <div className="bg-white rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-3" aria-busy="true" aria-label={label}>
-        <div className="flex items-center gap-3">
-          <SkeletonBox width="48px" height="48px" radius="16px" />
-          <div className="flex-1 space-y-1.5">
-            <SkeletonBox width="60%" height="14px" radius="6px" />
-            <SkeletonBox width="40%" height="11px" radius="4px" />
+      <div 
+        className="bg-white/95 rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-4 my-2" 
+        aria-busy="true" 
+        aria-label={label}
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-2xl puplume-shimmer shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="w-3/5 h-5 rounded-lg puplume-shimmer" />
+            <div className="w-2/5 h-3.5 rounded-md puplume-shimmer" />
           </div>
         </div>
-        <SkeletonBox width="100%" height="32px" radius="12px" />
+        <div className="w-full h-10 rounded-xl puplume-shimmer" />
       </div>
     );
   }
 
-  // Default 'app' screen skeleton: mirrors PupLume's exact mobile layout
+  // Full native app skeleton: mirrors PupLume's exact layout with warm bronze shimmer loops
   return (
-    <div className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-lg mx-auto w-full select-none" aria-busy="true" aria-label={label}>
-      <div className="space-y-5">
+    <div 
+      className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-lg mx-auto w-full select-none" 
+      aria-busy="true" 
+      aria-label={label}
+    >
+      <div className="space-y-4">
         {/* Top App Header */}
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between pt-1 pb-1">
+          {/* Logo Brand */}
           <div className="flex items-center gap-2.5">
-            <SkeletonBox width="36px" height="36px" radius="12px" />
-            <SkeletonBox width="84px" height="18px" radius="6px" />
+            <div className="w-9 h-9 rounded-2xl puplume-shimmer shadow-xs shrink-0" />
+            <div className="w-22 h-5 rounded-md puplume-shimmer" />
           </div>
-          <SkeletonBox width="110px" height="32px" radius="999px" />
-          <SkeletonBox width="36px" height="36px" radius="50%" />
+
+          {/* Puppy Selector Pill */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 border border-[#E8DDD3] shadow-xs">
+            <div className="w-5 h-5 rounded-full puplume-shimmer shrink-0" />
+            <div className="w-14 h-3.5 rounded-md puplume-shimmer" />
+          </div>
+
+          {/* User Profile Avatar */}
+          <div className="w-9 h-9 rounded-full puplume-shimmer shadow-xs shrink-0" />
         </div>
 
-        {/* Hero Puppy Card */}
-        <div className="bg-white rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-4">
+        {/* 1. Hero Puppy Card */}
+        <div className="bg-white/95 rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-4">
           <div className="flex items-center gap-3.5">
-            <SkeletonBox width="64px" height="64px" radius="20px" />
+            {/* Puppy Photo Avatar */}
+            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl puplume-shimmer shadow-xs shrink-0" />
+            
+            {/* Name, Breed & Age Chips */}
             <div className="flex-1 space-y-2">
-              <div className="flex items-center justify-between">
-                <SkeletonBox width="55%" height="20px" radius="6px" />
-                <SkeletonBox width="48px" height="18px" radius="999px" />
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-36 h-6 rounded-lg puplume-shimmer" />
+                <div className="w-14 h-5 rounded-full puplume-shimmer shrink-0" />
               </div>
-              <SkeletonBox width="70%" height="13px" radius="4px" />
+              <div className="w-48 h-3.5 rounded-md puplume-shimmer" />
             </div>
           </div>
 
-          {/* Quick Action Badges */}
-          <div className="flex items-center gap-2 pt-1 overflow-hidden">
-            <SkeletonBox width="38px" height="34px" radius="12px" />
-            <SkeletonBox width="38px" height="34px" radius="12px" />
-            <SkeletonBox width="88px" height="34px" radius="14px" />
-            <SkeletonBox width="100px" height="34px" radius="14px" />
+          {/* Quick Action Buttons Row */}
+          <div className="flex items-center gap-2 pt-1">
+            <div className="w-10 h-10 rounded-xl puplume-shimmer shrink-0" />
+            <div className="w-10 h-10 rounded-xl puplume-shimmer shrink-0" />
+            <div className="flex-1 h-10 rounded-xl puplume-shimmer" />
+            <div className="flex-1 h-10 rounded-xl puplume-shimmer" />
           </div>
         </div>
 
-        {/* Daily Routine Summary Bar */}
-        <div className="bg-white rounded-2xl p-4 border border-[#E8DDD3] space-y-2">
+        {/* 2. Daily Routine Progress Card */}
+        <div className="bg-white/95 rounded-2xl p-4 border border-[#E8DDD3] shadow-xs space-y-2.5">
           <div className="flex items-center justify-between">
-            <SkeletonBox width="110px" height="13px" radius="4px" />
-            <SkeletonBox width="50px" height="13px" radius="4px" />
+            <div className="w-32 h-4 rounded-md puplume-shimmer" />
+            <div className="w-16 h-4.5 rounded-full puplume-shimmer" />
           </div>
-          <SkeletonBox width="100%" height="8px" radius="999px" />
+          {/* Progress bar track with active shimmering fill */}
+          <div className="w-full h-3 rounded-full bg-[#EBDDCF]/40 overflow-hidden">
+            <div className="w-3/5 h-full rounded-full puplume-shimmer" />
+          </div>
+          <div className="w-24 h-3 rounded-md puplume-shimmer" />
         </div>
 
-        {/* Twin Quick Tracker Cards */}
+        {/* 3 & 4. Twin Quick Tracker Cards (Potty & Health) */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 border border-[#E8DDD3] space-y-2">
-            <SkeletonBox width="28px" height="28px" radius="8px" />
-            <SkeletonBox width="70%" height="14px" radius="4px" />
-            <SkeletonBox width="50%" height="11px" radius="4px" />
+          {/* Potty Tracking Card */}
+          <div className="bg-white/95 rounded-2xl p-4 border border-[#E8DDD3] shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl puplume-shimmer" />
+              <div className="w-2.5 h-2.5 rounded-full puplume-shimmer" />
+            </div>
+            <div className="w-24 h-4 rounded-md puplume-shimmer" />
+            <div className="w-18 h-3 rounded-md puplume-shimmer" />
           </div>
-          <div className="bg-white rounded-2xl p-4 border border-[#E8DDD3] space-y-2">
-            <SkeletonBox width="28px" height="28px" radius="8px" />
-            <SkeletonBox width="80%" height="14px" radius="4px" />
-            <SkeletonBox width="60%" height="11px" radius="4px" />
+
+          {/* Health & Vet Center Card */}
+          <div className="bg-white/95 rounded-2xl p-4 border border-[#E8DDD3] shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl puplume-shimmer" />
+              <div className="w-12 h-4 rounded-full puplume-shimmer" />
+            </div>
+            <div className="w-26 h-4 rounded-md puplume-shimmer" />
+            <div className="w-16 h-3 rounded-md puplume-shimmer" />
           </div>
         </div>
 
-        {/* Next Up Activity Card */}
-        <div className="bg-white rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-3">
+        {/* 5. Next Up Routine Activity Card */}
+        <div className="bg-white/95 rounded-3xl p-5 border border-[#E8DDD3] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
-            <SkeletonBox width="70px" height="18px" radius="999px" />
-            <SkeletonBox width="90px" height="12px" radius="4px" />
+            <div className="w-20 h-5 rounded-full puplume-shimmer" />
+            <div className="w-24 h-4 rounded-md puplume-shimmer" />
           </div>
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between gap-3 pt-1">
             <div className="space-y-1.5 flex-1">
-              <SkeletonBox width="65%" height="16px" radius="6px" />
-              <SkeletonBox width="45%" height="12px" radius="4px" />
+              <div className="w-44 h-5 rounded-md puplume-shimmer" />
+              <div className="w-32 h-3.5 rounded-md puplume-shimmer" />
             </div>
-            <SkeletonBox width="34px" height="34px" radius="10px" />
+            <div className="w-10 h-10 rounded-2xl puplume-shimmer shrink-0" />
           </div>
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="bg-white rounded-2xl p-3 border border-[#E8DDD3] flex items-center justify-around shadow-xs mt-6">
-        <SkeletonBox width="26px" height="26px" radius="8px" />
-        <SkeletonBox width="26px" height="26px" radius="8px" />
-        <SkeletonBox width="26px" height="26px" radius="8px" />
-        <SkeletonBox width="26px" height="26px" radius="8px" />
-        <SkeletonBox width="26px" height="26px" radius="8px" />
+      {/* 6. Bottom Navigation Bar */}
+      <div className="bg-white/95 rounded-2xl p-3 border border-[#E8DDD3] flex items-center justify-around shadow-xs mt-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex flex-col items-center gap-1.5 py-1 px-2">
+            <div className="w-6 h-6 rounded-lg puplume-shimmer" />
+            <div className="w-8 h-2.5 rounded-full puplume-shimmer" />
+          </div>
+        ))}
       </div>
     </div>
   );

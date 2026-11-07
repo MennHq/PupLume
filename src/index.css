@@ -77,3 +77,60 @@ h1, h2, h3, h4, h5, h6, .brand-heading {
 button, .btn, [role="button"] {
   font-family: 'Grandstander', cursive;
 }
+
+/* -------------------------------------------------------------
+ * PupLume Signature Warm Bronze Skeleton Shimmer Loop Engine
+ * ------------------------------------------------------------- */
+@keyframes puplume-shimmer {
+  0% {
+    background-position: 250% 0;
+  }
+  100% {
+    background-position: -250% 0;
+  }
+}
+
+.puplume-shimmer {
+  background: linear-gradient(
+    90deg,
+    #EBDDCF 0%,
+    #EBDDCF 25%,
+    #F7EEE4 42%,
+    #FFF9F2 50%,
+    #F7EEE4 58%,
+    #EBDDCF 75%,
+    #EBDDCF 100%
+  ) !important;
+  background-size: 250% 100% !important;
+  animation: puplume-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  will-change: background-position;
+}
+
+.puplume-shimmer-card {
+  background: linear-gradient(
+    90deg,
+    #FDFBF8 0%,
+    #FDFBF8 35%,
+    #FFF8F0 50%,
+    #FDFBF8 65%,
+    #FDFBF8 100%
+  );
+  background-size: 200% 100%;
+  animation: puplume-shimmer 2.4s ease-in-out infinite;
+}
+
+/* Force Skullet internal bars to adopt PupLume's warm bronze shimmer */
+[skullet-bar] {
+  background: linear-gradient(
+    90deg,
+    #EBDDCF 0%,
+    #EBDDCF 25%,
+    #F7EEE4 42%,
+    #FFF9F2 50%,
+    #F7EEE4 58%,
+    #EBDDCF 75%,
+    #EBDDCF 100%
+  ) !important;
+  background-size: 250% 100% !important;
+  animation: puplume-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+}
