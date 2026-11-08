@@ -4,7 +4,7 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexProvider } from "convex/react";
 import { SkulletProvider } from "skullet/react";
 import "skullet/styles.css";
-import { PupLumeSkeleton } from "../common/PupLumeSkeleton";
+import { PupLumeSkeleton, getSkeletonVariantForPath } from "../common/PupLumeSkeleton";
 import { convex } from "../../lib/convex";
 
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -87,7 +87,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           speed: "fast",
         }}
       >
-        <Suspense fallback={<PupLumeSkeleton label="Loading PupLume..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant={getSkeletonVariantForPath()} label="Loading PupLume..." />}>
           {clerkPublishableKey ? (
             <ClerkProvider publishableKey={clerkPublishableKey}>
               <ConvexProviderWithClerk client={convex} useAuth={useAuth}>

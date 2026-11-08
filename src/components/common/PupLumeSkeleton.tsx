@@ -26,7 +26,7 @@ interface PupLumeSkeletonProps {
 // -------------------------------------------------------------
 export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume Home...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-lg mx-auto w-full select-none" 
+    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-4xl mx-auto w-full select-none" 
     aria-busy="true" 
     aria-label={label}
   >
@@ -125,7 +125,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
     </div>
 
     {/* Bottom Navigation Bar */}
-    <div className="bg-[#F5EBE1] rounded-2xl p-3 border border-[#EADCCF] flex items-center justify-around shadow-xs mt-4">
+    <div className="bg-[#F5EBE1] rounded-2xl p-3 border border-[#EADCCF] flex items-center justify-around shadow-xs mt-4 md:hidden">
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="flex flex-col items-center gap-1.5 py-1 px-2">
           <SkeletonBox width={26} height={26} radius={8} className="shrink-0" />
@@ -227,7 +227,7 @@ export const AskAISkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
 // -------------------------------------------------------------
 export const TasksSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Daily Plan...' }) => (
   <div 
-    className="max-w-lg mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -307,7 +307,7 @@ export const TasksSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading D
 // -------------------------------------------------------------
 export const AcademySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Training Academy...' }) => (
   <div 
-    className="max-w-lg mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -367,7 +367,7 @@ export const AcademySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading
 // -------------------------------------------------------------
 export const HealthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Health Center...' }) => (
   <div 
-    className="max-w-lg mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -430,7 +430,7 @@ export const HealthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading 
 // -------------------------------------------------------------
 export const MoreMenuSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Menu & Settings...' }) => (
   <div 
-    className="max-w-lg mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -475,7 +475,7 @@ export const MoreMenuSkeleton: React.FC<{ label?: string }> = ({ label = 'Loadin
 // -------------------------------------------------------------
 export const PottySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Potty Tracker...' }) => (
   <div 
-    className="max-w-lg mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -549,14 +549,36 @@ export const CardSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading ca
 );
 
 // -------------------------------------------------------------
+// Route-to-Skeleton Resolver
+// -------------------------------------------------------------
+export function getSkeletonVariantForPath(path?: string | null): PupLumeSkeletonVariant {
+  if (typeof window === 'undefined' && !path) return 'home';
+  const raw = path || (typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('view') || window.location.pathname) : 'home');
+  const clean = raw.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').trim().toLowerCase();
+  
+  if (clean === 'ai' || clean === 'ask' || clean === 'chat') return 'ai';
+  if (clean === 'tasks' || clean === 'plan' || clean === 'socialization') return 'tasks';
+  if (clean === 'academy' || clean === 'training') return 'academy';
+  if (clean === 'health' || clean === 'vet') return 'health';
+  if (clean === 'more' || clean === 'puppy' || clean === 'settings') return 'more';
+  if (clean === 'potty') return 'potty';
+  if (clean === 'expenses' || clean === 'vault' || clean === 'journal' || clean === 'recap' || clean === 'sharing' || clean === 'privacy' || clean === 'terms') return 'card';
+  return 'home';
+}
+
+// -------------------------------------------------------------
 // Unified Dispatcher: PupLumeSkeleton
 // -------------------------------------------------------------
 export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
   label = 'Loading PupLume...',
-  variant = 'home',
+  variant,
   showPreviewSwitcher = false
 }) => {
-  const [activeTab, setActiveTab] = useState<PupLumeSkeletonVariant>(variant);
+  const [activeTab, setActiveTab] = useState<PupLumeSkeletonVariant>(() => variant || getSkeletonVariantForPath());
+
+  React.useEffect(() => {
+    setActiveTab(variant || getSkeletonVariantForPath());
+  }, [variant]);
 
   const renderContent = () => {
     switch (activeTab) {

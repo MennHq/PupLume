@@ -41,7 +41,7 @@ import { GettingStartedChecklist } from './components/onboarding/GettingStartedC
 import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
-import { PupLumeSkeleton } from './components/common/PupLumeSkeleton';
+import { PupLumeSkeleton, getSkeletonVariantForPath } from './components/common/PupLumeSkeleton';
 import { Skeleton } from 'skullet/react';
 import posthog from 'posthog-js';
 
@@ -107,7 +107,7 @@ const VALID_VIEWS = new Set([
 
 function sanitizeView(view: string | null | undefined): string {
   if (!view) return 'home';
-  const clean = view.replace(/^\/+/, '').split('?')[0].trim().toLowerCase();
+  const clean = view.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').trim().toLowerCase();
   if (clean === 'plan') return 'tasks';
   return VALID_VIEWS.has(clean) ? clean : 'home';
 }
@@ -529,7 +529,7 @@ export default function App() {
   }
 
   if (!isLoaded) {
-    return <PupLumeSkeleton label="Loading PupLume..." />;
+    return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading PupLume ${currentView}...`} />;
   }
 
   // 2. Unauthenticated: Split-screen layout (Marketing on left, Clerk on right)
@@ -598,7 +598,7 @@ export default function App() {
 
   // 3. Waiting for user's cloud data to load before making routing decision
   if (cloudData === undefined && !puppy) {
-    return <PupLumeSkeleton label="Loading your puppy profile..." />;
+    return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading ${currentView}...`} />;
   }
 
   // 4. Paddle Paywall Gate
@@ -744,6 +744,7 @@ export default function App() {
         id={`puplume-view-${currentView}`}
         loading={isTransitioning}
         className="w-full flex-1"
+        skeleton={<PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} />}
       >
       {currentView === 'home' && (
         <Suspense fallback={<PupLumeSkeleton variant="home" label="Loading Home Dashboard..." />}>
