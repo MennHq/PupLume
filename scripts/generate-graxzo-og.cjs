@@ -13,19 +13,19 @@ async function main() {
   let svg = fs.readFileSync(svgPath, 'utf8');
 
   // Embed Graxzo's real photo with rounded clipping inside photo frame
-  const imageTag = `<defs><clipPath id="graxzoPhotoClip"><rect x="20" y="20" width="380" height="380" rx="28" /></clipPath></defs><image href="${dataUri}" x="20" y="20" width="380" height="380" preserveAspectRatio="xMidYMid slice" clip-path="url(#graxzoPhotoClip)" />`;
-  svg = svg.replace('<text x="210" y="235" font-size="140" text-anchor="middle">🐶</text>', imageTag);
+  const imageTag = `<defs><clipPath id="graxzoPhotoClip"><rect x="20" y="20" width="360" height="380" rx="24" /></clipPath></defs><image href="${dataUri}" x="20" y="20" width="360" height="380" preserveAspectRatio="xMidYMid slice" clip-path="url(#graxzoPhotoClip)" />`;
+  svg = svg.replace('<text x="200" y="235" font-size="130" text-anchor="middle">🐶</text>', imageTag);
   svg = svg.replace('>Bella<', '>Graxzo<');
   svg = svg.replace('>Golden Retriever • 6 months old<', '>German Shepherd • 12 lbs<');
-  svg = svg.replace('>Friendly, energetic, loves children<', '>Playful, affectionate, and learning fast<');
-  svg = svg.replace('puplume.pet/pup/bella', 'puplumepet.vercel.app/pup/graxzo');
+  svg = svg.replace('>Friendly, highly energetic, loves children<', '>Playful, affectionate, and learning fast<');
+  svg = svg.replace('985-141-002-841-920', '985-GRAXZO-2025-PUP');
 
   const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } });
   const pngData = resvg.render().asPng();
 
   const outPath = path.join(__dirname, '..', 'public', 'og-graxzo.png');
   fs.writeFileSync(outPath, pngData);
-  console.log('Successfully generated:', outPath, 'Bytes:', pngData.length);
+  console.log('Successfully generated Light Mode Graxzo card:', outPath, 'Bytes:', pngData.length);
 }
 
 main().catch(console.error);
