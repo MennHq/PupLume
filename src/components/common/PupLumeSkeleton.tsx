@@ -25,6 +25,8 @@ export type PupLumeSkeletonVariant =
   | 'legal'
   | 'privacy'
   | 'terms'
+  | 'auth'
+  | 'signin'
   | 'card' 
   | 'insight';
 
@@ -1096,6 +1098,109 @@ export const OnboardingSkeleton: React.FC<{ label?: string }> = ({ label = 'Load
 );
 
 // -------------------------------------------------------------
+// 20. Clerk Sign In & Sign Up Card Skeleton with Spinner Loader
+// -------------------------------------------------------------
+export const SignInCardSkeleton: React.FC<{ mode?: 'signin' | 'signup' }> = ({ mode = 'signin' }) => (
+  <div 
+    className="w-full max-w-md mx-auto bg-[#FFF9F2] rounded-3xl border border-[#E8DDD3] p-5 sm:p-8 space-y-4 select-none shadow-xs" 
+    aria-busy="true"
+    aria-label={mode === 'signup' ? 'Loading sign up form...' : 'Loading sign in form...'}
+  >
+    {/* Spinner Loader & Status */}
+    <div className="flex flex-col items-center justify-center pt-1 pb-1 gap-2.5">
+      <div className="w-9 h-9 rounded-full border-3 border-[#E8DDD3] border-t-[#8B5E3C] border-r-[#8B5E3C] animate-spin" />
+      <span className="text-xs font-bold text-[#8B5E3C] tracking-wide animate-pulse">
+        {mode === 'signup' ? 'Loading Sign Up...' : 'Loading Sign In...'}
+      </span>
+    </div>
+
+    {/* Header */}
+    <div className="space-y-2 text-center sm:text-left">
+      <SkeletonBox width={190} height={26} radius={8} className="skullet-deep mx-auto sm:mx-0" />
+      <SkeletonBox width={240} height={14} radius={4} className="mx-auto sm:mx-0" />
+    </div>
+
+    {/* Google SSO Button */}
+    <div className="pt-1">
+      <div className="w-full h-12 rounded-xl border border-[#E8DDD3] bg-white flex items-center justify-center gap-2.5 px-4 shadow-2xs">
+        <SkeletonBox width={20} height={20} radius="50%" />
+        <SkeletonBox width={140} height={16} radius={4} />
+      </div>
+    </div>
+
+    {/* OR Divider */}
+    <div className="flex items-center gap-3 py-1">
+      <div className="flex-1 h-px bg-[#E8DDD3]" />
+      <SkeletonBox width={24} height={12} radius={4} />
+      <div className="flex-1 h-px bg-[#E8DDD3]" />
+    </div>
+
+    {/* Email Field Label & Input */}
+    <div className="space-y-2 text-left">
+      <SkeletonBox width={85} height={13} radius={4} />
+      <div className="w-full h-11 rounded-xl border border-[#E8DDD3] bg-white px-3 flex items-center shadow-xs">
+        <SkeletonBox width={160} height={14} radius={4} className="opacity-60" />
+      </div>
+    </div>
+
+    {/* Continue Button */}
+    <div className="pt-1">
+      <div className="w-full h-12 rounded-xl bg-[#8B5E3C] shadow-xs flex items-center justify-center gap-2">
+        <SkeletonBox width={80} height={16} radius={6} className="bg-white/40" />
+      </div>
+    </div>
+
+    {/* Footer link & Clerk attribution */}
+    <div className="pt-1 flex flex-col items-center gap-2 text-center">
+      <SkeletonBox width={180} height={14} radius={4} />
+      <SkeletonBox width={100} height={12} radius={4} className="opacity-70" />
+    </div>
+  </div>
+);
+
+// -------------------------------------------------------------
+// 21. Split-Screen Auth & Sign In Page Skeleton (/auth, /sign-in)
+// -------------------------------------------------------------
+export const AuthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume Sign In...' }) => (
+  <div 
+    className="min-h-screen bg-[#FFF9F2] flex flex-col md:flex-row select-none" 
+    aria-busy="true" 
+    aria-label={label}
+  >
+    {/* Left Side: Brand Hero matching MarketingCarousel */}
+    <div className="hidden md:flex md:w-1/2 bg-[#8B5E3C] text-white p-12 flex-col justify-center relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
+      <div className="relative z-10 max-w-lg xl:max-w-xl mx-auto w-full h-[300px] flex flex-col justify-end pb-8 space-y-4">
+        <SkeletonBox width={260} height={68} radius={16} className="bg-white/20" />
+        <SkeletonBox width={360} height={24} radius={8} className="bg-white/15" />
+        <div className="flex gap-3 pt-8">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div 
+              key={i} 
+              className={`w-3 h-3 rounded-full ${i === 1 ? 'bg-white shadow-md scale-125' : 'bg-white/30'}`} 
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Right Side: Auth Widget Area */}
+    <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 relative bg-[#FFF9F2] min-h-screen md:min-h-0">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
+        {/* Mobile Brand Header */}
+        <div className="md:hidden flex flex-col items-center mb-6 text-center space-y-2">
+          <SkeletonBox width={120} height={36} radius={10} className="skullet-deep" />
+          <SkeletonBox width={210} height={12} radius={4} />
+        </div>
+
+        {/* The Card Skeleton */}
+        <SignInCardSkeleton />
+      </div>
+    </div>
+  </div>
+);
+
+// -------------------------------------------------------------
 // Route-to-Skeleton Resolver
 // -------------------------------------------------------------
 export function getSkeletonVariantForPath(path?: string | null): PupLumeSkeletonVariant {
@@ -1127,8 +1232,65 @@ export function getSkeletonVariantForPath(path?: string | null): PupLumeSkeleton
   if (clean === 'privacy' || clean === 'legal') return 'privacy';
   if (clean === 'terms') return 'terms';
   if (clean === 'onboarding') return 'onboarding';
+  if (clean === 'auth' || clean === 'signin' || clean === 'sign-in' || clean === 'login') return 'auth';
   
   return 'card';
+}
+
+// Helper to get corresponding skeleton element for any variant
+export function getSkeletonForVariant(tab: PupLumeSkeletonVariant, label?: string): React.ReactElement {
+  switch (tab) {
+    case 'ai':
+    case 'ask':
+      return <AskAISkeleton label={label} />;
+    case 'tasks':
+    case 'plan':
+      return <TasksSkeleton label={label} />;
+    case 'academy':
+      return <AcademySkeleton label={label} />;
+    case 'health':
+      return <HealthSkeleton label={label} />;
+    case 'more':
+      return <MoreMenuSkeleton label={label} />;
+    case 'potty':
+      return <PottySkeleton label={label} />;
+    case 'safety':
+      return <PublicPupSafetySkeleton label={label} />;
+    case 'privacy':
+    case 'terms':
+    case 'legal':
+      return <LegalDocumentSkeleton label={label} />;
+    case 'expenses':
+      return <ExpensesSkeleton label={label} />;
+    case 'vault':
+      return <VaultSkeleton label={label} />;
+    case 'journal':
+      return <JournalSkeleton label={label} />;
+    case 'socialization':
+      return <SocializationSkeleton label={label} />;
+    case 'puppy':
+      return <PuppyProfileSkeleton label={label} />;
+    case 'settings':
+      return <SettingsSkeleton label={label} />;
+    case 'sharing':
+      return <FamilySharingSkeleton label={label} />;
+    case 'recap':
+      return <RecapSkeleton label={label} />;
+    case 'onboarding':
+      return <OnboardingSkeleton label={label} />;
+    case 'auth':
+    case 'signin':
+      return <AuthSkeleton label={label} />;
+    case 'insight':
+      return <InsightSkeleton label={label} />;
+    case 'card':
+      return <CardSkeleton label={label} />;
+    case 'home':
+    case 'app':
+      return <HomeSkeleton label={label} />;
+    default:
+      return <CardSkeleton label={label} />;
+  }
 }
 
 // -------------------------------------------------------------
@@ -1164,62 +1326,14 @@ export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
       }
     }
 
-    switch (tab) {
-      case 'ai':
-      case 'ask':
-        return <AskAISkeleton label={label} />;
-      case 'tasks':
-      case 'plan':
-        return <TasksSkeleton label={label} />;
-      case 'academy':
-        return <AcademySkeleton label={label} />;
-      case 'health':
-        return <HealthSkeleton label={label} />;
-      case 'more':
-        return <MoreMenuSkeleton label={label} />;
-      case 'potty':
-        return <PottySkeleton label={label} />;
-      case 'safety':
-        return <PublicPupSafetySkeleton label={label} />;
-      case 'privacy':
-      case 'terms':
-      case 'legal':
-        return <LegalDocumentSkeleton label={label} />;
-      case 'expenses':
-        return <ExpensesSkeleton label={label} />;
-      case 'vault':
-        return <VaultSkeleton label={label} />;
-      case 'journal':
-        return <JournalSkeleton label={label} />;
-      case 'socialization':
-        return <SocializationSkeleton label={label} />;
-      case 'puppy':
-        return <PuppyProfileSkeleton label={label} />;
-      case 'settings':
-        return <SettingsSkeleton label={label} />;
-      case 'sharing':
-        return <FamilySharingSkeleton label={label} />;
-      case 'recap':
-        return <RecapSkeleton label={label} />;
-      case 'onboarding':
-        return <OnboardingSkeleton label={label} />;
-      case 'insight':
-        return <InsightSkeleton label={label} />;
-      case 'card':
-        return <CardSkeleton label={label} />;
-      case 'home':
-      case 'app':
-        // Strict protection: only show HomeSkeleton if the user is truly at / or /home
-        if (typeof window !== 'undefined') {
-          const fromUrl = getSkeletonVariantForPath();
-          if (fromUrl !== 'home') {
-            return <AskAISkeleton label={label} />;
-          }
-        }
-        return <HomeSkeleton label={label} />;
-      default:
-        return <CardSkeleton label={label} />;
+    if ((tab === 'home' || tab === 'app') && typeof window !== 'undefined') {
+      const fromUrl = getSkeletonVariantForPath();
+      if (fromUrl !== 'home') {
+        return getSkeletonForVariant(fromUrl, label);
+      }
     }
+
+    return getSkeletonForVariant(tab, label);
   };
 
   return (
@@ -1232,6 +1346,7 @@ export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
           </span>
           {[
             { id: 'home', label: '🏠 Home' },
+            { id: 'auth', label: '🔐 Sign In' },
             { id: 'ai', label: '✨ Ask AI' },
             { id: 'tasks', label: '📅 Plan' },
             { id: 'academy', label: '🎓 Academy' },

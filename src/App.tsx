@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { useUser, useClerk, SignIn } from '@clerk/react';
+import { useUser, useClerk, SignIn, SignUp } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import { PuppyProfile } from './types';
@@ -41,7 +41,7 @@ import { GettingStartedChecklist } from './components/onboarding/GettingStartedC
 import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
-import { PupLumeSkeleton, getSkeletonVariantForPath } from './components/common/PupLumeSkeleton';
+import { PupLumeSkeleton, getSkeletonVariantForPath, AuthSkeleton, SignInCardSkeleton } from './components/common/PupLumeSkeleton';
 import { Skeleton } from 'skullet/react';
 import posthog from 'posthog-js';
 
@@ -102,13 +102,15 @@ const MarketingCarousel = () => {
 const VALID_VIEWS = new Set([
   'home', 'tasks', 'ai', 'academy', 'more', 'potty', 'health', 
   'expenses', 'vault', 'socialization', 'journal', 'recap', 
-  'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms'
+  'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms',
+  'auth', 'signin'
 ]);
 
 function sanitizeView(view: string | null | undefined): string {
   if (!view) return 'home';
   const clean = view.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').trim().toLowerCase();
   if (clean === 'plan') return 'tasks';
+  if (clean === 'sign-in' || clean === 'login' || clean === 'auth' || clean === 'signin') return 'auth';
   return VALID_VIEWS.has(clean) ? clean : 'home';
 }
 
@@ -193,6 +195,7 @@ function SkeletonPlayground() {
         <div className="max-w-4xl mx-auto flex items-center gap-1.5 overflow-x-auto pt-2.5 pb-0.5 no-scrollbar">
           {[
             { id: 'home', label: '🏠 Home' },
+            { id: 'auth', label: '🔐 Sign In' },
             { id: 'ai', label: '✨ Ask AI' },
             { id: 'tasks', label: '📅 Plan' },
             { id: 'academy', label: '🎓 Academy' },
@@ -541,6 +544,17 @@ export default function App() {
   }
 
   if (!isLoaded) {
+    const hasExistingSession = typeof window !== 'undefined' && (
+      Boolean(storage.getPuppy()) || 
+      document.cookie.includes('__session') || 
+      document.cookie.includes('__client_uat') ||
+      Boolean(localStorage.getItem('__clerk_db_jwt')) ||
+      Boolean(localStorage.getItem('clerk-db-jwt'))
+    );
+
+    if (!hasExistingSession) {
+      return <AuthSkeleton label="Loading PupLume Sign In..." />;
+    }
     return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading PupLume ${currentView}...`} />;
   }
 
@@ -575,32 +589,65 @@ export default function App() {
             </div>
 
             <div className="w-full flex justify-center">
-              <SignIn 
-                appearance={{
-                  variables: {
-                    colorPrimary: "#8B5E3C",
-                    colorBackground: "#FFF9F2",
-                    borderRadius: "1rem",
-                  },
-                  elements: {
-                    rootBox: "w-full",
-                    cardBox: "!shadow-none",
-                    card: "bg-[#FFF9F2] !shadow-none rounded-3xl border border-[#E8DDD3] w-full max-w-md p-5 sm:p-8",
-                    footer: "!bg-transparent !border-none !shadow-none",
-                    headerTitle: "text-2xl font-black text-[#2C211B] mb-1",
-                    headerSubtitle: "text-[#766A63] font-medium text-base",
-                    socialButtonsBlockButton: "border border-[#E8DDD3] bg-white hover:bg-[#F3E7DA] text-[#2C211B] transition-colors rounded-xl py-3.5",
-                    socialButtonsBlockButtonText: "font-bold",
-                    formButtonPrimary: "bg-[#8B5E3C] hover:bg-[#6D492F] transition-colors shadow-sm hover:shadow-md font-bold py-3.5",
-                    formFieldInput: "bg-white border border-[#E8DDD3] focus:ring-2 focus:ring-[#8B5E3C]/20 focus:border-[#8B5E3C] shadow-xs py-2.5",
-                    formFieldLabel: "text-[#2C211B] font-bold text-sm",
-                    footerActionLink: "text-[#8B5E3C] hover:text-[#5F3E29] font-bold",
-                    footerActionText: "text-[#766A63] font-medium",
-                    dividerLine: "bg-[#E8DDD3]",
-                    dividerText: "text-[#766A63] font-bold text-xs uppercase tracking-wider",
-                  },
-                }}
-              />
+              {typeof window !== 'undefined' && (window.location.pathname.toLowerCase().includes('signup') || window.location.pathname.toLowerCase().includes('sign-up')) ? (
+                <SignUp 
+                  fallback={<SignInCardSkeleton mode="signup" />}
+                  signInUrl="/sign-in"
+                  appearance={{
+                    variables: {
+                      colorPrimary: "#8B5E3C",
+                      colorBackground: "#FFF9F2",
+                      borderRadius: "1rem",
+                    },
+                    elements: {
+                      rootBox: "w-full",
+                      cardBox: "!shadow-none",
+                      card: "bg-[#FFF9F2] !shadow-none rounded-3xl border border-[#E8DDD3] w-full max-w-md p-5 sm:p-8",
+                      footer: "!bg-transparent !border-none !shadow-none",
+                      headerTitle: "text-2xl font-black text-[#2C211B] mb-1",
+                      headerSubtitle: "text-[#766A63] font-medium text-base",
+                      socialButtonsBlockButton: "border border-[#E8DDD3] bg-white hover:bg-[#F3E7DA] text-[#2C211B] transition-colors rounded-xl py-3.5",
+                      socialButtonsBlockButtonText: "font-bold",
+                      formButtonPrimary: "bg-[#8B5E3C] hover:bg-[#6D492F] transition-colors shadow-sm hover:shadow-md font-bold py-3.5",
+                      formFieldInput: "bg-white border border-[#E8DDD3] focus:ring-2 focus:ring-[#8B5E3C]/20 focus:border-[#8B5E3C] shadow-xs py-2.5",
+                      formFieldLabel: "text-[#2C211B] font-bold text-sm",
+                      footerActionLink: "text-[#8B5E3C] hover:text-[#5F3E29] font-bold",
+                      footerActionText: "text-[#766A63] font-medium",
+                      dividerLine: "bg-[#E8DDD3]",
+                      dividerText: "text-[#766A63] font-bold text-xs uppercase tracking-wider",
+                    },
+                  }}
+                />
+              ) : (
+                <SignIn 
+                  fallback={<SignInCardSkeleton mode="signin" />}
+                  signUpUrl="/sign-up"
+                  appearance={{
+                    variables: {
+                      colorPrimary: "#8B5E3C",
+                      colorBackground: "#FFF9F2",
+                      borderRadius: "1rem",
+                    },
+                    elements: {
+                      rootBox: "w-full",
+                      cardBox: "!shadow-none",
+                      card: "bg-[#FFF9F2] !shadow-none rounded-3xl border border-[#E8DDD3] w-full max-w-md p-5 sm:p-8",
+                      footer: "!bg-transparent !border-none !shadow-none",
+                      headerTitle: "text-2xl font-black text-[#2C211B] mb-1",
+                      headerSubtitle: "text-[#766A63] font-medium text-base",
+                      socialButtonsBlockButton: "border border-[#E8DDD3] bg-white hover:bg-[#F3E7DA] text-[#2C211B] transition-colors rounded-xl py-3.5",
+                      socialButtonsBlockButtonText: "font-bold",
+                      formButtonPrimary: "bg-[#8B5E3C] hover:bg-[#6D492F] transition-colors shadow-sm hover:shadow-md font-bold py-3.5",
+                      formFieldInput: "bg-white border border-[#E8DDD3] focus:ring-2 focus:ring-[#8B5E3C]/20 focus:border-[#8B5E3C] shadow-xs py-2.5",
+                      formFieldLabel: "text-[#2C211B] font-bold text-sm",
+                      footerActionLink: "text-[#8B5E3C] hover:text-[#5F3E29] font-bold",
+                      footerActionText: "text-[#766A63] font-medium",
+                      dividerLine: "bg-[#E8DDD3]",
+                      dividerText: "text-[#766A63] font-bold text-xs uppercase tracking-wider",
+                    },
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
