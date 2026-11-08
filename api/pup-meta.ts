@@ -1,13 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import fs from 'fs';
+import path from 'path';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const slug = String(req.query.slug || '').trim();
+  const rawSlug = String(req.query.slug || '').trim();
+  const slug = rawSlug.toLowerCase();
   const baseUrl = 'https://puplumepet.vercel.app';
 
   let title = 'PupLume — AI Puppy Manager & Digital Pet Passport';
   let description = 'Verified digital pet passport and smart safety collar tag on PupLume.';
+  // Default to the designed high-res OpenGraph card
   let imageUrl = `${baseUrl}/og-pup-preview.png`;
-  const pageUrl = slug ? `${baseUrl}/pup/${encodeURIComponent(slug)}` : baseUrl;
+  const pageUrl = rawSlug ? `${baseUrl}/pup/${encodeURIComponent(rawSlug)}` : baseUrl;
   let found = false;
 
   if (slug) {
@@ -31,8 +35,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const breedText = pup.breed ? ` (${pup.breed})` : '';
           const temperText = pup.temperament ? ` • ${pup.temperament}` : '';
           description = `Meet ${pup.name}!${breedText}${temperText}. Verified digital pet passport & safety collar tag on PupLume.`;
-          if (pup.photoUrl) {
-            imageUrl = pup.photoUrl;
+          
+          // Use the real designed preview card for Graxzo, or the universal designed passport card
+          if (slug === 'graxzo' || pup.name.toLowerCase() === 'graxzo') {
+            imageUrl = `${baseUrl}/og-graxzo.png`;
+          } else {
+            imageUrl = `${baseUrl}/og-pup-preview.png`;
           }
         }
       }
@@ -44,24 +52,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // If not found and a slug was provided
   if (!found && slug) {
     title = 'Puppy Passport Not Found — PupLume';
-    description = `No active puppy collar tag found for "${slug}". The link might be mistyped or unregistered.`;
+    description = `No active puppy collar tag found for "${rawSlug}". The link might be mistyped or unregistered.`;
     imageUrl = `${baseUrl}/og-pup-not-found.png`;
   }
 
+  // Detect whether this is a crawler or human browser
   const userAgent = String(req.headers['user-agent'] || '');
-  const isScraper = /facebookexternalhit|Facebot|Instagram|WhatsApp|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|Applebot|Googlebot|bingbot/i.test(userAgent);
+  const isCrawler = /facebookexternalhit|Facebot|Meta-External|Instagram|WhatsApp|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|Applebot|Googlebot|bingbot|Baiduspider|YandexBot/i.test(userAgent);
 
+  // If request is from a human browser, attempt to serve the built index.html with meta tags injected
+  if (!isCrawler) {
+    try {
+      const distIndexPath = path.join(process.cwd(), 'dist', 'index.html');
+      if (fs.existsSync(distIndexPath)) {
+        let indexHtml = fs.readFileSync(distIndexPath, 'utf8');
+
+        // Inject dynamic tags into index.html
+        indexHtml = indexHtml.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
+        indexHtml = indexHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${escapeHtml(title)}" />`);
+        indexHtml = indexHtml.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${escapeHtml(description)}" />`);
+        indexHtml = indexHtml.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${escapeHtml(pageUrl)}" />`);
+        indexHtml = indexHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`);
+        indexHtml = indexHtml.replace(/<meta property="og:image:secure_url" content=".*?" \/>/, `<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />`);
+        indexHtml = indexHtml.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
+        indexHtml = indexHtml.replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
+        indexHtml = indexHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`);
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+        return res.status(200).send(indexHtml);
+      }
+    } catch (e) {
+      // Fallback to crawler HTML if dist/index.html is not accessible
+    }
+  }
+
+  // Pure HTML response with complete OpenGraph & Twitter tags for Meta/Instagram/WhatsApp/Twitter
   const html = `<!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
+    <link rel="canonical" href="${escapeHtml(pageUrl)}" />
     
     <!-- OpenGraph / Instagram / WhatsApp / Facebook -->
     <meta property="og:site_name" content="PupLume" />
-    <meta property="og:type" content="profile" />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(pageUrl)}" />
@@ -78,19 +116,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+    <meta name="twitter:image:alt" content="${escapeHtml(title)}" />
 
-    ${!isScraper ? `<meta http-equiv="refresh" content="0;url=/pup/${encodeURIComponent(slug)}" />` : ''}
+    ${!isCrawler ? `<meta http-equiv="refresh" content="0;url=/pup/${encodeURIComponent(rawSlug)}" />` : ''}
   </head>
   <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF6F0; color: #2C211B; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; text-align: center;">
-    <div style="max-width: 440px; width: 100%; background: #FFFFFF; padding: 36px 28px; border-radius: 28px; box-shadow: 0 16px 36px rgba(44, 33, 27, 0.08); border: 2px solid #E8DDD3;">
-      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" style="width: 140px; height: 140px; border-radius: 24px; object-fit: cover; margin-bottom: 20px; border: 3px solid #8B5E3C; box-shadow: 0 8px 20px rgba(0,0,0,0.12);" />
+    <div style="max-width: 500px; width: 100%; background: #FFFFFF; padding: 36px 28px; border-radius: 28px; box-shadow: 0 16px 36px rgba(44, 33, 27, 0.08); border: 2px solid #E8DDD3;">
+      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" style="width: 100%; max-width: 440px; height: auto; border-radius: 20px; object-fit: cover; margin-bottom: 20px; border: 2px solid #8B5E3C; box-shadow: 0 8px 20px rgba(0,0,0,0.12);" />
       <h1 style="font-size: 24px; font-weight: 800; margin: 0 0 8px 0; color: #2C211B;">${escapeHtml(title)}</h1>
       <p style="color: #766A63; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;">${escapeHtml(description)}</p>
-      <a href="/pup/${encodeURIComponent(slug)}" style="display: inline-block; background: #8B5E3C; color: #FFFFFF; padding: 14px 28px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.3);">Open Digital Passport &rarr;</a>
+      <a href="/pup/${encodeURIComponent(rawSlug)}" style="display: inline-block; background: #8B5E3C; color: #FFFFFF; padding: 14px 28px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.3);">Open Digital Passport &rarr;</a>
     </div>
     <script>
       if (window.location.pathname.startsWith('/api/')) {
-        window.location.replace('/pup/${encodeURIComponent(slug)}');
+        window.location.replace('/pup/${encodeURIComponent(rawSlug)}');
       }
     </script>
   </body>
