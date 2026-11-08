@@ -248,6 +248,9 @@ export default defineConfig(() => {
           },
         },
         workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           importScripts: ['/sw-custom.js'],
           navigateFallbackDenylist: [/^\/api\//, /^\/share-target/],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],

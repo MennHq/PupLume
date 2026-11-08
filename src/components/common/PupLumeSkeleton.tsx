@@ -552,10 +552,16 @@ export const CardSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading ca
 // Route-to-Skeleton Resolver
 // -------------------------------------------------------------
 export function getSkeletonVariantForPath(path?: string | null): PupLumeSkeletonVariant {
-  if (typeof window === 'undefined' && !path) return 'home';
-  const raw = path || (typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('view') || window.location.pathname) : 'home');
+  let raw = path;
+  if (!raw && typeof window !== 'undefined') {
+    const searchView = new URLSearchParams(window.location.search).get('view');
+    raw = searchView || window.location.pathname;
+  }
+  if (!raw) return 'home';
+
   const clean = raw.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').trim().toLowerCase();
   
+  if (!clean || clean === 'home') return 'home';
   if (clean === 'ai' || clean === 'ask' || clean === 'chat') return 'ai';
   if (clean === 'tasks' || clean === 'plan' || clean === 'socialization') return 'tasks';
   if (clean === 'academy' || clean === 'training') return 'academy';
@@ -563,7 +569,9 @@ export function getSkeletonVariantForPath(path?: string | null): PupLumeSkeleton
   if (clean === 'more' || clean === 'puppy' || clean === 'settings') return 'more';
   if (clean === 'potty') return 'potty';
   if (clean === 'expenses' || clean === 'vault' || clean === 'journal' || clean === 'recap' || clean === 'sharing' || clean === 'privacy' || clean === 'terms') return 'card';
-  return 'home';
+  
+  // Non-home route: never fall back to home skeleton
+  return 'card';
 }
 
 // -------------------------------------------------------------
@@ -574,14 +582,32 @@ export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
   variant,
   showPreviewSwitcher = false
 }) => {
-  const [activeTab, setActiveTab] = useState<PupLumeSkeletonVariant>(() => variant || getSkeletonVariantForPath());
+  const resolveTarget = (): PupLumeSkeletonVariant => {
+    if (variant && variant !== 'home') return variant;
+    if (typeof window !== 'undefined') {
+      const fromPath = getSkeletonVariantForPath();
+      if (fromPath !== 'home') return fromPath;
+    }
+    return variant || 'home';
+  };
+
+  const [activeTab, setActiveTab] = useState<PupLumeSkeletonVariant>(resolveTarget);
 
   React.useEffect(() => {
-    setActiveTab(variant || getSkeletonVariantForPath());
+    setActiveTab(resolveTarget());
   }, [variant]);
 
   const renderContent = () => {
-    switch (activeTab) {
+    let tab = activeTab;
+    // Hard guard: NEVER render HomeSkeleton if URL indicates another route
+    if (typeof window !== 'undefined') {
+      const urlVariant = getSkeletonVariantForPath();
+      if (urlVariant !== 'home') {
+        tab = urlVariant;
+      }
+    }
+
+    switch (tab) {
       case 'ai':
       case 'ask':
         return <AskAISkeleton label={label} />;
@@ -602,8 +628,16 @@ export const PupLumeSkeleton: React.FC<PupLumeSkeletonProps> = ({
         return <CardSkeleton label={label} />;
       case 'home':
       case 'app':
-      default:
+        // Strict protection: only show HomeSkeleton if the user is truly at / or /home
+        if (typeof window !== 'undefined') {
+          const fromUrl = getSkeletonVariantForPath();
+          if (fromUrl !== 'home') {
+            return <AskAISkeleton label={label} />;
+          }
+        }
         return <HomeSkeleton label={label} />;
+      default:
+        return <CardSkeleton label={label} />;
     }
   };
 

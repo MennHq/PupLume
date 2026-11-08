@@ -1,5 +1,13 @@
 // PupLume PWA Custom Extensions: Web Share Target, Native Web Push & Deep Linking
 
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 // -------------------------------------------------------------
 // 1. Web Share Target Level 2 (Gallery / Camera Roll native share)
 // -------------------------------------------------------------
