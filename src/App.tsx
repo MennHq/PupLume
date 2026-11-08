@@ -42,6 +42,7 @@ import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { HeadsUpNotification } from './components/ui/HeadsUpNotification';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import { PupLumeSkeleton } from './components/common/PupLumeSkeleton';
+import { Skeleton } from 'skullet/react';
 import posthog from 'posthog-js';
 
 // Create a small component for the animated marketing text
@@ -111,6 +112,119 @@ function sanitizeView(view: string | null | undefined): string {
   return VALID_VIEWS.has(clean) ? clean : 'home';
 }
 
+function SkeletonPlayground() {
+  const [selectedVariant, setSelectedVariant] = useState<string>('home');
+  const [testingProgress, setTestingProgress] = useState(15);
+  const [testingSeconds, setTestingSeconds] = useState(0.0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const runAnimation = () => {
+    setIsLoading(true);
+    setTestingProgress(15);
+    setTestingSeconds(0.0);
+    const startTime = performance.now();
+    let animId: number;
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      setTestingSeconds(Number((elapsed / 1000).toFixed(2)));
+
+      if (elapsed < 200) {
+        setTestingProgress(Math.round(15 + (elapsed / 200) * 50));
+        animId = requestAnimationFrame(tick);
+      } else if (elapsed < 450) {
+        setTestingProgress(Math.round(65 + ((elapsed - 200) / 250) * 35));
+        animId = requestAnimationFrame(tick);
+      } else {
+        setTestingProgress(100);
+        setTestingSeconds(0.5);
+        setTimeout(() => setIsLoading(false), 50);
+      }
+    };
+    animId = requestAnimationFrame(tick);
+  };
+
+  useEffect(() => {
+    runAnimation();
+  }, [selectedVariant]);
+
+  return (
+    <div className="min-h-screen bg-[#FFF9F2] flex flex-col">
+      {/* Top Lume Loading Progress Bar */}
+      {isLoading && (
+        <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
+          <div 
+            className="h-[3.5px] bg-gradient-to-r from-[#8B5E3C] via-[#F59E0B] to-[#FDE68A] shadow-[0_0_12px_rgba(245,158,11,0.8)] transition-all duration-75 ease-out"
+            style={{ width: `${testingProgress}%` }}
+          />
+        </div>
+      )}
+
+      {/* Control Strip & Live HUD */}
+      <div className="sticky top-0 z-50 bg-[#2C211B] text-white p-3 border-b border-[#F59E0B]/30 shadow-md">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black text-[#FDE68A]">🦴 Skullet Engine</span>
+            <div className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 ${
+              isLoading ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+              ⏱ {testingSeconds.toFixed(2)}s • {testingProgress}% {isLoading ? '(Shimmering...)' : '(100% Revealed)'}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={runAnimation}
+              className="px-3.5 py-1.5 bg-[#8B5E3C] hover:bg-[#A06C47] text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
+            >
+              ▶ Replay 0.5s Load
+            </button>
+            <a
+              href="/"
+              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold rounded-xl text-zinc-200 transition-colors"
+            >
+              Exit
+            </a>
+          </div>
+        </div>
+
+        {/* View Switcher Chips */}
+        <div className="max-w-4xl mx-auto flex items-center gap-1.5 overflow-x-auto pt-2.5 pb-0.5 no-scrollbar">
+          {[
+            { id: 'home', label: '🏠 Home' },
+            { id: 'ai', label: '✨ Ask AI' },
+            { id: 'tasks', label: '📅 Plan' },
+            { id: 'academy', label: '🎓 Academy' },
+            { id: 'health', label: '🩺 Health' },
+            { id: 'more', label: '🐾 More' },
+            { id: 'potty', label: '🚽 Potty' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setSelectedVariant(tab.id)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer ${
+                selectedVariant === tab.id
+                  ? 'bg-[#F59E0B] text-[#2C211B] shadow-sm scale-105'
+                  : 'bg-white/10 text-zinc-300 hover:bg-white/15'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Render the skeleton or content with Skullet */}
+      <div className="flex-1 w-full max-w-4xl mx-auto p-4">
+        <Skeleton id={`test-${selectedVariant}`} loading={isLoading} className="w-full">
+          <PupLumeSkeleton variant={selectedVariant as any} showPreviewSwitcher={false} />
+        </Skeleton>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { signOut } = useClerk();
@@ -131,6 +245,51 @@ export default function App() {
   const [paywallFeature, setPaywallFeature] = useState<string | null>(null);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Skullet 0.2s - 0.5s Automatic UI Measurement & Timed Transition Engine
+  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [transitionProgress, setTransitionProgress] = useState(15);
+  const [transitionSeconds, setTransitionSeconds] = useState(0.0);
+
+  useEffect(() => {
+    setIsTransitioning(true);
+    setTransitionProgress(15);
+    setTransitionSeconds(0.0);
+
+    const startTime = performance.now();
+    let animationFrameId: number;
+
+    const update = (now: number) => {
+      const elapsedMs = now - startTime;
+      const elapsedSec = elapsedMs / 1000;
+      setTransitionSeconds(Number(elapsedSec.toFixed(2)));
+
+      if (elapsedMs < 200) {
+        // Milestone 0.0s to 0.2s: Progress moves from 15% to 65%
+        const p = 15 + (elapsedMs / 200) * 50;
+        setTransitionProgress(Math.round(p));
+        animationFrameId = requestAnimationFrame(update);
+      } else if (elapsedMs < 450) {
+        // Milestone 0.2s to 0.45s: Progress moves from 65% to 100%
+        const p = 65 + ((elapsedMs - 200) / 250) * 35;
+        setTransitionProgress(Math.round(p));
+        animationFrameId = requestAnimationFrame(update);
+      } else {
+        // Milestone 0.45s to 0.5s: Complete & reveal measured UI
+        setTransitionProgress(100);
+        setTransitionSeconds(0.5);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 40);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(update);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [currentView]);
 
   // Sync currentView to clean URL paths (e.g. /academy)
   useEffect(() => {
@@ -343,15 +502,7 @@ export default function App() {
 
   // URL trigger to preview and test specific page skeletons anytime (?skeleton or ?loading)
   if (typeof window !== 'undefined' && (window.location.search.includes('skeleton') || window.location.search.includes('loading'))) {
-    const params = new URLSearchParams(window.location.search);
-    const requested = (params.get('skeleton') || params.get('loading') || 'home') as any;
-    const validVariants = ['home', 'app', 'ai', 'ask', 'tasks', 'plan', 'academy', 'health', 'more', 'potty', 'card', 'insight'];
-    const variant = validVariants.includes(requested) ? requested : 'home';
-    return (
-      <div className="min-h-screen bg-[#FFF9F2]">
-        <PupLumeSkeleton variant={variant} showPreviewSwitcher={true} label={`PupLume ${variant} Skeleton`} />
-      </div>
-    );
+    return <SkeletonPlayground />;
   }
 
   if (!isLoaded) {
@@ -549,10 +700,28 @@ export default function App() {
         />
       )}
 
+      {/* Top Lume Loading Progress Bar (0.2s - 0.5s Smooth Feedback) */}
+      {isTransitioning && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none transition-opacity duration-200"
+          style={{ opacity: isTransitioning ? 1 : 0 }}
+        >
+          <div 
+            className="h-[3.5px] bg-gradient-to-r from-[#8B5E3C] via-[#F59E0B] to-[#FDE68A] shadow-[0_0_12px_rgba(245,158,11,0.8)] transition-all duration-100 ease-out"
+            style={{ width: `${transitionProgress}%` }}
+          />
+        </div>
+      )}
+
       {/* Floating Onboarding Guide Tip Spotlight */}
       <OnboardingGuideTip />
 
-      {/* Main View Router with specific Skullet page loaders */}
+      {/* Main View Router with Skullet Automatic UI Measurement */}
+      <Skeleton
+        id={`puplume-view-${currentView}`}
+        loading={isTransitioning}
+        className="w-full flex-1"
+      >
       {currentView === 'home' && (
         <Suspense fallback={<PupLumeSkeleton variant="home" label="Loading Home Dashboard..." />}>
           <HomeScreen
@@ -700,7 +869,7 @@ export default function App() {
         </Suspense>
       )}
 
-      {currentView === 'settings' && (
+        {currentView === 'settings' && (
         <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Settings..." />}>
           <SettingsView
             puppy={activePuppy}
@@ -716,6 +885,7 @@ export default function App() {
           />
         </Suspense>
       )}
+      </Skeleton>
       <ProPaywallModal 
         isOpen={!!paywallFeature}
         onClose={() => setPaywallFeature(null)}
