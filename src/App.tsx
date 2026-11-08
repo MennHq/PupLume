@@ -342,9 +342,17 @@ export default function App() {
     return <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading logs..." />}><PaddleLogPage /></Suspense>;
   }
 
-  // URL trigger to preview and test the skeleton anytime (?skeleton or ?loading)
+  // URL trigger to preview and test specific page skeletons anytime (?skeleton or ?loading)
   if (typeof window !== 'undefined' && (window.location.search.includes('skeleton') || window.location.search.includes('loading'))) {
-    return <PupLumeSkeleton label="PupLume Skeleton Preview" />;
+    const params = new URLSearchParams(window.location.search);
+    const requested = (params.get('skeleton') || params.get('loading') || 'home') as any;
+    const validVariants = ['home', 'app', 'ai', 'ask', 'tasks', 'plan', 'academy', 'health', 'more', 'potty', 'card', 'insight'];
+    const variant = validVariants.includes(requested) ? requested : 'home';
+    return (
+      <div className="min-h-screen bg-[#FFF9F2]">
+        <PupLumeSkeleton variant={variant} showPreviewSwitcher={true} label={`PupLume ${variant} Skeleton`} />
+      </div>
+    );
   }
 
   // URL trigger to preview and test Google Antigravity-style PWA Rich Install sheet (?install or ?pwa)
@@ -565,143 +573,175 @@ export default function App() {
       {/* Floating Onboarding Guide Tip Spotlight */}
       <OnboardingGuideTip />
 
-      {/* Main View Router */}
-      <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading view..." />}>
+      {/* Main View Router with specific Skullet page loaders */}
       {currentView === 'home' && (
-        <HomeScreen
-          puppy={activePuppy}
-          onNavigate={setCurrentView}
-          onOpenSearch={() => setIsSearchOpen(true)}
-          onOpenNotifications={() => setIsNotificationsOpen(true)}
-          onOpenLesson={(lessonId) => {
-            if (!isPro) {
-              setPaywallFeature('Training Academy');
-              return;
-            }
-            setSelectedLessonId(lessonId);
-            setCurrentView('academy');
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="home" label="Loading Home Dashboard..." />}>
+          <HomeScreen
+            puppy={activePuppy}
+            onNavigate={setCurrentView}
+            onOpenSearch={() => setIsSearchOpen(true)}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+            onOpenLesson={(lessonId) => {
+              if (!isPro) {
+                setPaywallFeature('Training Academy');
+                return;
+              }
+              setSelectedLessonId(lessonId);
+              setCurrentView('academy');
+            }}
+          />
+        </Suspense>
       )}
 
       {currentView === 'tasks' && (
-        <TasksView
-          puppy={activePuppy}
-          onNavigate={setCurrentView}
-          onOpenLesson={(lessonId) => {
-            if (!isPro) {
-              setPaywallFeature('Training Academy');
-              return;
-            }
-            setSelectedLessonId(lessonId);
-            setCurrentView('academy');
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="tasks" label="Loading Daily Routine Plan..." />}>
+          <TasksView
+            puppy={activePuppy}
+            onNavigate={setCurrentView}
+            onOpenLesson={(lessonId) => {
+              if (!isPro) {
+                setPaywallFeature('Training Academy');
+                return;
+              }
+              setSelectedLessonId(lessonId);
+              setCurrentView('academy');
+            }}
+          />
+        </Suspense>
       )}
 
       {currentView === 'ai' && (
-        <AIAssistantView
-          puppy={activePuppy}
-          onActionTriggered={(msg) => showToast(msg)}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="ai" label="Loading PupLume AI Assistant..." />}>
+          <AIAssistantView
+            puppy={activePuppy}
+            onActionTriggered={(msg) => showToast(msg)}
+          />
+        </Suspense>
       )}
 
       {currentView === 'academy' && (
-        <TrainingAcademyView
-          puppy={activePuppy}
-          activeLessonId={selectedLessonId}
-          onCloseLessonModal={() => setSelectedLessonId(null)}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="academy" label="Loading Training Academy..." />}>
+          <TrainingAcademyView
+            puppy={activePuppy}
+            activeLessonId={selectedLessonId}
+            onCloseLessonModal={() => setSelectedLessonId(null)}
+          />
+        </Suspense>
       )}
 
       {currentView === 'more' && (
-        <MoreMenuView
-          puppy={activePuppy}
-          onNavigate={setCurrentView}
-          onSignOut={async () => {
-            storage.clearActiveSession();
-            setPuppy(null);
-            await signOut();
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Menu & Settings..." />}>
+          <MoreMenuView
+            puppy={activePuppy}
+            onNavigate={setCurrentView}
+            onSignOut={async () => {
+              storage.clearActiveSession();
+              setPuppy(null);
+              await signOut();
+            }}
+          />
+        </Suspense>
       )}
 
       {currentView === 'potty' && (
-        <PottyTrackerView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="potty" label="Loading Potty Tracker..." />}>
+          <PottyTrackerView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'health' && (
-        <HealthCenterView 
-          puppy={activePuppy} 
-          onUpdatePuppy={(updated) => {
-            setPuppy(updated);
-            showToast(`${updated.name}'s veterinary records updated!`);
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="health" label="Loading Health & Veterinary Center..." />}>
+          <HealthCenterView 
+            puppy={activePuppy} 
+            onUpdatePuppy={(updated) => {
+              setPuppy(updated);
+              showToast(`${updated.name}'s veterinary records updated!`);
+            }}
+          />
+        </Suspense>
       )}
 
       {currentView === 'expenses' && (
-        <ExpensesView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Expenses..." />}>
+          <ExpensesView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'vault' && (
-        <DocumentVaultView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Document Vault..." />}>
+          <DocumentVaultView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'socialization' && (
-        <SocializationGroomingView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="tasks" label="Loading Socialization..." />}>
+          <SocializationGroomingView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'journal' && (
-        <PuppyJournalView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Puppy Journal..." />}>
+          <PuppyJournalView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'recap' && (
-        <RecapView puppy={activePuppy} onNavigate={setCurrentView} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Recap..." />}>
+          <RecapView puppy={activePuppy} onNavigate={setCurrentView} />
+        </Suspense>
       )}
 
       {currentView === 'puppy' && (
-        <PuppyProfileView
-          puppy={activePuppy}
-          onUpdatePuppy={(updated) => {
-            setPuppy(updated);
-            showToast(`${updated.name}'s profile updated!`);
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Puppy Profile..." />}>
+          <PuppyProfileView
+            puppy={activePuppy}
+            onUpdatePuppy={(updated) => {
+              setPuppy(updated);
+              showToast(`${updated.name}'s profile updated!`);
+            }}
+          />
+        </Suspense>
       )}
 
       {currentView === 'sharing' && (
-        <FamilySharingView puppy={activePuppy} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Family Sharing..." />}>
+          <FamilySharingView puppy={activePuppy} />
+        </Suspense>
       )}
 
       {currentView === 'privacy' && (
-        <PrivacyPolicyView onBack={() => setCurrentView('more')} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Privacy Policy..." />}>
+          <PrivacyPolicyView onBack={() => setCurrentView('more')} />
+        </Suspense>
       )}
 
       {currentView === 'terms' && (
-        <TermsOfServiceView onBack={() => setCurrentView('more')} />
+        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Terms of Service..." />}>
+          <TermsOfServiceView onBack={() => setCurrentView('more')} />
+        </Suspense>
       )}
 
       {currentView === 'settings' && (
-        <SettingsView
-          puppy={activePuppy}
-          onResetData={async () => {
-            if (user?.id) {
-              await clearUserDataInConvex(user.id);
-            }
-            storage.clearAllUserData();
-            setPuppy(null);
-            setCurrentView('onboarding');
-            showToast('All data cleared. Welcome to AI Onboarding!');
-          }}
-        />
+        <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Settings..." />}>
+          <SettingsView
+            puppy={activePuppy}
+            onResetData={async () => {
+              if (user?.id) {
+                await clearUserDataInConvex(user.id);
+              }
+              storage.clearAllUserData();
+              setPuppy(null);
+              setCurrentView('onboarding');
+              showToast('All data cleared. Welcome to AI Onboarding!');
+            }}
+          />
+        </Suspense>
       )}
       <ProPaywallModal 
         isOpen={!!paywallFeature}
         onClose={() => setPaywallFeature(null)}
         featureName={paywallFeature || ''}
       />
-      </Suspense>
     </AppLayout>
   );
 }

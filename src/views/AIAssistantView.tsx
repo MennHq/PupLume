@@ -25,6 +25,7 @@ import { PuppyProfile, AIMessage, AIActionSuggestion } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
+import { SkeletonBox } from 'skullet/react';
 
 interface AIAssistantViewProps {
   puppy: PuppyProfile;
@@ -439,9 +440,19 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
         ))}
 
         {isLoading && (
-          <div className="flex items-center gap-2 text-xs text-[#766A63] p-2">
-            <PupLumeLogo variant="icon" size="sm" />
-            <span className="animate-pulse font-medium">PupLume is thinking...</span>
+          <div className="flex items-start gap-2.5 max-w-[88%] sm:max-w-md animate-in fade-in duration-200">
+            <div className="w-8 h-8 rounded-full bg-[#8B5E3C]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#8B5E3C]/20">
+              <PupLumeLogo variant="icon" size="sm" showBackground={false} />
+            </div>
+            <div className="bg-[#FFFDFB] rounded-2xl rounded-tl-sm p-4 border border-[#E8DDD3] shadow-xs space-y-2 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <SkeletonBox width={75} height={14} radius={4} className="skullet-deep" />
+                <span className="text-[10px] text-[#766A63] font-medium">analyzing {puppy.name}&apos;s logs...</span>
+              </div>
+              <SkeletonBox width="92%" height={12} radius={4} />
+              <SkeletonBox width="85%" height={12} radius={4} />
+              <SkeletonBox width="60%" height={12} radius={4} />
+            </div>
           </div>
         )}
 

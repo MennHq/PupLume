@@ -75,8 +75,12 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         reveal="smart"
         theme={{
           light: {
-            base: "#EBDDCF",
+            base: "#D4B69C",
             highlight: "#FFF9F2",
+          },
+          dark: {
+            base: "#3E2718",
+            highlight: "#F59E0B",
           },
           radius: "16px",
           animation: "shimmer",
