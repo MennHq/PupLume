@@ -306,38 +306,14 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     setIsFlyerOpen(true);
   };
 
-  const handleSharePassport = async () => {
+  const handleSharePassport = () => {
     nativeBridge.haptics.medium();
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      try {
-        await navigator.share({
-          title: `${puppy.name}'s PupLume Pet Passport 🐾`,
-          text: `Meet ${puppy.name}! Check out their digital puppy profile and verified safety tag.`,
-          url: publicUrl
-        });
-        return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-      }
-    }
     setShareModalConfig({ isEmergency: false, title: `Share ${puppy.name}'s Passport 🐾` });
     setIsShareModalOpen(true);
   };
 
-  const handleShareSafetyTag = async () => {
+  const handleShareSafetyTag = () => {
     nativeBridge.haptics.medium();
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      try {
-        await navigator.share({
-          title: `${puppy.name}'s PupLume Smart Tag 🐾`,
-          text: `Scan or visit ${puppy.name}'s digital collar tag & safety information:`,
-          url: publicUrl
-        });
-        return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-      }
-    }
     setShareModalConfig({ isEmergency: false, title: `${puppy.name}'s Smart Collar Tag 🐾` });
     setIsShareModalOpen(true);
   };

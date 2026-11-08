@@ -9,10 +9,15 @@ import {
   ExternalLink, 
   ShieldCheck, 
   AlertTriangle,
-  QrCode
+  QrCode,
+  Instagram,
+  Sparkles,
+  Loader2,
+  Download
 } from 'lucide-react';
 import { copyToClipboard } from '../../lib/clipboard';
 import { nativeBridge } from '../../lib/nativeBridge';
+import { generatePuppyStoryBlob } from '../../lib/storyCardGenerator';
 import { PuppyProfile } from '../../types';
 
 interface ShareModalProps {
@@ -35,6 +40,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   isEmergency = false
 }) => {
   const [copied, setCopied] = useState(false);
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [storyToast, setStoryToast] = useState<string | null>(null);
 
   const defaultText = isEmergency
     ? `🚨 EMERGENCY: ${puppy.name} is reported missing! Please see safety info: ${url}`
@@ -49,6 +56,76 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
+  };
+
+  const handleShareToInstagramStory = async () => {
+    nativeBridge.haptics.medium();
+    setIsGeneratingStory(true);
+    setStoryToast(null);
+
+    try {
+      // 1. Copy profile link to clipboard so user can paste it into Instagram Link sticker
+      await copyToClipboard(url);
+
+      // 2. Generate Spotify-style 9:16 Story PNG
+      const blob = await generatePuppyStoryBlob(puppy, url);
+      const filename = `${puppy.name.toLowerCase().replace(/\s+/g, '-')}-story.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // Check if on a real mobile device (iOS / Android)
+      const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+      // If mobile and navigator.share with files is supported, open mobile share sheet
+      if (
+        isMobile &&
+        typeof navigator !== 'undefined' &&
+        typeof navigator.share === 'function' &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare({ files: [file] })
+      ) {
+        setStoryToast("Link copied to clipboard! Select Instagram to share to your Story.");
+        try {
+          await navigator.share({
+            files: [file],
+            title: `${puppy.name}'s Story Passport`,
+            text: `Meet ${puppy.name}! Check out their digital pet passport on PupLume 🐾: ${url}`
+          });
+        } catch (shareErr: any) {
+          if (shareErr?.name !== 'AbortError') {
+            // If mobile share was dismissed or failed, trigger download as fallback
+            triggerDownload(blob, filename);
+          }
+        }
+      } else {
+        // Desktop (Edge / Chrome on Windows / Mac):
+        // Desktop OS share sheets do not support Instagram Stories.
+        // Download the 1080x1920 image and inform the user clearly.
+        triggerDownload(blob, filename);
+        setStoryToast(
+          isMobile 
+            ? "Story card downloaded & link copied! Add it to your Instagram Story."
+            : "Story card downloaded & link copied! (Desktop Edge doesn't support Instagram Stories—send it to your phone or upload via Instagram web)."
+        );
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.error('Failed to share Instagram story:', err);
+        setStoryToast("Couldn't generate story card. Please try again.");
+      }
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
   };
 
   const handleNativeShare = async () => {
@@ -138,6 +215,35 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             <Share2 className="w-4 h-4" />
             <span>Text / SMS</span>
           </a>
+        </div>
+
+        {/* Spotify-Style Instagram Story Share Card */}
+        <div className="space-y-2 pt-0.5">
+          <button
+            type="button"
+            onClick={handleShareToInstagramStory}
+            disabled={isGeneratingStory}
+            className="w-full flex items-center justify-center gap-2.5 p-3.5 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-95 active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-60"
+          >
+            {isGeneratingStory ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Generating 9:16 Story Card...</span>
+              </>
+            ) : (
+              <>
+                <Instagram className="w-4 h-4" />
+                <span>Share to Instagram Story (Spotify-style)</span>
+              </>
+            )}
+          </button>
+
+          {storyToast && (
+            <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] text-[#5F3E29] text-[11px] font-medium flex items-start gap-2 animate-in fade-in leading-relaxed">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+              <span>{storyToast}</span>
+            </div>
+          )}
         </div>
 
         {/* System Native Share Button (if available) */}

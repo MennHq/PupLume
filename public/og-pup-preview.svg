@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="pupCardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#241711"/>
+      <stop offset="50%" stop-color="#362217"/>
+      <stop offset="100%" stop-color="#1A100B"/>
+    </linearGradient>
+    <radialGradient id="pupGlow" cx="25%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#D97706" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#D97706" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="pupPhotoShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#pupCardBg)"/>
+  <rect width="1200" height="630" fill="url(#pupGlow)"/>
+
+  <!-- Top Brand Navigation -->
+  <g transform="translate(80, 55)">
+    <rect width="250" height="38" rx="19" fill="rgba(243, 231, 218, 0.12)" stroke="rgba(243, 231, 218, 0.25)" stroke-width="1.5"/>
+    <text x="24" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" fill="#F3E7DA" letter-spacing="2">🐾 PUPLUME PASSPORT</text>
+  </g>
+
+  <!-- Left: Pet Photo Frame -->
+  <g transform="translate(80, 120)" filter="url(#pupPhotoShadow)">
+    <rect width="420" height="420" rx="36" fill="#FAF6F0" stroke="#8B5E3C" stroke-width="4"/>
+    <!-- Photo Container -->
+    <rect x="20" y="20" width="380" height="380" rx="28" fill="#F3E7DA"/>
+    <text x="210" y="235" font-size="140" text-anchor="middle">🐶</text>
+    <!-- Verified Badge Overlay -->
+    <g transform="translate(320, 320)">
+      <circle cx="35" cy="35" r="32" fill="#059669" stroke="#FAF6F0" stroke-width="4"/>
+      <text x="35" y="44" font-size="28" text-anchor="middle" fill="#FFFFFF">✓</text>
+    </g>
+  </g>
+
+  <!-- Right: Pet Details Column -->
+  <g transform="translate(540, 130)">
+    <!-- Pet Name -->
+    <text x="0" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="900" fill="#FFFFFF" letter-spacing="-1">Bella</text>
+    
+    <!-- Breed & Age -->
+    <text x="0" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="600" fill="#F3E7DA">
+      Golden Retriever • 6 months old
+    </text>
+
+    <!-- Status Badges Row -->
+    <g transform="translate(0, 145)">
+      <!-- Badge 1: Smart Tag Active -->
+      <g transform="translate(0, 0)">
+        <rect width="180" height="38" rx="19" fill="rgba(16, 185, 129, 0.18)" stroke="#10B981" stroke-width="1.5"/>
+        <text x="20" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#34D399">🛡️ SMART TAG ACTIVE</text>
+      </g>
+      <!-- Badge 2: Vaccinated -->
+      <g transform="translate(195, 0)">
+        <rect width="170" height="38" rx="19" fill="rgba(245, 158, 11, 0.18)" stroke="#F59E0B" stroke-width="1.5"/>
+        <text x="20" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#FBBF24">💉 VACCINATED</text>
+      </g>
+    </g>
+
+    <!-- Details Card Box -->
+    <g transform="translate(0, 210)">
+      <rect width="560" height="150" rx="24" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.5"/>
+      
+      <!-- Microchip -->
+      <text x="30" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#A8988D">MICROCHIP ID</text>
+      <text x="30" y="75" font-family="monospace" font-size="18" font-weight="700" fill="#FFFFFF">985-141-002-841-920</text>
+
+      <!-- Temperament -->
+      <text x="30" y="110" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#A8988D">TEMPERAMENT</text>
+      <text x="30" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#F3E7DA">Friendly, energetic, loves children</text>
+
+      <!-- Scan QR prompt -->
+      <g transform="translate(420, 25)">
+        <rect width="100" height="100" rx="16" fill="#FFFFFF"/>
+        <text x="50" y="58" font-size="44" text-anchor="middle">📱</text>
+        <text x="50" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="800" fill="#2C211B" text-anchor="middle">SCAN TAG</text>
+      </g>
+    </g>
+
+    <!-- Footer callout -->
+    <text x="0" y="405" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#D97706">
+      Emergency Contacts &amp; Digital Medical Vault &#8594; puplume.pet/pup/bella
+    </text>
+  </g>
+</svg>

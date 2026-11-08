@@ -52,6 +52,17 @@ class LocalPublicErrorBoundary extends React.Component<ErrorBoundaryProps, Error
   }
 }
 
+function updateMetaTag(attr: 'property' | 'name', key: string, content: string) {
+  if (typeof document === 'undefined') return;
+  let element = document.querySelector(`meta[${attr}="${key}"]`);
+  if (!element) {
+    element = document.createElement('meta');
+    element.setAttribute(attr, key);
+    document.head.appendChild(element);
+  }
+  element.setAttribute('content', content);
+}
+
 export const PublicPupSafetyPage: React.FC = () => {
   const localPup = storage.getPuppy();
   return (
@@ -124,6 +135,23 @@ const PublicPupSafetyContent: React.FC = () => {
       ownerSlack: localPup.ownerSlack,
     } : null
   );
+
+  React.useEffect(() => {
+    if (activePup) {
+      document.title = `${activePup.name} — PupLume Digital Pet Passport`;
+      const ogImage = activePup.photoUrl || '/og-pup-preview.png';
+      updateMetaTag('property', 'og:title', `${activePup.name}'s PupLume Pet Passport 🐾`);
+      updateMetaTag('property', 'og:description', `${activePup.name} (${activePup.breed}) — Verified Digital Pet Passport & Smart Collar Tag on PupLume.`);
+      updateMetaTag('property', 'og:image', ogImage);
+      updateMetaTag('name', 'twitter:image', ogImage);
+    } else if (identifier) {
+      document.title = 'Puppy Profile Not Found — PupLume';
+      updateMetaTag('property', 'og:title', 'Puppy Passport Not Found — PupLume');
+      updateMetaTag('property', 'og:description', 'This puppy collar tag or passport link is inactive, mistyped, or not yet registered.');
+      updateMetaTag('property', 'og:image', '/og-pup-not-found.png');
+      updateMetaTag('name', 'twitter:image', '/og-pup-not-found.png');
+    }
+  }, [activePup, identifier]);
 
   // If loading and identifier provided and no local pup cached
   if (convexPup === undefined && identifier && !localPup) {
