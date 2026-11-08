@@ -40,7 +40,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
         </div>
 
         {/* Puppy Selector Pill */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFFDFB] border-2 border-[#E5D2C1] shadow-xs">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EBE1] border border-[#EADCCF] shadow-xs">
           <SkeletonBox width={20} height={20} radius="50%" className="skullet-deep shrink-0" />
           <SkeletonBox width={64} height={14} radius={6} />
         </div>
@@ -50,7 +50,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
       </div>
 
       {/* 1. Hero Puppy Card */}
-      <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-4">
+      <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-4">
         <div className="flex items-center gap-3.5">
           {/* Puppy Photo Avatar */}
           <SkeletonBox width={72} height={72} radius={22} className="skullet-deep shadow-xs shrink-0" />
@@ -75,7 +75,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
       </div>
 
       {/* 2. Daily Routine Progress Card */}
-      <div className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+      <div className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <SkeletonBox width={140} height={16} radius={6} />
           <SkeletonBox width={68} height={20} radius={999} />
@@ -90,7 +90,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
       {/* 3 & 4. Twin Quick Tracker Cards (Potty & Health) */}
       <div className="grid grid-cols-2 gap-3">
         {/* Potty Tracking Card */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+        <div className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <SkeletonBox width={36} height={36} radius={12} className="skullet-deep" />
             <SkeletonBox width={10} height={10} radius="50%" />
@@ -100,7 +100,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
         </div>
 
         {/* Health & Vet Center Card */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+        <div className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <SkeletonBox width={36} height={36} radius={12} className="skullet-deep" />
             <SkeletonBox width={44} height={18} radius={999} />
@@ -111,7 +111,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
       </div>
 
       {/* 5. Next Up Routine Activity Card */}
-      <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+      <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <SkeletonBox width={84} height={20} radius={999} />
           <SkeletonBox width={100} height={14} radius={6} />
@@ -127,7 +127,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
     </div>
 
     {/* Bottom Navigation Bar */}
-    <div className="bg-[#FFFDFB] rounded-2xl p-3 border-2 border-[#E5D2C1] flex items-center justify-around shadow-xs mt-4">
+    <div className="bg-[#F5EBE1] rounded-2xl p-3 border border-[#EADCCF] flex items-center justify-around shadow-xs mt-4">
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="flex flex-col items-center gap-1.5 py-1 px-2">
           <SkeletonBox width={26} height={26} radius={8} className="shrink-0" />
@@ -167,7 +167,7 @@ export const AskAISkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
       {/* 1. AI Welcome Message (Left Bubble) */}
       <div className="flex items-start gap-3 max-w-[90%] sm:max-w-md">
         <SkeletonBox width={34} height={34} radius={12} className="skullet-deep shrink-0 mt-1" />
-        <div className="bg-[#FFFDFB] rounded-2xl rounded-tl-sm p-4 border-2 border-[#E5D2C1] shadow-xs space-y-2.5 flex-1">
+        <div className="bg-[#F5EBE1] rounded-2xl rounded-tl-sm p-4 border border-[#EADCCF] shadow-xs space-y-2.5 flex-1">
           <SkeletonBox width="85%" height={15} radius={6} />
           <SkeletonBox width="96%" height={13} radius={4} />
           <SkeletonBox width="65%" height={13} radius={4} />
@@ -190,7 +190,7 @@ export const AskAISkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
       {/* 3. AI Streaming Response Bubble (Left Bubble) */}
       <div className="flex items-start gap-3 max-w-[95%] sm:max-w-lg">
         <SkeletonBox width={34} height={34} radius={12} className="skullet-deep shrink-0 mt-1" />
-        <div className="bg-[#FFFDFB] rounded-2xl rounded-tl-sm p-4 border-2 border-[#E5D2C1] shadow-xs space-y-2.5 flex-1">
+        <div className="bg-[#F5EBE1] rounded-2xl rounded-tl-sm p-4 border border-[#EADCCF] shadow-xs space-y-2.5 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <SkeletonBox width={80} height={16} radius={6} />
             <SkeletonBox width={95} height={13} radius={4} />
@@ -214,7 +214,7 @@ export const AskAISkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
     </div>
 
     {/* Bottom Chat Input Bar */}
-    <div className="bg-[#FFFDFB] rounded-2xl p-2.5 border-2 border-[#E5D2C1] shadow-md flex items-center gap-2.5 shrink-0">
+    <div className="bg-[#F5EBE1] rounded-2xl p-2.5 border border-[#EADCCF] shadow-md flex items-center gap-2.5 shrink-0">
       <SkeletonBox width={38} height={38} radius={12} className="shrink-0" />
       <div className="flex-1">
         <SkeletonBox width="60%" height={16} radius={6} />
@@ -248,7 +248,7 @@ export const TasksSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading D
         <div 
           key={idx} 
           className={`flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 flex-1 ${
-            idx === 2 ? 'bg-[#FFFDFB] border-[#8B5E3C]' : 'bg-[#FFFDFB] border-[#E5D2C1]'
+            idx === 2 ? 'bg-[#F5EBE1] border-[#8B5E3C]' : 'bg-[#F5EBE1] border-[#E5D2C1]'
           }`}
         >
           <SkeletonBox width={18} height={10} radius={4} />
@@ -258,7 +258,7 @@ export const TasksSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading D
     </div>
 
     {/* Routine Progress Summary Card */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+    <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-3">
       <div className="flex items-center justify-between">
         <div className="space-y-1.5">
           <SkeletonBox width={145} height={18} radius={6} />
@@ -286,7 +286,7 @@ export const TasksSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading D
         { time: '10:00 AM', title: 'Loose Leash Walking Drill', cat: 'Training' },
         { time: '01:00 PM', title: 'Quiet Crate Nap Time', cat: 'Sleep' },
       ].map((task, i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs flex items-center justify-between gap-3">
+        <div key={i} className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 flex-1 min-w-0">
             <SkeletonBox width={26} height={26} radius={8} className="shrink-0" />
             <div className="space-y-1.5 flex-1 min-w-0">
@@ -331,7 +331,7 @@ export const AcademySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading
     </div>
 
     {/* Featured Interactive Drill Banner Card */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+    <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-3">
       {/* Video Thumbnail Box */}
       <div className="relative">
         <SkeletonBox width="100%" height={160} radius={18} className="skullet-deep" />
@@ -351,7 +351,7 @@ export const AcademySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading
     {/* Training Drill Cards Grid */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs space-y-2.5">
+        <div key={i} className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs space-y-2.5">
           <SkeletonBox width="100%" height={92} radius={14} className="skullet-deep" />
           <SkeletonBox width="75%" height={15} radius={6} />
           <div className="flex items-center justify-between pt-1">
@@ -383,14 +383,14 @@ export const HealthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading 
     </div>
 
     {/* Tab Switcher Pills */}
-    <div className="grid grid-cols-4 gap-1.5 p-1 bg-[#FFFDFB] rounded-2xl border-2 border-[#E5D2C1]">
+    <div className="grid grid-cols-4 gap-1.5 p-1 bg-[#F5EBE1] rounded-2xl border border-[#EADCCF]">
       {['Vaccines', 'Meds', 'Visits', 'Weight'].map((_, i) => (
         <SkeletonBox key={i} width="100%" height={32} radius={12} className={i === 0 ? 'skullet-deep' : ''} />
       ))}
     </div>
 
     {/* Puppy Vitals Overview Card */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+    <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-3">
       <div className="flex items-center justify-between">
         <SkeletonBox width={135} height={18} radius={6} />
         <SkeletonBox width={75} height={18} radius={999} className="skullet-deep" />
@@ -412,7 +412,7 @@ export const HealthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading 
         { name: 'Rabies 1-Year Vaccine', due: 'Completed' },
         { name: 'Bordetella (Kennel Cough)', due: 'Scheduled' },
       ].map((v, i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs flex items-center justify-between">
+        <div key={i} className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
             <SkeletonBox width={38} height={38} radius={12} className="skullet-deep shrink-0" />
             <div className="space-y-1.5">
@@ -437,7 +437,7 @@ export const MoreMenuSkeleton: React.FC<{ label?: string }> = ({ label = 'Loadin
     aria-label={label}
   >
     {/* Puppy & Owner Profile Hero Card */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs flex items-center gap-4">
+    <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs flex items-center gap-4">
       <SkeletonBox width={68} height={68} radius={22} className="skullet-deep shrink-0" />
       <div className="space-y-2 flex-1">
         <SkeletonBox width={145} height={20} radius={6} />
@@ -449,7 +449,7 @@ export const MoreMenuSkeleton: React.FC<{ label?: string }> = ({ label = 'Loadin
     {/* Quick Feature Grid (Vault, Expenses, Socialization, Journal) */}
     <div className="grid grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs space-y-2">
+        <div key={i} className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs space-y-2">
           <SkeletonBox width={36} height={36} radius={12} className="skullet-deep" />
           <SkeletonBox width="80%" height={14} radius={4} />
           <SkeletonBox width="50%" height={11} radius={3} />
@@ -458,7 +458,7 @@ export const MoreMenuSkeleton: React.FC<{ label?: string }> = ({ label = 'Loadin
     </div>
 
     {/* Settings List */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-2 border-2 border-[#E5D2C1] shadow-xs divide-y divide-[#E5D2C1]/60">
+    <div className="bg-[#F5EBE1] rounded-3xl p-2 border border-[#EADCCF] shadow-xs divide-y divide-[#E5D2C1]/60">
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="p-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -492,7 +492,7 @@ export const PottySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
     {/* 4 Quick 1-Tap Potty Buttons */}
     <div className="grid grid-cols-2 gap-3">
       {['Pee Log', 'Poo Log', 'Both', 'Accident'].map((_, i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-2xl p-4 border-2 border-[#E5D2C1] shadow-xs flex flex-col items-center gap-2">
+        <div key={i} className="bg-[#F5EBE1] rounded-2xl p-4 border border-[#EADCCF] shadow-xs flex flex-col items-center gap-2">
           <SkeletonBox width={42} height={42} radius={14} className="skullet-deep" />
           <SkeletonBox width={65} height={14} radius={4} />
         </div>
@@ -500,7 +500,7 @@ export const PottySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
     </div>
 
     {/* Potty Reliability Card */}
-    <div className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-3">
+    <div className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-3">
       <div className="flex items-center justify-between">
         <SkeletonBox width={140} height={16} radius={6} />
         <SkeletonBox width={55} height={16} radius={999} className="skullet-deep" />
@@ -511,7 +511,7 @@ export const PottySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading P
     {/* Log Entries Timeline */}
     <div className="space-y-2.5">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-[#FFFDFB] rounded-xl p-3 border-2 border-[#E5D2C1] flex items-center justify-between">
+        <div key={i} className="bg-[#F5EBE1] rounded-xl p-3 border border-[#EADCCF] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <SkeletonBox width={28} height={28} radius={8} className="skullet-deep" />
             <SkeletonBox width={105} height={14} radius={4} />
@@ -535,7 +535,7 @@ export const InsightSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading
 
 export const CardSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading card...' }) => (
   <div 
-    className="bg-[#FFFDFB] rounded-3xl p-5 border-2 border-[#E5D2C1] shadow-xs space-y-4 my-2" 
+    className="bg-[#F5EBE1] rounded-3xl p-5 border border-[#EADCCF] shadow-xs space-y-4 my-2" 
     aria-busy="true" 
     aria-label={label}
   >

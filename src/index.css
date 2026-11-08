@@ -79,23 +79,24 @@ button, .btn, [role="button"] {
 }
 
 /* -------------------------------------------------------------
- * PupLume Signature Warm Bronze & Golden Lume Skeleton Shimmer Engine
+ * PupLume Modern Gray Shimmer on Skin Background Skeleton Engine
  * Powered by Skullet
  * ------------------------------------------------------------- */
 :root {
-  --skullet-base: #DECDBF;
-  --skullet-highlight: #FFFDF5;
+  --skullet-base: #E2E8F0;
+  --skullet-highlight: #FFFFFF;
   --skullet-radius: 14px;
 }
 
-/* Ensure Skullet's measured bars have crisp borders and contrast on white cards */
+/* Ensure Skullet's measured bars have crisp borders and contrast on skin background */
 [skullet-bar] {
-  box-shadow: inset 0 0 0 1px rgba(139, 94, 60, 0.12) !important;
+  background-color: var(--skullet-base, #E2E8F0) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
 }
 
 [skullet-bar].skullet-deep {
-  background-color: #B89274 !important;
-  box-shadow: inset 0 0 0 1px rgba(139, 94, 60, 0.22) !important;
+  background-color: #CBD5E1 !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
 }
 
 @keyframes puplume-shimmer-sweep {
@@ -110,8 +111,8 @@ button, .btn, [role="button"] {
 .puplume-shimmer {
   position: relative !important;
   overflow: hidden !important;
-  background-color: #DECDBF !important;
-  box-shadow: inset 0 0 0 1px rgba(139, 94, 60, 0.12) !important;
+  background-color: #E2E8F0 !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
 }
 
 .puplume-shimmer::after {
@@ -125,9 +126,9 @@ button, .btn, [role="button"] {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 253, 245, 0.5) 25%,
+    rgba(255, 255, 255, 0.45) 25%,
     rgba(255, 255, 255, 0.95) 50%,
-    rgba(245, 158, 11, 0.45) 70%,
+    rgba(255, 255, 255, 0.45) 75%,
     transparent 100%
   ) !important;
   animation: puplume-shimmer-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
@@ -137,8 +138,8 @@ button, .btn, [role="button"] {
 
 .puplume-shimmer-deep,
 .skullet-deep {
-  background-color: #B89274 !important;
-  box-shadow: inset 0 0 0 1px rgba(139, 94, 60, 0.22) !important;
+  background-color: #CBD5E1 !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .puplume-shimmer-deep::after,
@@ -153,9 +154,9 @@ button, .btn, [role="button"] {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 253, 245, 0.55) 25%,
+    rgba(255, 255, 255, 0.5) 25%,
     rgba(255, 255, 255, 0.95) 50%,
-    rgba(245, 158, 11, 0.5) 70%,
+    rgba(255, 255, 255, 0.5) 75%,
     transparent 100%
   ) !important;
   animation: puplume-shimmer-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
