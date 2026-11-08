@@ -199,6 +199,18 @@ function SkeletonPlayground() {
             { id: 'health', label: '🩺 Health' },
             { id: 'more', label: '🐾 More' },
             { id: 'potty', label: '🚽 Potty' },
+            { id: 'safety', label: '🚨 Safety QR' },
+            { id: 'expenses', label: '💰 Expenses' },
+            { id: 'vault', label: '📁 Vault' },
+            { id: 'journal', label: '📖 Journal' },
+            { id: 'socialization', label: '🐶 Socialize' },
+            { id: 'puppy', label: '🐕 Profile' },
+            { id: 'settings', label: '⚙️ Settings' },
+            { id: 'sharing', label: '👨‍👩‍👧 Sharing' },
+            { id: 'recap', label: '📊 Recap' },
+            { id: 'privacy', label: '📜 Privacy' },
+            { id: 'terms', label: '⚖️ Terms' },
+            { id: 'onboarding', label: '🚀 Onboarding' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -511,7 +523,7 @@ export default function App() {
       path === '/safety'
     ) {
       return (
-        <Suspense fallback={<PupLumeSkeleton label="Loading puppy safety card..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="safety" label="Loading puppy safety card..." />}>
           <PublicPupSafetyPage />
         </Suspense>
       );
@@ -629,7 +641,7 @@ export default function App() {
       <div className="min-h-screen flex flex-col">
         <OfflineAlert />
         <div className="flex-1">
-          <Suspense fallback={<PupLumeSkeleton label="Loading AI Onboarding..." />}>
+          <Suspense fallback={<PupLumeSkeleton variant="onboarding" label="Loading AI Onboarding..." />}>
             <OnboardingWizard
               userId={user?.id}
               onComplete={(newPuppy) => {
@@ -834,37 +846,37 @@ export default function App() {
       )}
 
       {currentView === 'expenses' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Expenses..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="expenses" label="Loading Expenses..." />}>
           <ExpensesView puppy={activePuppy} />
         </Suspense>
       )}
 
       {currentView === 'vault' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Document Vault..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="vault" label="Loading Document Vault..." />}>
           <DocumentVaultView puppy={activePuppy} />
         </Suspense>
       )}
 
       {currentView === 'socialization' && (
-        <Suspense fallback={<PupLumeSkeleton variant="tasks" label="Loading Socialization..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="socialization" label="Loading Socialization..." />}>
           <SocializationGroomingView puppy={activePuppy} />
         </Suspense>
       )}
 
       {currentView === 'journal' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Puppy Journal..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="journal" label="Loading Puppy Journal..." />}>
           <PuppyJournalView puppy={activePuppy} />
         </Suspense>
       )}
 
       {currentView === 'recap' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Recap..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="recap" label="Loading Recap..." />}>
           <RecapView puppy={activePuppy} onNavigate={setCurrentView} />
         </Suspense>
       )}
 
       {currentView === 'puppy' && (
-        <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Puppy Profile..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="puppy" label="Loading Puppy Profile..." />}>
           <PuppyProfileView
             puppy={activePuppy}
             onUpdatePuppy={(updated) => {
@@ -876,25 +888,25 @@ export default function App() {
       )}
 
       {currentView === 'sharing' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Family Sharing..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="sharing" label="Loading Family Sharing..." />}>
           <FamilySharingView puppy={activePuppy} />
         </Suspense>
       )}
 
       {currentView === 'privacy' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Privacy Policy..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="privacy" label="Loading Privacy Policy..." />}>
           <PrivacyPolicyView onBack={() => setCurrentView('more')} />
         </Suspense>
       )}
 
       {currentView === 'terms' && (
-        <Suspense fallback={<PupLumeSkeleton variant="card" label="Loading Terms of Service..." />}>
+        <Suspense fallback={<PupLumeSkeleton variant="terms" label="Loading Terms of Service..." />}>
           <TermsOfServiceView onBack={() => setCurrentView('more')} />
         </Suspense>
       )}
 
-        {currentView === 'settings' && (
-        <Suspense fallback={<PupLumeSkeleton variant="more" label="Loading Settings..." />}>
+      {currentView === 'settings' && (
+        <Suspense fallback={<PupLumeSkeleton variant="settings" label="Loading Settings..." />}>
           <SettingsView
             puppy={activePuppy}
             onResetData={async () => {
