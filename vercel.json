@@ -5,6 +5,28 @@
       "destination": "/api/share-target"
     },
     {
+      "source": "/pup/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Instagram|WhatsApp|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|Applebot).*"
+        }
+      ],
+      "destination": "/api/pup-meta?slug=:slug"
+    },
+    {
+      "source": "/safety/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Instagram|WhatsApp|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|Applebot).*"
+        }
+      ],
+      "destination": "/api/pup-meta?slug=:slug"
+    },
+    {
       "source": "/((?!assets/|.*\\..*).*)",
       "destination": "/index.html"
     }
