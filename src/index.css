@@ -83,38 +83,31 @@ button, .btn, [role="button"] {
  * Powered by Skullet
  * ------------------------------------------------------------- */
 :root {
-  --skullet-base: #E2E8F0;
+  --skullet-base: #D8DEE4;
   --skullet-highlight: #FFFFFF;
   --skullet-radius: 14px;
 }
 
-/* Ensure Skullet's measured bars have crisp borders and contrast on skin background */
-[skullet-bar] {
-  background-color: var(--skullet-base, #E2E8F0) !important;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
-}
-
-[skullet-bar].skullet-deep {
-  background-color: #CBD5E1 !important;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
-}
-
-@keyframes puplume-shimmer-sweep {
-  0% {
-    transform: translateX(-150%);
-  }
-  100% {
-    transform: translateX(150%);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --skullet-base: #D8DEE4 !important;
+    --skullet-highlight: #FFFFFF !important;
   }
 }
 
+/* Ensure ALL Skullet measured bars and boxes shimmer continuously */
+[skullet-bar],
 .puplume-shimmer {
-  position: relative !important;
   overflow: hidden !important;
-  background-color: #E2E8F0 !important;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  background-color: #D8DEE4 !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
 }
 
+span[skullet-bar] {
+  position: relative !important;
+}
+
+[skullet-bar]::after,
 .puplume-shimmer::after {
   content: "" !important;
   position: absolute !important;
@@ -126,22 +119,29 @@ button, .btn, [role="button"] {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.45) 25%,
+    rgba(255, 255, 255, 0.55) 25%,
     rgba(255, 255, 255, 0.95) 50%,
-    rgba(255, 255, 255, 0.45) 75%,
+    rgba(255, 255, 255, 0.55) 75%,
     transparent 100%
   ) !important;
-  animation: puplume-shimmer-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  animation: puplume-shimmer-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
   will-change: transform !important;
   pointer-events: none !important;
 }
 
+[skullet-bar].skullet-deep,
 .puplume-shimmer-deep,
 .skullet-deep {
+  overflow: hidden !important;
   background-color: #CBD5E1 !important;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.07) !important;
 }
 
+span[skullet-bar].skullet-deep {
+  position: relative !important;
+}
+
+[skullet-bar].skullet-deep::after,
 .puplume-shimmer-deep::after,
 .skullet-deep::after {
   content: "" !important;
@@ -154,12 +154,12 @@ button, .btn, [role="button"] {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.5) 25%,
+    rgba(255, 255, 255, 0.6) 25%,
     rgba(255, 255, 255, 0.95) 50%,
-    rgba(255, 255, 255, 0.5) 75%,
+    rgba(255, 255, 255, 0.6) 75%,
     transparent 100%
   ) !important;
-  animation: puplume-shimmer-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  animation: puplume-shimmer-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
   will-change: transform !important;
   pointer-events: none !important;
 }

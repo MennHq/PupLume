@@ -65,12 +65,10 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
           </div>
         </div>
 
-        {/* Quick Action Buttons Row */}
-        <div className="flex items-center gap-2 pt-1">
-          <SkeletonBox width={44} height={44} radius={14} className="shrink-0" />
-          <SkeletonBox width={44} height={44} radius={14} className="shrink-0" />
-          <SkeletonBox width="30%" height={44} radius={14} className="flex-1" />
-          <SkeletonBox width="35%" height={44} radius={14} className="flex-1" />
+        {/* Quick Action Buttons Row: Exactly these two only */}
+        <div className="flex items-center gap-3 pt-1">
+          <SkeletonBox width="50%" height={42} radius={14} className="flex-1" />
+          <SkeletonBox width="50%" height={42} radius={14} className="flex-1" />
         </div>
       </div>
 
