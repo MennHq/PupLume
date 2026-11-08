@@ -1,14 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <!-- Light Mode Gradients -->
-    <linearGradient id="pupLightBg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Warm Skin / Cream Tone Background (Zero Dark Brown) -->
+    <linearGradient id="pupSkinBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFDF9"/>
-      <stop offset="50%" stop-color="#FAF6F0"/>
-      <stop offset="100%" stop-color="#F5ECE2"/>
+      <stop offset="45%" stop-color="#FFF9F2"/>
+      <stop offset="100%" stop-color="#F8ECE1"/>
     </linearGradient>
-    <radialGradient id="pupAmberGlow" cx="25%" cy="30%" r="55%">
-      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.32"/>
-      <stop offset="100%" stop-color="#FDE68A" stop-opacity="0"/>
+    <radialGradient id="pupPeachGlow" cx="20%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pupAmberGlow" cx="85%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A27046"/>
@@ -19,119 +23,109 @@
       <stop offset="50%" stop-color="#F59E0B"/>
       <stop offset="100%" stop-color="#8B5E3C"/>
     </linearGradient>
-    <!-- Clean Crisp Drop Shadow -->
-    <filter id="cardShadowLight" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="14" stdDeviation="22" flood-color="#2C211B" flood-opacity="0.09"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#2C211B" flood-opacity="0.04"/>
+    <filter id="softCardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.08"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2C211B" flood-opacity="0.03"/>
     </filter>
   </defs>
 
-  <!-- Clean Light Mode Background -->
-  <rect width="1200" height="630" fill="url(#pupLightBg)"/>
+  <!-- Clean Warm Skin Background -->
+  <rect width="1200" height="630" fill="url(#pupSkinBg)"/>
+  <rect width="1200" height="630" fill="url(#pupPeachGlow)"/>
   <rect width="1200" height="630" fill="url(#pupAmberGlow)"/>
 
-  <!-- Subtle Ambient Background Accents -->
-  <circle cx="1120" cy="90" r="220" fill="#F3E7DA" opacity="0.35"/>
-  <circle cx="90" cy="560" r="160" fill="#F3E7DA" opacity="0.3"/>
-
-  <!-- Top Brand Navigation (Official PupLume Logo + Textual Logo) -->
-  <g transform="translate(80, 50)">
-    <!-- Official Squircle Icon -->
-    <rect width="52" height="52" rx="15" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#cardShadowLight)"/>
-    <g transform="translate(3, 2) scale(0.10)">
-      <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#logoPupGrad)" />
-      <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
-      <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
-      <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
-      <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
-      <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
-      <circle cx="165" cy="205" r="14" fill="#2C211B" />
-      <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
-      <circle cx="275" cy="205" r="14" fill="#2C211B" />
-      <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
-      <g transform="translate(295, 45)">
-        <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
-        <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
-      </g>
-    </g>
-
-    <!-- Official Textual Logo -->
-    <text x="68" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
-      Pup<tspan fill="#8B5E3C">Lume</tspan>
-    </text>
-    <text x="70" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" fill="#766A63" letter-spacing="2.5">
-      VERIFIED PET PASSPORT
-    </text>
-  </g>
-
-  <!-- Left: Pet Photo Frame in Clean White Card -->
-  <g transform="translate(80, 125)" filter="url(#cardShadowLight)">
-    <rect width="400" height="420" rx="32" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2.5"/>
-    <!-- Photo Inner Box -->
-    <rect x="20" y="20" width="360" height="380" rx="24" fill="#FAF6F0" stroke="#E8DDD3" stroke-width="1.5"/>
-    <text x="200" y="235" font-size="130" text-anchor="middle">🐶</text>
+  <!-- Left Side: Clean Hero Pet Photo (Seamless, Beautifully Framed) -->
+  <g transform="translate(90, 85)" filter="url(#softCardShadow)">
+    <rect width="440" height="460" rx="36" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2"/>
+    <rect x="18" y="18" width="404" height="424" rx="26" fill="#FFF9F2"/>
+    <text x="220" y="260" font-size="140" text-anchor="middle">🐶</text>
     
-    <!-- Verified Emerald Badge Overlay -->
-    <g transform="translate(305, 325)">
+    <!-- Verified Emerald Badge -->
+    <g transform="translate(340, 360)">
       <circle cx="35" cy="35" r="30" fill="#059669" stroke="#FFFFFF" stroke-width="4"/>
       <text x="35" y="44" font-size="26" text-anchor="middle" fill="#FFFFFF">✓</text>
     </g>
   </g>
 
-  <!-- Right: Pet Details Column -->
-  <g transform="translate(520, 125)">
-    <!-- Pet Name -->
-    <text x="0" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="58" font-weight="900" fill="#2C211B" letter-spacing="-1">
+  <!-- Right Side: Clean Editorial Typography (No Nested Boxes) -->
+  <g transform="translate(580, 85)">
+    <!-- Official PupLume Brand Header -->
+    <g transform="translate(0, 0)">
+      <!-- Official Squircle Icon (52x52) -->
+      <rect width="52" height="52" rx="16" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="1.5" filter="url(#softCardShadow)"/>
+      <g transform="translate(3, 2) scale(0.10)">
+        <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#logoPupGrad)" />
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
+        <circle cx="165" cy="205" r="14" fill="#2C211B" />
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
+        <circle cx="275" cy="205" r="14" fill="#2C211B" />
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+        <g transform="translate(295, 45)">
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+        </g>
+      </g>
+
+      <!-- Wordmark in Grandstander font -->
+      <text x="68" y="32" font-family="Grandstander, -apple-system, sans-serif" font-size="32" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+        Pup<tspan fill="#8B5E3C">Lume</tspan>
+      </text>
+      <text x="70" y="49" font-family="Grandstander, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
+        DIGITAL PET PASSPORT
+      </text>
+    </g>
+
+    <!-- Pet Name in Bold Grandstander -->
+    <text x="0" y="145" font-family="Grandstander, -apple-system, sans-serif" font-size="64" font-weight="900" fill="#2C211B" letter-spacing="-1">
       Bella
     </text>
-    
-    <!-- Breed & Age -->
-    <text x="0" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700" fill="#8B5E3C">
+
+    <!-- Breed & Details -->
+    <text x="0" y="185" font-family="Grandstander, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#8B5E3C">
       Golden Retriever • 6 months old
     </text>
 
-    <!-- Status Badges Row -->
-    <g transform="translate(0, 125)">
-      <!-- Badge 1: Smart Tag Active -->
-      <g transform="translate(0, 0)">
-        <rect width="180" height="36" rx="18" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1.5"/>
-        <text x="20" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" fill="#2E7D32">🛡️ SMART TAG ACTIVE</text>
-      </g>
-      <!-- Badge 2: Vaccinated -->
-      <g transform="translate(195, 0)">
-        <rect width="160" height="36" rx="18" fill="#FEF3C7" stroke="#FCD34D" stroke-width="1.5"/>
-        <text x="20" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" fill="#92400E">💉 VACCINATED</text>
-      </g>
-    </g>
+    <!-- Status Highlights (Flowing line, No Nested Boxes) -->
+    <text x="0" y="235" font-family="Grandstander, -apple-system, sans-serif" font-size="17" font-weight="800" fill="#2E7D32">
+      🛡️ Smart Collar Tag Active  •  💉 Vaccinated
+    </text>
 
-    <!-- Details Clean Card Box -->
-    <g transform="translate(0, 185)" filter="url(#cardShadowLight)">
-      <rect width="600" height="155" rx="24" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2"/>
-      
-      <!-- Microchip -->
-      <text x="30" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" fill="#766A63" letter-spacing="1">MICROCHIP IDENTIFICATION</text>
-      <text x="30" y="74" font-family="monospace" font-size="18" font-weight="700" fill="#2C211B">985-141-002-841-920</text>
-
-      <!-- Temperament -->
-      <text x="30" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" fill="#766A63" letter-spacing="1">TEMPERAMENT &amp; CARE</text>
-      <text x="30" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="600" fill="#5F3E29">Friendly, highly energetic, loves children</text>
-
-      <!-- Scan QR Box -->
-      <g transform="translate(455, 20)">
-        <rect width="115" height="115" rx="18" fill="#FAF6F0" stroke="#8B5E3C" stroke-width="2"/>
-        <text x="58" y="60" font-size="44" text-anchor="middle">📲</text>
-        <text x="58" y="92" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="800" fill="#5F3E29" text-anchor="middle">SCAN TAG</text>
-      </g>
-    </g>
-
-    <!-- Footer callout -->
-    <g transform="translate(0, 375)">
-      <text x="0" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#8B5E3C">
-        Emergency Contacts &amp; Medical Records &#8594;
+    <!-- Microchip & Temperament -->
+    <g transform="translate(0, 275)">
+      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        MICROCHIP ID:
       </text>
-      <text x="340" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" fill="#2C211B">
+      <text x="135" y="0" font-family="monospace" font-size="17" font-weight="700" fill="#2C211B">
+        985-141-002-841-920
+      </text>
+
+      <text x="0" y="35" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        CARE NOTES:
+      </text>
+      <text x="120" y="35" font-family="Grandstander, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#5F3E29">
+        Friendly, energetic, and loves children
+      </text>
+    </g>
+
+    <!-- Bottom QR Tag & URL -->
+    <g transform="translate(0, 385)">
+      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="22" font-weight="900" fill="#8B5E3C">
         puplumepet.vercel.app
       </text>
+      <text x="0" y="24" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#766A63">
+        Scan tag for live emergency contacts &amp; medical vault
+      </text>
+
+      <!-- Clean QR Tag Emblem -->
+      <g transform="translate(420, -60)">
+        <rect width="100" height="100" rx="20" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#softCardShadow)"/>
+        <text x="50" y="52" font-size="40" text-anchor="middle">🐾</text>
+        <text x="50" y="80" font-family="Grandstander, -apple-system, sans-serif" font-size="10" font-weight="800" fill="#5F3E29" text-anchor="middle">SCAN PASSPORT</text>
+      </g>
     </g>
   </g>
 </svg>
