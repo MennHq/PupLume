@@ -5,11 +5,32 @@ export interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+// Check if running inside installed standalone PWA
+export const checkIsStandalone = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+    document.referrer.includes('android-app://') ||
+    window.location.search.includes('source=pwa') ||
+    window.location.search.includes('utm_source=pwa') ||
+    window.location.search.includes('mode=standalone')
+  );
+};
+
 // Global variable to capture prompt event even if hook mounts later
 let capturedPrompt: BeforeInstallPromptEvent | null = (window as any).__deferredInstallPrompt || null;
 
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => {
+    // If already in standalone PWA, suppress browser prompt completely
+    if (checkIsStandalone()) {
+      e.preventDefault();
+      capturedPrompt = null;
+      return;
+    }
     e.preventDefault();
     capturedPrompt = e as BeforeInstallPromptEvent;
     (window as any).__deferredInstallPrompt = capturedPrompt;
@@ -24,18 +45,18 @@ if (typeof window !== 'undefined') {
 }
 
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(capturedPrompt);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalled, setIsInstalled] = useState<boolean>(checkIsStandalone);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(() => 
+    checkIsStandalone() ? null : capturedPrompt
+  );
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Detect standalone mode (already installed or running in PWA window)
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
-      document.referrer.includes('android-app://');
-    
+    const isStandalone = checkIsStandalone();
     setIsInstalled(isStandalone);
+    if (isStandalone) {
+      setDeferredPrompt(null);
+    }
 
     // Detect iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -43,7 +64,9 @@ export function usePWAInstall() {
     setIsIOS(isIOSDevice);
 
     const onPromptAvailable = () => {
-      setDeferredPrompt(capturedPrompt);
+      if (!checkIsStandalone()) {
+        setDeferredPrompt(capturedPrompt);
+      }
     };
 
     const onAppInstalled = () => {
@@ -54,8 +77,7 @@ export function usePWAInstall() {
     window.addEventListener('pwa-prompt-available', onPromptAvailable);
     window.addEventListener('pwa-installed', onAppInstalled);
 
-    // Also check if capturedPrompt was populated in the meantime
-    if (capturedPrompt && !deferredPrompt) {
+    if (capturedPrompt && !deferredPrompt && !isStandalone) {
       setDeferredPrompt(capturedPrompt);
     }
 
@@ -66,7 +88,7 @@ export function usePWAInstall() {
   }, [deferredPrompt]);
 
   const install = async (): Promise<boolean> => {
-    if (!deferredPrompt) {
+    if (!deferredPrompt || checkIsStandalone()) {
       return false;
     }
     try {
@@ -85,7 +107,7 @@ export function usePWAInstall() {
   };
 
   return {
-    isInstallable: !!deferredPrompt,
+    isInstallable: !!deferredPrompt && !isInstalled,
     isInstalled,
     isIOS,
     install,

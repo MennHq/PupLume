@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Download } from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
-import { PupLumeAntigravityInstallModal } from './PupLumeAntigravityInstallModal';
 
 interface PWAInstallButtonProps {
   variant?: 'primary' | 'outline' | 'minimal';
@@ -15,19 +14,14 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   showIconOnly = false,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
-  const [showModal, setShowModal] = useState(false);
 
-  // If already installed and active as standalone, hide
-  if (isInstalled) {
+  // If running inside PWA or not installable, don't show
+  if (isInstalled || !isInstallable) {
     return null;
   }
 
   const handleInstallClick = async () => {
-    if (isInstallable) {
-      await install();
-    } else {
-      setShowModal(true);
-    }
+    await install();
   };
 
   const getBaseClasses = () => {
@@ -41,23 +35,15 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   };
 
   return (
-    <>
-      <button
-        type="button"
-        id="pwa-install-btn"
-        onClick={handleInstallClick}
-        title="Install PupLume to your home screen"
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${getBaseClasses()} ${className}`}
-      >
-        <Download className="w-3.5 h-3.5" />
-        {!showIconOnly && <span>Install App</span>}
-      </button>
-
-      {/* Google Antigravity-style Rich PWA Install Bottom Sheet */}
-      <PupLumeAntigravityInstallModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-      />
-    </>
+    <button
+      type="button"
+      id="pwa-install-btn"
+      onClick={handleInstallClick}
+      title="Install PupLume to your home screen"
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${getBaseClasses()} ${className}`}
+    >
+      <Download className="w-3.5 h-3.5" />
+      {!showIconOnly && <span>Install App</span>}
+    </button>
   );
 };
