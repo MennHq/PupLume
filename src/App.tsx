@@ -250,8 +250,29 @@ export default function App() {
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [transitionProgress, setTransitionProgress] = useState(15);
   const [transitionSeconds, setTransitionSeconds] = useState(0.0);
+  const loadedViewsRef = React.useRef<Set<string>>(new Set());
+
+  // Preload tab code in idle time so switching between them is 100% loaded and instant
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const handle = (window as any).requestIdleCallback(() => {
+        import('./views/TasksView');
+        import('./views/AIAssistantView');
+        import('./views/TrainingAcademyView');
+        import('./views/MoreMenuView');
+      });
+      return () => (window as any).cancelIdleCallback(handle);
+    }
+  }, []);
 
   useEffect(() => {
+    // When tabs are 100% loaded, DO NOT show skeleton again!
+    if (loadedViewsRef.current.has(currentView)) {
+      setIsTransitioning(false);
+      setTransitionProgress(100);
+      return;
+    }
+
     setIsTransitioning(true);
     setTransitionProgress(15);
     setTransitionSeconds(0.0);
@@ -280,6 +301,8 @@ export default function App() {
         setTransitionSeconds(0.5);
         setTimeout(() => {
           setIsTransitioning(false);
+          // Mark tab as 100% loaded so skeleton is never shown again
+          loadedViewsRef.current.add(currentView);
         }, 40);
       }
     };
