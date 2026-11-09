@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let title = 'PupLume — AI Puppy Manager & Digital Pet Passport';
   let description = 'Verified digital pet passport and smart safety collar tag on PupLume.';
   // Default to the designed high-res OpenGraph card
-  let imageUrl = `${baseUrl}/og-pup-preview.png?v=2`;
+  let imageUrl = `${baseUrl}/og-pup-preview.png?v=3`;
   const pageUrl = rawSlug ? `${baseUrl}/pup/${encodeURIComponent(rawSlug)}` : baseUrl;
   let found = false;
 
@@ -37,9 +37,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           
           // Use the real designed preview card for Graxzo, or the universal designed passport card
           if (slug === 'graxzo' || pup.name.toLowerCase() === 'graxzo') {
-            imageUrl = `${baseUrl}/og-graxzo.png?v=2`;
+            imageUrl = `${baseUrl}/og-graxzo.png?v=3`;
           } else {
-            imageUrl = `${baseUrl}/og-pup-preview.png?v=2`;
+            imageUrl = `${baseUrl}/og-pup-preview.png?v=3`;
           }
         }
       }
@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!found && slug) {
     title = 'Puppy Passport Not Found — PupLume';
     description = `No active puppy collar tag found for "${rawSlug}". The link might be mistyped or unregistered.`;
-    imageUrl = `${baseUrl}/og-pup-not-found.png?v=2`;
+    imageUrl = `${baseUrl}/og-pup-not-found.png?v=3`;
   }
 
   // Detect whether this is a crawler or human browser
@@ -73,9 +73,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         indexHtml = indexHtml.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${escapeHtml(pageUrl)}" />`);
         indexHtml = indexHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`);
         indexHtml = indexHtml.replace(/<meta property="og:image:secure_url" content=".*?" \/>/, `<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />`);
+        indexHtml = indexHtml.replace(/<meta property="og:image:alt" content=".*?" \/>/, `<meta property="og:image:alt" content="${escapeHtml(title)}" />`);
         indexHtml = indexHtml.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
         indexHtml = indexHtml.replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
         indexHtml = indexHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`);
+        indexHtml = indexHtml.replace(/<meta name="twitter:image:alt" content=".*?" \/>/, `<meta name="twitter:image:alt" content="${escapeHtml(title)}" />`);
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
@@ -111,12 +113,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="${escapeHtml(pageUrl)}" />
     <meta name="twitter:domain" content="puplumepet.vercel.app" />
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
-    <meta name="twitter:image:src" content="${escapeHtml(imageUrl)}" />
     <meta name="twitter:image:alt" content="${escapeHtml(title)}" />
 
     ${!isCrawler ? `<meta http-equiv="refresh" content="0;url=/pup/${encodeURIComponent(rawSlug)}" />` : ''}
