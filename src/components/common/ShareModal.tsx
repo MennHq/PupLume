@@ -1,24 +1,72 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
 import { 
-  Share2, 
-  Copy, 
-  Check, 
-  MessageCircle, 
-  ExternalLink, 
   ShieldCheck, 
   AlertTriangle,
-  QrCode,
-  Instagram,
-  Sparkles,
   Loader2,
-  Download
+  ExternalLink,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { copyToClipboard } from '../../lib/clipboard';
 import { nativeBridge } from '../../lib/nativeBridge';
 import { generatePuppyStoryBlob } from '../../lib/storyCardGenerator';
 import { PuppyProfile } from '../../types';
+
+// ==========================================
+// Authentic Pixel-Perfect Brand SVG Glyphs
+// ==========================================
+
+const InstagramGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  </svg>
+);
+
+const WhatsAppGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+  </svg>
+);
+
+const XTwitterGlyph: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
+const MessagesGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.477 2 2 6.03 2 11c0 2.807 1.438 5.31 3.69 6.896-.16.92-.612 2.44-1.89 3.585 0 0 2.45.228 4.795-1.353.766.216 1.574.332 2.405.332 5.523 0 10-4.03 10-9s-4.477-9-10-9z"/>
+  </svg>
+);
+
+const DownloadGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" x2="12" y1="15" y2="3"/>
+  </svg>
+);
+
+const LinkGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </svg>
+);
+
+const MoreAppsGlyph: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+  </svg>
+);
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -35,85 +83,40 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   puppy,
   url,
-  title = `Share ${puppy.name}'s Profile`,
+  title = `Share ${puppy.name}'s Passport 🐾`,
   shareText,
   isEmergency = false
 }) => {
   const [copied, setCopied] = useState(false);
   const [isGeneratingStory, setIsGeneratingStory] = useState(false);
-  const [storyToast, setStoryToast] = useState<string | null>(null);
+  const [isDownloadingCard, setIsDownloadingCard] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const defaultText = isEmergency
-    ? `🚨 EMERGENCY: ${puppy.name} is reported missing! Please see safety info: ${url}`
-    : `Meet ${puppy.name}! Check out their digital pet passport on PupLume 🐾: ${url}`;
+    ? `🚨 EMERGENCY: ${puppy.name} is reported missing! Please see live safety & contact info: ${url}`
+    : `Meet ${puppy.name}! Check out their verified digital pet passport on PupLume 🐾: ${url}`;
 
   const messageText = shareText || defaultText;
+
+  // Direct share links
+  const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(messageText)}`;
+  const smsUrl = `sms:?&body=${encodeURIComponent(messageText)}`;
+
+  const showToast = (msg: string, durationMs: number = 4000) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, durationMs);
+  };
 
   const handleCopy = async () => {
     nativeBridge.haptics.light();
     const success = await copyToClipboard(url);
     if (success) {
       setCopied(true);
+      showToast("Link copied to clipboard!");
       setTimeout(() => setCopied(false), 2500);
-    }
-  };
-
-  const handleShareToInstagramStory = async () => {
-    nativeBridge.haptics.medium();
-    setIsGeneratingStory(true);
-    setStoryToast(null);
-
-    try {
-      // 1. Copy profile link to clipboard so user can paste it into Instagram Link sticker
-      await copyToClipboard(url);
-
-      // 2. Generate Spotify-style 9:16 Story PNG
-      const blob = await generatePuppyStoryBlob(puppy, url);
-      const filename = `${puppy.name.toLowerCase().replace(/\s+/g, '-')}-story.png`;
-      const file = new File([blob], filename, { type: 'image/png' });
-
-      // Check if on a real mobile device (iOS / Android)
-      const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-
-      // If mobile and navigator.share with files is supported, open mobile share sheet
-      if (
-        isMobile &&
-        typeof navigator !== 'undefined' &&
-        typeof navigator.share === 'function' &&
-        typeof navigator.canShare === 'function' &&
-        navigator.canShare({ files: [file] })
-      ) {
-        setStoryToast("Link copied to clipboard! Select Instagram to share to your Story.");
-        try {
-          await navigator.share({
-            files: [file],
-            title: `${puppy.name}'s Story Passport`,
-            text: `Meet ${puppy.name}! Check out their digital pet passport on PupLume 🐾: ${url}`
-          });
-        } catch (shareErr: any) {
-          if (shareErr?.name !== 'AbortError') {
-            // If mobile share was dismissed or failed, trigger download as fallback
-            triggerDownload(blob, filename);
-          }
-        }
-      } else {
-        // Desktop (Edge / Chrome on Windows / Mac):
-        // Desktop OS share sheets do not support Instagram Stories.
-        // Download the 1080x1920 image and inform the user clearly.
-        triggerDownload(blob, filename);
-        setStoryToast(
-          isMobile 
-            ? "Story card downloaded & link copied! Add it to your Instagram Story."
-            : "Story card downloaded & link copied! (Desktop Edge doesn't support Instagram Stories—send it to your phone or upload via Instagram web)."
-        );
-      }
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
-        console.error('Failed to share Instagram story:', err);
-        setStoryToast("Couldn't generate story card. Please try again.");
-      }
-    } finally {
-      setIsGeneratingStory(false);
     }
   };
 
@@ -125,10 +128,94 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 6000);
   };
 
-  const handleNativeShare = async () => {
+  // 1. Share to Instagram Story (Generates 9:16 Spotify-Style Story Card)
+  const handleShareToInstagramStory = async () => {
+    nativeBridge.haptics.medium();
+    setIsGeneratingStory(true);
+    setToastMessage(null);
+
+    try {
+      // 1. Copy profile link to clipboard so user can paste it into Instagram's Link Sticker
+      await copyToClipboard(url);
+
+      // 2. Generate 9:16 vertical Story Card
+      const blob = await generatePuppyStoryBlob(puppy, url);
+      const filename = `${puppy.name.toLowerCase().replace(/\s+/g, '-')}-story.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+      if (
+        isMobile &&
+        typeof navigator !== 'undefined' &&
+        typeof navigator.share === 'function' &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare({ files: [file] })
+      ) {
+        showToast("Link copied! Choose Instagram to post to your Story.");
+        try {
+          await navigator.share({
+            files: [file],
+            title: `${puppy.name}'s Story Passport`,
+            text: messageText
+          });
+        } catch (shareErr: any) {
+          if (shareErr?.name !== 'AbortError') {
+            triggerDownload(blob, filename);
+          }
+        }
+      } else {
+        triggerDownload(blob, filename);
+        showToast(
+          isMobile
+            ? "Story card downloaded & link copied! Add it to your Instagram Story."
+            : "Story card downloaded & link copied! Send it to your phone or upload to Instagram."
+        );
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.error('Failed to share Instagram story:', err);
+        showToast("Couldn't generate story card. Please try again.");
+      }
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  // 2. Download Passport Card (1200x630 High-Res Designed OpenGraph Passport Card)
+  const handleDownloadPassportCard = async () => {
+    nativeBridge.haptics.medium();
+    setIsDownloadingCard(true);
+
+    try {
+      const isGraxzo = puppy.name?.toLowerCase() === 'graxzo' || url.toLowerCase().includes('graxzo');
+      const cardUrl = isGraxzo ? '/og-graxzo.png?v=2' : '/og-pup-preview.png?v=2';
+      const filename = `${puppy.name.toLowerCase().replace(/\s+/g, '-')}-passport-card.png`;
+
+      const response = await fetch(cardUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        triggerDownload(blob, filename);
+        showToast(`✓ ${puppy.name}'s passport card downloaded!`);
+      } else {
+        // Fallback: generate story blob
+        const fallbackBlob = await generatePuppyStoryBlob(puppy, url);
+        triggerDownload(fallbackBlob, filename);
+        showToast(`✓ ${puppy.name}'s passport card downloaded!`);
+      }
+    } catch (err) {
+      console.error('Error downloading passport card:', err);
+      showToast("Download failed. Please try copying the link instead.");
+    } finally {
+      setIsDownloadingCard(false);
+    }
+  };
+
+  // 3. More Apps (Native System Share)
+  const handleMoreApps = async () => {
     nativeBridge.haptics.medium();
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
@@ -137,45 +224,49 @@ export const ShareModal: React.FC<ShareModalProps> = ({
           text: messageText,
           url
         });
-        onClose();
         return;
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
       }
     }
-    // Fallback to copy
+    // Fallback if navigator.share unavailable
     await handleCopy();
   };
-
-  const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
-  const smsUrl = `sms:?&body=${encodeURIComponent(messageText)}`;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={isEmergency ? `🚨 Broadcast ${puppy.name}'s Alert` : title}
-      subtitle={isEmergency ? "Share immediately with neighborhood chats & finders" : "Share public digital pet card with family, friends or sitters"}
+      subtitle={
+        isEmergency
+          ? "Share emergency broadcast immediately across social media & messaging"
+          : "Share digital pet passport with family, friends, vet, or sitters"
+      }
       maxWidth="sm"
       isBottomSheet={true}
     >
       <div className="space-y-4 pt-1">
-        {/* Puppy Mini Card Preview */}
-        <div className={`p-3.5 rounded-2xl border flex items-center gap-3.5 ${
-          isEmergency 
-            ? 'bg-rose-50/70 border-rose-200' 
-            : 'bg-[#FAF6F0] border-[#E8DDD3]'
-        }`}>
+        {/* Passport Preview Card Header (Warm Skin / Cream Tone, Zero Nested Clutter) */}
+        <div
+          className={`p-3.5 rounded-2xl border flex items-center gap-3.5 transition-colors ${
+            isEmergency
+              ? 'bg-rose-50/80 border-rose-200'
+              : 'bg-[#FAF2E6] border-[#E8DDD3]'
+          }`}
+        >
           <img
             src={puppy.photoUrl}
             alt={puppy.name}
             className="w-14 h-14 rounded-2xl object-cover border-2 border-[#8B5E3C] shadow-xs shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-sm font-black text-[#2C211B] truncate">{puppy.name}</h4>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className="text-base font-black text-[#2C211B] truncate" style={{ fontFamily: 'Grandstander, cursive' }}>
+                {puppy.name}
+              </h4>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#F3E7DA] text-[#5F3E29]">
-                {puppy.breed}
+                {puppy.breed || 'Puppy'}
               </span>
             </div>
             <p className="text-xs text-[#766A63] mt-0.5 flex items-center gap-1">
@@ -184,86 +275,172 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   <AlertTriangle className="w-3.5 h-3.5" /> Missing Alert Active
                 </span>
               ) : (
-                <span className="text-emerald-700 font-medium flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Public Pet Card
+                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Active Collar Tag • Verified
                 </span>
               )}
             </p>
           </div>
         </div>
 
-        {/* Quick 1-Tap Share Channels (Instagram / TikTok Style) */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* WhatsApp Direct */}
+        {/* Section Title */}
+        <div className="flex items-center justify-between px-0.5 pt-0.5">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#766A63]">
+            Share Passport To
+          </span>
+          <span className="text-[10px] font-bold text-[#8B5E3C]">
+            Instant 1-Tap
+          </span>
+        </div>
+
+        {/* Native-Style App Channel Grid (Instagram, Twitter, Story, WhatsApp, SMS, Download, Copy, More) */}
+        <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-x-3 text-center">
+          
+          {/* 1. Instagram Story */}
+          <button
+            type="button"
+            onClick={handleShareToInstagramStory}
+            disabled={isGeneratingStory}
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform"
+          >
+            <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] shadow-md shadow-rose-500/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
+              {isGeneratingStory ? (
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
+              ) : (
+                <InstagramGlyph className="w-6 h-6 text-white" />
+              )}
+              <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full bg-amber-400 text-[#2C211B] text-[8px] font-black uppercase tracking-tighter shadow-xs">
+                Story
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              IG Story
+            </span>
+          </button>
+
+          {/* 2. WhatsApp */}
           <a
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => nativeBridge.haptics.light()}
-            className="flex items-center justify-center gap-2 p-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-xs transition-all cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform no-underline"
           >
-            <MessageCircle className="w-4 h-4 fill-white" />
-            <span>WhatsApp</span>
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#25D366] shadow-md shadow-emerald-500/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
+              <WhatsAppGlyph className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              WhatsApp
+            </span>
           </a>
 
-          {/* SMS / Text Messages */}
+          {/* 3. Twitter / X */}
+          <a
+            href={twitterUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => nativeBridge.haptics.light()}
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform no-underline"
+          >
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#000000] shadow-md shadow-stone-900/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
+              <XTwitterGlyph className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              X / Twitter
+            </span>
+          </a>
+
+          {/* 4. SMS / Messages */}
           <a
             href={smsUrl}
             onClick={() => nativeBridge.haptics.light()}
-            className="flex items-center justify-center gap-2 p-3 bg-[#8B5E3C] hover:bg-[#6D492F] active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-xs transition-all cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform no-underline"
           >
-            <Share2 className="w-4 h-4" />
-            <span>Text / SMS</span>
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#34C759] shadow-md shadow-green-500/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
+              <MessagesGlyph className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              SMS / Text
+            </span>
           </a>
-        </div>
 
-        {/* Spotify-Style Instagram Story Share Card */}
-        <div className="space-y-2 pt-0.5">
+          {/* 5. Download Passport Card */}
           <button
             type="button"
-            onClick={handleShareToInstagramStory}
-            disabled={isGeneratingStory}
-            className="w-full flex items-center justify-center gap-2.5 p-3.5 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-95 active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-60"
+            onClick={handleDownloadPassportCard}
+            disabled={isDownloadingCard}
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform"
           >
-            {isGeneratingStory ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Generating 9:16 Story Card...</span>
-              </>
-            ) : (
-              <>
-                <Instagram className="w-4 h-4" />
-                <span>Share to Instagram Story (Spotify-style)</span>
-              </>
-            )}
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#8B5E3C] to-[#5F3E29] shadow-md shadow-amber-900/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
+              {isDownloadingCard ? (
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
+              ) : (
+                <DownloadGlyph className="w-6 h-6 text-white" />
+              )}
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              Download
+            </span>
           </button>
 
-          {storyToast && (
-            <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] text-[#5F3E29] text-[11px] font-medium flex items-start gap-2 animate-in fade-in leading-relaxed">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-              <span>{storyToast}</span>
+          {/* 6. Copy Link */}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform"
+          >
+            <div
+              className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl border-2 shadow-xs flex items-center justify-center group-hover:scale-105 transition-all ${
+                copied
+                  ? 'bg-emerald-600 border-emerald-600 text-white'
+                  : 'bg-white border-[#E8DDD3] text-[#2C211B] hover:border-[#8B5E3C]'
+              }`}
+            >
+              {copied ? (
+                <Check className="w-6 h-6 text-white stroke-[2.5]" />
+              ) : (
+                <LinkGlyph className="w-6 h-6 text-[#2C211B]" />
+              )}
             </div>
-          )}
+            <span
+              className={`text-[11px] font-bold tracking-tight transition-colors leading-tight ${
+                copied ? 'text-emerald-700' : 'text-[#2C211B] group-hover:text-[#8B5E3C]'
+              }`}
+            >
+              {copied ? 'Copied!' : 'Copy Link'}
+            </span>
+          </button>
+
+          {/* 7. More Apps */}
+          <button
+            type="button"
+            onClick={handleMoreApps}
+            className="group flex flex-col items-center gap-1.5 focus:outline-none cursor-pointer active:scale-95 transition-transform"
+          >
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#F3E7DA] hover:bg-[#E8DDD3] shadow-xs text-[#5F3E29] flex items-center justify-center group-hover:scale-105 transition-all">
+              <MoreAppsGlyph className="w-6 h-6 text-[#5F3E29]" />
+            </div>
+            <span className="text-[11px] font-bold text-[#2C211B] tracking-tight group-hover:text-[#8B5E3C] transition-colors leading-tight">
+              More Apps
+            </span>
+          </button>
+
         </div>
 
-        {/* System Native Share Button (if available) */}
-        {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-          <Button
-            variant="outline"
-            onClick={handleNativeShare}
-            className="w-full text-xs font-bold border-[#8B5E3C]/30 text-[#8B5E3C] hover:bg-[#FFF9F2]"
-            leftIcon={<Share2 className="w-4 h-4" />}
-          >
-            More Apps (AirDrop, Instagram, Telegram)
-          </Button>
+        {/* Dynamic Toast Message (e.g. Generation Progress, Download, or Copy Feedback) */}
+        {toastMessage && (
+          <div className="p-3 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] text-[#5F3E29] text-xs font-semibold flex items-center gap-2.5 shadow-2xs animate-in fade-in leading-relaxed">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <span className="flex-1">{toastMessage}</span>
+          </div>
         )}
 
-        {/* Copy Link Row */}
+        {/* Direct Link Copy Bar */}
         <div className="space-y-1.5 pt-1">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-[#766A63] block">
-            Public Profile Link
+          <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#766A63] block">
+            Public Passport Link
           </label>
-          <div className="flex items-center gap-2 p-1.5 bg-[#FAF6F0] rounded-xl border border-[#E8DDD3]">
+          <div className="flex items-center gap-2 p-1.5 bg-[#FAF2E6] rounded-xl border border-[#E8DDD3]">
             <input
               type="text"
               readOnly
@@ -278,25 +455,25 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   : 'bg-white hover:bg-[#F3E7DA] text-[#2C211B] border border-[#E8DDD3]'
               }`}
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied!' : 'Copy'}</span>
+              {copied ? <Check className="w-3.5 h-3.5" /> : <LinkGlyph className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
         </div>
 
-        {/* Direct Link Preview */}
-        <div className="pt-1 flex items-center justify-between text-xs border-t border-[#E8DDD3]">
+        {/* Modal Footer */}
+        <div className="pt-2 flex items-center justify-between text-xs border-t border-[#E8DDD3]">
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#8B5E3C] font-bold hover:underline inline-flex items-center gap-1"
           >
-            <ExternalLink className="w-3.5 h-3.5" /> Open Public Profile
+            <ExternalLink className="w-3.5 h-3.5" /> Open Public Passport
           </a>
           <button
             onClick={onClose}
-            className="text-[#766A63] font-bold hover:text-[#2C211B]"
+            className="text-[#766A63] font-bold hover:text-[#2C211B] cursor-pointer"
           >
             Close
           </button>
