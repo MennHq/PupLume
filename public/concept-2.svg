@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Warm Cream Editorial Gradient -->
+    <linearGradient id="c2Bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="45%" stop-color="#FFF9F2"/>
+      <stop offset="100%" stop-color="#F5EADB"/>
+    </linearGradient>
+    <radialGradient id="c2Glow" cx="25%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#FED7AA" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A27046"/>
+      <stop offset="100%" stop-color="#734927"/>
+    </linearGradient>
+    <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="c2Shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.10"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#2C211B" flood-opacity="0.03"/>
+    </filter>
+    <clipPath id="c2ArchClip">
+      <!-- High-end Arch Cutout (Kinfolk / Editorial aesthetic) -->
+      <path d="M 0 180 C 0 80 80 0 220 0 C 360 0 440 80 440 180 L 440 470 C 440 485 425 500 410 500 L 30 500 C 15 500 0 485 0 470 Z" />
+    </clipPath>
+  </defs>
+
+  <!-- Clean Canvas -->
+  <rect width="1200" height="630" fill="url(#c2Bg)"/>
+  <rect width="1200" height="630" fill="url(#c2Glow)"/>
+
+  <!-- Subtle Editorial Margin Rules (Refined, Not a Box) -->
+  <line x1="85" y1="50" x2="1115" y2="50" stroke="#E8DDD3" stroke-width="1.5" opacity="0.6"/>
+  <line x1="85" y1="580" x2="1115" y2="580" stroke="#E8DDD3" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Left: Luxury Arch Portrait -->
+  <g transform="translate(85, 70)" filter="url(#c2Shadow)">
+    <g clip-path="url(#c2ArchClip)">
+      <rect width="440" height="500" fill="#FAF0E4"/>
+      <!-- Photo replaced dynamically by script -->
+      <text id="c2PhotoPlaceholder" x="220" y="300" font-size="140" text-anchor="middle">🐶</text>
+    </g>
+    <!-- Verified Ribbon Seal -->
+    <g transform="translate(370, 30)">
+      <circle cx="24" cy="24" r="24" fill="#059669" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="24" y="32" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Grandstander" font-weight="900">✓</text>
+    </g>
+  </g>
+
+  <!-- Right: Editorial Typography (Kinfolk / Monocle style) -->
+  <g transform="translate(575, 90)">
+    <!-- Brand Flagship Marker -->
+    <g transform="translate(0, 0)">
+      <text x="0" y="0" font-family="Grandstander" font-size="14" font-weight="800" fill="#8B5E3C" letter-spacing="3.5">
+        OFFICIAL PET PASSPORT • PUPLUME REGISTER
+      </text>
+    </g>
+
+    <!-- Pet Name (Huge, Regal, Friendly) -->
+    <text x="0" y="90" font-family="Grandstander" font-size="88" font-weight="900" fill="#2C211B" letter-spacing="-2.5">
+      Graxzo
+    </text>
+
+    <!-- Breed & Pedigree Line -->
+    <text x="0" y="140" font-family="Grandstander" font-size="32" font-weight="700" fill="#8B5E3C">
+      German Shepherd • 6 Months
+    </text>
+
+    <!-- Editorial Quote / Mission -->
+    <text x="0" y="200" font-family="Grandstander" font-size="20" font-weight="600" fill="#5F3E29">
+      “Playful, affectionate, and learning fast.”
+    </text>
+    <text x="0" y="228" font-family="Grandstander" font-size="18" font-weight="500" fill="#766A63">
+      Verified identity with 24/7 smart collar scan &amp; medical vault.
+    </text>
+
+    <!-- Status Badges Flowing Horizontally -->
+    <g transform="translate(0, 282)">
+      <circle cx="6" cy="-6" r="5" fill="#059669" />
+      <text x="22" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
+        Collar Tag Active
+      </text>
+
+      <circle cx="210" cy="-6" r="5" fill="#059669" />
+      <text x="226" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
+        Fully Vaccinated
+      </text>
+    </g>
+
+    <!-- Microchip Credentials -->
+    <g transform="translate(0, 340)">
+      <text x="0" y="0" font-family="Grandstander" font-size="15" font-weight="800" fill="#766A63" letter-spacing="2">
+        PASSPORT ID:
+      </text>
+      <text x="140" y="0" font-family="Grandstander" font-size="18" font-weight="800" fill="#2C211B">
+        985-GRAXZO-2025-PUP
+      </text>
+    </g>
+
+    <!-- Bottom Brand Seal & Domain -->
+    <g transform="translate(0, 420)">
+      <!-- Squircle Icon (44x44) -->
+      <rect width="44" height="44" rx="14" fill="url(#logoPupGrad)" filter="url(#c2Shadow)"/>
+      <g transform="translate(0, -2) scale(0.095)">
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
+        <circle cx="165" cy="205" r="14" fill="#2C211B" />
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
+        <circle cx="275" cy="205" r="14" fill="#2C211B" />
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+        <g transform="translate(295, 45)">
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+        </g>
+      </g>
+
+      <text x="56" y="28" font-family="Grandstander" font-size="28" font-weight="900" fill="#2C211B">
+        Pup<tspan fill="#8B5E3C">Lume</tspan>
+      </text>
+      <text x="210" y="27" font-family="Grandstander" font-size="18" font-weight="600" fill="#766A63">
+        • puplumepet.vercel.app/pup/graxzo
+      </text>
+    </g>
+  </g>
+</svg>

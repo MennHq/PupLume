@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Radiant Lume Aurora Gradient -->
+    <linearGradient id="c3Bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="35%" stop-color="#FFF8F0"/>
+      <stop offset="70%" stop-color="#FBF0E4"/>
+      <stop offset="100%" stop-color="#F6E4D2"/>
+    </linearGradient>
+    <radialGradient id="c3Aurora1" cx="30%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#FED7AA" stop-opacity="0.6"/>
+      <stop offset="60%" stop-color="#FFF8F0" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FFF8F0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="c3Aurora2" cx="80%" cy="20%" r="55%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#FFF8F0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A27046"/>
+      <stop offset="100%" stop-color="#734927"/>
+    </linearGradient>
+    <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="c3Shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#2C211B" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#2C211B" flood-opacity="0.04"/>
+    </filter>
+    <clipPath id="c3CircleClip">
+      <circle cx="230" cy="240" r="210" />
+    </clipPath>
+  </defs>
+
+  <!-- Clean Aurora Canvas -->
+  <rect width="1200" height="630" fill="url(#c3Bg)"/>
+  <rect width="1200" height="630" fill="url(#c3Aurora1)"/>
+  <rect width="1200" height="630" fill="url(#c3Aurora2)"/>
+
+  <!-- Left: Circular Hero Portrait in Glowing Halo -->
+  <g transform="translate(60, 75)">
+    <!-- Concentric Radar / Lume Halo Rings -->
+    <circle cx="230" cy="240" r="255" fill="none" stroke="#EBD6C3" stroke-width="2" stroke-dasharray="8 8" opacity="0.8"/>
+    <circle cx="230" cy="240" r="230" fill="none" stroke="#F4E4D4" stroke-width="2" opacity="0.9"/>
+    
+    <!-- Hero Circular Cutout with Soft Lift -->
+    <g filter="url(#c3Shadow)">
+      <g clip-path="url(#c3CircleClip)">
+        <circle cx="230" cy="240" r="210" fill="#FAF0E4"/>
+        <!-- Photo replaced dynamically by script -->
+        <text id="c3PhotoPlaceholder" x="230" y="300" font-size="160" text-anchor="middle">🐶</text>
+      </g>
+    </g>
+
+    <!-- Verified Badge -->
+    <g transform="translate(370, 70)">
+      <circle cx="24" cy="24" r="24" fill="#059669" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="24" y="32" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Grandstander" font-weight="900">✓</text>
+    </g>
+  </g>
+
+  <!-- Right: Lume Brand Content (Zero Boxes, Full Typography) -->
+  <g transform="translate(585, 75)">
+    <!-- Header: Wordmark & Golden Star -->
+    <g transform="translate(0, 0)">
+      <rect width="60" height="60" rx="20" fill="url(#logoPupGrad)" filter="url(#c3Shadow)"/>
+      <g transform="translate(0, -2) scale(0.13)">
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
+        <circle cx="165" cy="205" r="14" fill="#2C211B" />
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
+        <circle cx="275" cy="205" r="14" fill="#2C211B" />
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+        <g transform="translate(295, 45)">
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+        </g>
+      </g>
+
+      <text x="80" y="38" font-family="Grandstander" font-size="44" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+        Pup<tspan fill="#8B5E3C">Lume</tspan>
+      </text>
+      <text x="82" y="58" font-family="Grandstander" font-size="12" font-weight="700" fill="#766A63" letter-spacing="3">
+        DIGITAL PET PASSPORT &amp; AI COMPANION
+      </text>
+    </g>
+
+    <!-- Pet Name (Huge Grandstander Black) -->
+    <text x="0" y="160" font-family="Grandstander" font-size="84" font-weight="900" fill="#2C211B" letter-spacing="-2">Graxzo</text>
+
+    <!-- Breed & Attributes -->
+    <text x="0" y="210" font-family="Grandstander" font-size="32" font-weight="700" fill="#8B5E3C">German Shepherd • 12 lbs • 6 mo</text>
+
+    <!-- Status Line with Glowing Accents -->
+    <g transform="translate(0, 262)">
+      <circle cx="6" cy="-6" r="6" fill="#059669" />
+      <text x="22" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
+        Collar Tag Active
+      </text>
+
+      <circle cx="215" cy="-6" r="6" fill="#059669" />
+      <text x="231" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
+        Vaccine Vault Verified
+      </text>
+    </g>
+
+    <!-- Vitals -->
+    <g transform="translate(0, 316)">
+      <text x="0" y="0" font-family="Grandstander" font-size="15" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        MICROCHIP ID:
+      </text>
+      <text x="145" y="0" font-family="Grandstander" font-size="19" font-weight="800" fill="#2C211B">985-GRAXZO-2025-PUP</text>
+
+      <text x="0" y="38" font-family="Grandstander" font-size="15" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        CARE NOTES:
+      </text>
+      <text x="130" y="38" font-family="Grandstander" font-size="19" font-weight="600" fill="#5F3E29">Playful, affectionate, and learning fast</text>
+    </g>
+
+    <!-- Bottom URL & Callout -->
+    <g transform="translate(0, 412)">
+      <text x="0" y="0" font-family="Grandstander" font-size="30" font-weight="900" fill="#2C211B">
+        puplumepet.vercel.app
+      </text>
+      <text x="0" y="28" font-family="Grandstander" font-size="16" font-weight="600" fill="#766A63">
+        Scan collar tag for live emergency contacts &amp; medical vault
+      </text>
+    </g>
+  </g>
+</svg>
