@@ -112,10 +112,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@puplume" />
+    <meta name="twitter:url" content="${escapeHtml(pageUrl)}" />
+    <meta name="twitter:domain" content="puplumepet.vercel.app" />
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+    <meta name="twitter:image:src" content="${escapeHtml(imageUrl)}" />
     <meta name="twitter:image:alt" content="${escapeHtml(title)}" />
 
     ${!isCrawler ? `<meta http-equiv="refresh" content="0;url=/pup/${encodeURIComponent(rawSlug)}" />` : ''}
