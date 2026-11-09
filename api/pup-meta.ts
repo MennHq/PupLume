@@ -33,8 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           found = true;
           title = `${pup.name}'s PupLume Pet Passport 🐾`;
           const breedText = pup.breed ? ` (${pup.breed})` : '';
-          const temperText = pup.temperament ? ` • ${pup.temperament}` : '';
-          description = `Meet ${pup.name}!${breedText}${temperText}. Verified digital pet passport & safety collar tag on PupLume.`;
+          description = `Meet ${pup.name}!${breedText}. Verified digital pet passport & safety collar tag on PupLume 🐾`;
           
           // Use the real designed preview card for Graxzo, or the universal designed passport card
           if (slug === 'graxzo' || pup.name.toLowerCase() === 'graxzo') {

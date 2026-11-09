@@ -10,3 +10,6 @@ coverage/
 .agents/
 skills-lock.json
 sting/
+
+.vercel
+.env*

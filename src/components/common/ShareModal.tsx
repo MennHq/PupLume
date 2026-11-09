@@ -126,7 +126,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
   // Direct share URLs
   const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(messageText)}`;
+  const tweetTextOnly = isEmergency
+    ? `🚨 EMERGENCY: ${puppy.name} is reported missing! Live safety & contact info:`
+    : `Meet ${puppy.name}! Check out their verified digital pet passport on PupLume 🐾`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetTextOnly)}&url=${encodeURIComponent(url)}`;
   const smsUrl = `sms:?&body=${encodeURIComponent(messageText)}`;
 
   const showToast = (msg: string, durationMs: number = 4000) => {
