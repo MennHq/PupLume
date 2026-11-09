@@ -156,9 +156,11 @@ class NativeBridge {
      * Share Puppy Pet Passport / Profile
      */
     puppyProfile: async (puppy: PuppyProfile, ageWeeks?: number) => {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://puplume.pet';
+      const marketingOrigin = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+        ? 'http://localhost:3001'
+        : (import.meta.env.VITE_MARKETING_URL || 'https://petttttttpuplume.vercel.app');
       const cleanSlug = encodeURIComponent(puppy.name.toLowerCase());
-      const publicUrl = `${origin}/pup/${cleanSlug}`;
+      const publicUrl = `${marketingOrigin}/pup/${cleanSlug}`;
       const ageStr = ageWeeks ? `(${ageWeeks} weeks old)` : '';
 
       return this.share.custom({
@@ -172,9 +174,11 @@ class NativeBridge {
      * Share Emergency Lost Dog Alert
      */
     safetyAlert: async (puppy: PuppyProfile) => {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://puplume.pet';
+      const marketingOrigin = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+        ? 'http://localhost:3001'
+        : (import.meta.env.VITE_MARKETING_URL || 'https://petttttttpuplume.vercel.app');
       const cleanSlug = encodeURIComponent(puppy.name.toLowerCase());
-      const publicUrl = `${origin}/pup/${cleanSlug}`;
+      const publicUrl = `${marketingOrigin}/pup/${cleanSlug}`;
       const rewardStr = puppy.rewardAmount ? ` Reward: $${puppy.rewardAmount}!` : '';
 
       return this.share.custom({

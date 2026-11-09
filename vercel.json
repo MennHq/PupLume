@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/pup-meta.ts": {
-      "includeFiles": "dist/index.html"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -19,18 +14,22 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/pup/:slug",
+      "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/safety/:slug",
+      "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/share-target",
       "destination": "/api/share-target"
-    },
-    {
-      "source": "/pup/:slug",
-      "destination": "/api/pup-meta?slug=:slug"
-    },
-    {
-      "source": "/safety/:slug",
-      "destination": "/api/pup-meta?slug=:slug"
     },
     {
       "source": "/((?!assets/|.*\\..*).*)",

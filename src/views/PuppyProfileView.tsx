@@ -137,10 +137,12 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const [microchip, setMicrochip] = useState(puppy.microchipNumber || '');
   const [insurance, setInsurance] = useState(puppy.insuranceProvider || '');
 
-  // Construct Public Webpage URL
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  // Construct Public Webpage URL (points to dedicated public marketing page)
+  const marketingOrigin = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://localhost:3001'
+    : (import.meta.env.VITE_MARKETING_URL || 'https://petttttttpuplume.vercel.app');
   const publicSlug = encodeURIComponent(puppy.name.toLowerCase());
-  const publicUrl = `${origin}/pup/${publicSlug}`;
+  const publicUrl = `${marketingOrigin}/pup/${publicSlug}`;
 
   // Generate Custom PupLume QR Code data URL with center logo
   useEffect(() => {
