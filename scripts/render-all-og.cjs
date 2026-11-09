@@ -2,7 +2,12 @@ const { Resvg } = require('@resvg/resvg-js');
 const fs = require('fs');
 const path = require('path');
 
-const fontPath = path.join(__dirname, '..', 'fonts', 'Grandstander.ttf');
+const fonts = [
+  path.join(__dirname, '..', 'fonts', 'Grandstander-Black.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Grandstander-Bold.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Outfit-Bold.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Outfit-SemiBold.ttf'),
+];
 
 ['og-marketing', 'og-pup-preview', 'og-pup-not-found'].forEach(name => {
   const svgPath = path.join(__dirname, '..', 'public', `${name}.svg`);
@@ -11,7 +16,7 @@ const fontPath = path.join(__dirname, '..', 'fonts', 'Grandstander.ttf');
   const resvg = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
     font: {
-      fontFiles: [fontPath],
+      fontFiles: fonts,
       defaultFontFamily: 'Grandstander'
     }
   });

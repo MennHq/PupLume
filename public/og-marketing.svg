@@ -3,15 +3,21 @@
     <!-- Warm Skin / Cream Tone Background (Zero Dark Brown) -->
     <linearGradient id="skinBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFDF9"/>
-      <stop offset="45%" stop-color="#FFF9F2"/>
-      <stop offset="100%" stop-color="#F7ECE1"/>
+      <stop offset="40%" stop-color="#FFF9F2"/>
+      <stop offset="85%" stop-color="#FAF2E6"/>
+      <stop offset="100%" stop-color="#F5E8D8"/>
     </linearGradient>
-    <radialGradient id="peachSkinGlow" cx="15%" cy="25%" r="65%">
-      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.45"/>
+    <radialGradient id="peachSkinGlow" cx="18%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.55"/>
       <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="amberSkinGlow" cx="85%" cy="80%" r="60%">
-      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.3"/>
+    <radialGradient id="amberSkinGlow" cx="82%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haloCenterGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="65%" stop-color="#FFF9F2" stop-opacity="0.35"/>
       <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -21,27 +27,26 @@
     <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FDE68A"/>
       <stop offset="50%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#8B5E3C"/>
+      <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
-    <filter id="softEditorialShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.08"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2C211B" flood-opacity="0.03"/>
+    <filter id="softEmblemShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#2C211B" flood-opacity="0.10"/>
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#2C211B" flood-opacity="0.04"/>
     </filter>
   </defs>
 
-  <!-- Clean Warm Skin Background -->
+  <!-- Clean Warm Skin Background (Seamless Canvas, Zero Dark Brown) -->
   <rect width="1200" height="630" fill="url(#skinBg)"/>
   <rect width="1200" height="630" fill="url(#peachSkinGlow)"/>
   <rect width="1200" height="630" fill="url(#amberSkinGlow)"/>
 
-  <!-- Left Editorial Content Column (Seamless, No Nested Boxes) -->
-  <g transform="translate(90, 75)">
+  <!-- Left Editorial Column (Seamless, No Separate Boxes) -->
+  <g transform="translate(85, 75)">
     <!-- Official PupLume Logo + Textual Wordmark -->
     <g transform="translate(0, 0)">
-      <!-- Official Squircle Icon (72x72) -->
-      <rect width="72" height="72" rx="22" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#softEditorialShadow)"/>
-      <g transform="translate(5, 4) scale(0.135)">
-        <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#logoPupGrad)" />
+      <!-- Official Squircle Icon (68x68) -->
+      <rect width="68" height="68" rx="22" fill="url(#logoPupGrad)" filter="url(#softEmblemShadow)"/>
+      <g transform="translate(0, -2) scale(0.145)">
         <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
         <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
         <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
@@ -58,62 +63,90 @@
       </g>
 
       <!-- Official Wordmark in Grandstander font -->
-      <text x="90" y="44" font-family="Grandstander, -apple-system, sans-serif" font-size="44" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+      <text x="88" y="44" font-family="Grandstander" font-size="46" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
         Pup<tspan fill="#8B5E3C">Lume</tspan>
       </text>
-      <text x="92" y="66" font-family="Grandstander, -apple-system, sans-serif" font-size="12" font-weight="800" fill="#766A63" letter-spacing="3.5">
-        YOUR PUPPY DIGITAL HOME
+      <text x="90" y="65" font-family="Outfit" font-size="12" font-weight="800" fill="#766A63" letter-spacing="3.5">
+        THE SMART DOG PASSPORT &amp; AI CARE ROUTINE
       </text>
     </g>
 
-    <!-- Headline (Clean, Bold, Grandstander) -->
-    <text x="0" y="170" font-family="Grandstander, -apple-system, sans-serif" font-size="58" font-weight="900" fill="#2C211B" letter-spacing="-1.5">
+    <!-- Headline (Clean, Bold Grandstander - Pure Editorial) -->
+    <text x="0" y="172" font-family="Grandstander" font-size="62" font-weight="900" fill="#2C211B" letter-spacing="-1.5">
       The Smart Dog Passport
     </text>
-    <text x="0" y="235" font-family="Grandstander, -apple-system, sans-serif" font-size="58" font-weight="900" fill="#8B5E3C" letter-spacing="-1.5">
-      &amp; AI Puppy Companion
+    <text x="0" y="242" font-family="Grandstander" font-size="62" font-weight="900" fill="#8B5E3C" letter-spacing="-1.5">
+      &amp; AI Care Routine
     </text>
 
-    <!-- Subtitle (Flowing, No Separate Boxes) -->
-    <text x="0" y="295" font-family="Grandstander, -apple-system, sans-serif" font-size="22" font-weight="500" fill="#5F3E29">
-      Smart QR collar tags, AI care routines &amp; digital health records.
+    <!-- Subtitle (Directly on skin canvas, zero boxes) -->
+    <text x="0" y="302" font-family="Outfit" font-size="22" font-weight="600" fill="#5F3E29">
+      Smart QR collar tags, AI daily routines &amp; vaccine records.
     </text>
 
-    <!-- Feature Highlights (Clean bullet flow) -->
-    <g transform="translate(0, 350)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#8B5E3C">
-        🏷️ Smart Collar QR Tag  •  🩺 Vaccine Vault  •  🚨 Missing Pet Alert
+    <!-- Feature Highlights (Directly on skin canvas) -->
+    <g transform="translate(0, 362)">
+      <circle cx="8" cy="-5" r="4" fill="#8B5E3C" />
+      <text x="24" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
+        Smart QR Collar Tag
+      </text>
+
+      <circle cx="236" cy="-5" r="4" fill="#8B5E3C" />
+      <text x="252" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
+        Verified Vaccine Vault
+      </text>
+
+      <circle cx="484" cy="-5" r="4" fill="#8B5E3C" />
+      <text x="500" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
+        AI Care Coach
       </text>
     </g>
 
     <!-- Official URL Tag -->
-    <g transform="translate(0, 415)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="24" font-weight="900" fill="#8B5E3C">
+    <g transform="translate(0, 435)">
+      <text x="0" y="0" font-family="Grandstander" font-size="28" font-weight="900" fill="#2C211B">
         puplumepet.vercel.app
       </text>
-      <text x="290" y="-2" font-family="Grandstander, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#766A63">
+      <text x="310" y="-3" font-family="Outfit" font-size="18" font-weight="600" fill="#766A63">
         • Everything your puppy needs to thrive
       </text>
     </g>
   </g>
 
-  <!-- Right Visual Feature (Single Clean Rounded Illustration, Zero Clutter) -->
-  <g transform="translate(770, 75)" filter="url(#softEditorialShadow)">
-    <rect width="340" height="480" rx="36" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2"/>
-    <rect x="20" y="20" width="300" height="280" rx="26" fill="#FFF9F2"/>
-    <text x="170" y="180" font-size="110" text-anchor="middle">🐕</text>
-    
-    <g transform="translate(25, 330)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="34" font-weight="900" fill="#2C211B">Milo</text>
-      <text x="0" y="30" font-family="Grandstander, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#8B5E3C">Golden Retriever • 5 mo</text>
-      
-      <!-- Verified Single Pill -->
-      <g transform="translate(0, 48)">
-        <rect width="200" height="34" rx="17" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1.5"/>
-        <text x="100" y="22" font-family="Grandstander, -apple-system, sans-serif" font-size="13" font-weight="800" fill="#2E7D32" text-anchor="middle">
-          ✓ SMART TAG ACTIVE
-        </text>
+  <!-- Right Visual Feature: Majestic Lume Crest (Seamless, Breathing, Zero Boxes) -->
+  <g transform="translate(945, 315)">
+    <!-- Soft Radiant Halo Rings -->
+    <circle r="235" fill="url(#haloCenterGlow)"/>
+    <circle r="210" fill="none" stroke="#EAD8CA" stroke-width="2" stroke-dasharray="8 8" opacity="0.75"/>
+    <circle r="160" fill="none" stroke="#F0E3D6" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <circle r="115" fill="#FFF9F2" opacity="0.6"/>
+
+    <!-- Large PupLume Hero Squircle Emblem (180x180) -->
+    <g transform="translate(-90, -90)" filter="url(#softEmblemShadow)">
+      <rect width="180" height="180" rx="54" fill="url(#logoPupGrad)"/>
+      <g transform="translate(8, 4) scale(0.37)">
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
+        <circle cx="165" cy="205" r="14" fill="#2C211B" />
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
+        <circle cx="275" cy="205" r="14" fill="#2C211B" />
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+        <g transform="translate(295, 45)">
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+        </g>
       </g>
+    </g>
+
+    <!-- Floating Lume Sparkle Accents directly on halo -->
+    <g transform="translate(-135, -125)">
+      <path d="M 18 0 C 18 10 26 18 36 18 C 26 18 18 26 18 36 C 18 26 10 18 0 18 C 10 18 18 10 18 0 Z" fill="url(#logoLumeStar)" />
+    </g>
+    <g transform="translate(130, 105)">
+      <path d="M 14 0 C 14 8 20 14 28 14 C 20 14 14 20 14 28 C 14 20 8 14 0 14 C 8 14 14 8 14 0 Z" fill="url(#logoLumeStar)" />
     </g>
   </g>
 </svg>

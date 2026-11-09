@@ -47,6 +47,8 @@ function loadImageSafe(src: string): Promise<HTMLImageElement> {
 
 /**
  * Generates a Spotify-style 9:16 (1080x1920) Instagram Story card for a puppy profile.
+ * Pure Warm Skin / Cream Tone (No Dark Brown Background, No Clunky Separate Boxes).
+ * Uses PupLume brand Grandstander typography and official brand identity.
  * Returns a high-res PNG Blob ready for Web Share API or download.
  */
 export async function generatePuppyStoryBlob(
@@ -56,6 +58,19 @@ export async function generatePuppyStoryBlob(
   const width = 1080;
   const height = 1920;
 
+  // Ensure Grandstander font is loaded if running in browser
+  if (typeof document !== 'undefined' && (document as any).fonts) {
+    try {
+      await Promise.all([
+        (document as any).fonts.load('900 64px Grandstander'),
+        (document as any).fonts.load('700 36px Grandstander'),
+        (document as any).fonts.load('500 24px Grandstander'),
+      ]);
+    } catch {
+      // Continue with fallback font
+    }
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -64,76 +79,88 @@ export async function generatePuppyStoryBlob(
     throw new Error('Unable to create 2D canvas context');
   }
 
-  // 1. Sleek Spotify-style vertical gradient background
+  // 1. Pure Warm Skin / Cream Tone Background (Zero Dark Brown)
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-  bgGrad.addColorStop(0, '#1E140E');
-  bgGrad.addColorStop(0.35, '#352115');
-  bgGrad.addColorStop(0.7, '#24160E');
-  bgGrad.addColorStop(1, '#120B07');
+  bgGrad.addColorStop(0, '#FFFDF9');
+  bgGrad.addColorStop(0.4, '#FFF9F2');
+  bgGrad.addColorStop(0.8, '#FAF3E8');
+  bgGrad.addColorStop(1, '#F6ECE1');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Ambient glowing color orbs behind card for depth
-  const orb1 = ctx.createRadialGradient(width * 0.3, height * 0.35, 50, width * 0.3, height * 0.35, 450);
-  orb1.addColorStop(0, 'rgba(217, 119, 6, 0.25)'); // Amber glow
-  orb1.addColorStop(1, 'rgba(217, 119, 6, 0)');
+  // 2. Warm ambient radiant orbs for luxurious depth
+  const orb1 = ctx.createRadialGradient(width * 0.25, height * 0.2, 80, width * 0.25, height * 0.2, 550);
+  orb1.addColorStop(0, 'rgba(252, 221, 199, 0.45)');
+  orb1.addColorStop(1, 'rgba(255, 249, 242, 0)');
   ctx.fillStyle = orb1;
   ctx.fillRect(0, 0, width, height);
 
-  const orb2 = ctx.createRadialGradient(width * 0.7, height * 0.6, 60, width * 0.7, height * 0.6, 500);
-  orb2.addColorStop(0, 'rgba(139, 94, 60, 0.35)'); // Warm brown glow
-  orb2.addColorStop(1, 'rgba(139, 94, 60, 0)');
+  const orb2 = ctx.createRadialGradient(width * 0.8, height * 0.75, 100, width * 0.8, height * 0.75, 600);
+  orb2.addColorStop(0, 'rgba(253, 230, 138, 0.35)');
+  orb2.addColorStop(1, 'rgba(255, 249, 242, 0)');
   ctx.fillStyle = orb2;
   ctx.fillRect(0, 0, width, height);
 
-  // 3. Top branding bar (PupLume digital pet passport)
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // Brand Header
-  ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillStyle = '#E8DDD3';
-  ctx.letterSpacing = '6px';
-  ctx.fillText('PUPLUME DIGITAL PASSPORT', width / 2, 160);
-  ctx.letterSpacing = '0px';
+  // 3. Top Branding Bar (Seamless directly on skin tone, no box)
+  const topY = 130;
 
-  // Subtitle
-  ctx.font = '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillStyle = '#A8988D';
-  ctx.fillText('Verified Pet Identity & Safety Passport', width / 2, 205);
-
-  // 4. Floating Spotify-style Card
-  const cardW = 860;
-  const cardH = 1180;
-  const cardX = (width - cardW) / 2; // 110
-  const cardY = 270;
-  const cardRadius = 40;
-
-  // Card shadow
+  // Squircle Logo Mark (54x54)
+  const logoX = width / 2 - 145;
+  const logoY = topY - 32;
   ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-  ctx.shadowBlur = 45;
-  ctx.shadowOffsetY = 24;
-  ctx.fillStyle = '#FAF6F0';
-  drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardRadius);
+  drawRoundedRect(ctx, logoX, logoY, 54, 54, 18);
+  const logoGrad = ctx.createLinearGradient(logoX, logoY, logoX + 54, logoY + 54);
+  logoGrad.addColorStop(0, '#A27046');
+  logoGrad.addColorStop(1, '#734927');
+  ctx.fillStyle = logoGrad;
+  ctx.fill();
+
+  // White puppy face center inside squircle
+  ctx.beginPath();
+  ctx.arc(logoX + 27, logoY + 28, 14, 0, Math.PI * 2);
+  ctx.fillStyle = '#FFF9F2';
+  ctx.fill();
+  // Golden star over right ear
+  ctx.beginPath();
+  ctx.arc(logoX + 41, logoY + 12, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#F59E0B';
   ctx.fill();
   ctx.restore();
 
-  // Subtle border on card
-  ctx.strokeStyle = '#E8DDD3';
-  ctx.lineWidth = 3;
-  drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardRadius);
-  ctx.stroke();
+  // Wordmark: PupLume in Grandstander
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = '900 48px "Grandstander", -apple-system, sans-serif';
+  ctx.fillStyle = '#2C211B';
+  ctx.fillText('Pup', logoX + 66, topY - 4);
+  const pupWidth = ctx.measureText('Pup').width;
+  ctx.fillStyle = '#8B5E3C';
+  ctx.fillText('Lume', logoX + 66 + pupWidth, topY - 4);
 
-  // 5. Pet Photo inside the Card
-  const photoMargin = 40;
-  const photoW = cardW - photoMargin * 2; // 780
-  const photoH = 680;
-  const photoX = cardX + photoMargin;
-  const photoY = cardY + photoMargin;
-  const photoRadius = 28;
+  // Sub-header tagline
+  ctx.textAlign = 'center';
+  ctx.font = '800 18px "Grandstander", -apple-system, sans-serif';
+  ctx.fillStyle = '#766A63';
+  ctx.fillText('VERIFIED DIGITAL PET PASSPORT', width / 2, topY + 44);
 
-  // Clip photo to rounded rectangle
+  // 4. Hero Pet Photo (Seamless, Beautiful Borderless Organic Cutout - Zero Card Box)
+  const photoW = 880;
+  const photoH = 820;
+  const photoX = (width - photoW) / 2; // 100
+  const photoY = 240;
+  const photoRadius = 40;
+
+  // Soft shadow directly under photo
+  ctx.save();
+  ctx.shadowColor = 'rgba(44, 33, 27, 0.12)';
+  ctx.shadowBlur = 32;
+  ctx.shadowOffsetY = 16;
+  ctx.fillStyle = '#FFFFFF';
+  drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
+  ctx.fill();
+  ctx.restore();
+
+  // Clip photo directly
   ctx.save();
   drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
   ctx.clip();
@@ -142,7 +169,6 @@ export async function generatePuppyStoryBlob(
   if (puppy.photoUrl) {
     try {
       const petImg = await loadImageSafe(puppy.photoUrl);
-      // Cover fit inside photo box
       const scale = Math.max(photoW / petImg.width, photoH / petImg.height);
       const scaledW = petImg.width * scale;
       const scaledH = petImg.height * scale;
@@ -151,121 +177,138 @@ export async function generatePuppyStoryBlob(
       ctx.drawImage(petImg, ox, oy, scaledW, scaledH);
       photoDrawn = true;
     } catch {
-      // Photo failed to load, fallback to styled avatar box
       photoDrawn = false;
     }
   }
 
   if (!photoDrawn) {
-    // Beautiful placeholder gradient
     const phGrad = ctx.createLinearGradient(photoX, photoY, photoX, photoY + photoH);
-    phGrad.addColorStop(0, '#F3E7DA');
-    phGrad.addColorStop(1, '#DFCABA');
+    phGrad.addColorStop(0, '#FFF9F2');
+    phGrad.addColorStop(1, '#F3E7DA');
     ctx.fillStyle = phGrad;
     ctx.fillRect(photoX, photoY, photoW, photoH);
 
-    ctx.font = 'bold 120px sans-serif';
-    ctx.fillStyle = '#8B5E3C';
+    ctx.font = '140px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🐾', photoX + photoW / 2, photoY + photoH / 2);
+    ctx.fillText('🐶', photoX + photoW / 2, photoY + photoH / 2);
   }
   ctx.restore();
 
-  // Thin inner border on photo
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-  ctx.lineWidth = 2;
-  drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
+  // Emerald Verified Badge on top right of photo
+  const badgeCx = photoX + photoW - 55;
+  const badgeCy = photoY + 55;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(badgeCx, badgeCy, 34, 0, Math.PI * 2);
+  ctx.fillStyle = '#059669';
+  ctx.shadowColor = 'rgba(5, 150, 105, 0.35)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 4;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(badgeCx, badgeCy, 34, 0, Math.PI * 2);
   ctx.stroke();
 
-  // 6. Text info under photo inside the card
-  const textStartY = photoY + photoH + 50;
-
-  // Pet Name
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#2C211B';
-  ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  const displayName = puppy.name.length > 18 ? puppy.name.slice(0, 16) + '...' : puppy.name;
-  ctx.fillText(displayName, cardX + photoMargin, textStartY);
-
-  // Breed & Pet Details
-  ctx.fillStyle = '#8B5E3C';
-  ctx.font = '600 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  const details = [puppy.breed, puppy.sex ? (puppy.sex === 'male' ? 'Male' : 'Female') : null]
-    .filter(Boolean)
-    .join(' • ');
-  ctx.fillText(details || 'Puppy', cardX + photoMargin, textStartY + 48);
-
-  // Pet Tag / Status Pill inside card
-  const pillY = textStartY + 95;
-  const pillH = 48;
-  const pillW = 280;
-  ctx.fillStyle = '#F3E7DA';
-  drawRoundedRect(ctx, cardX + photoMargin, pillY, pillW, pillH, 24);
-  ctx.fill();
-
-  ctx.fillStyle = '#5F3E29';
-  ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillStyle = '#FFFFFF';
   ctx.textAlign = 'center';
-  ctx.fillText('🐾 DIGITAL PASSPORT', cardX + photoMargin + pillW / 2, pillY + pillH / 2 + 1);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('✓', badgeCx, badgeCy + 2);
 
-  // 7. Embedded Branded QR Code at the bottom right of the card
+  // 5. Pet Identity Details (Flowing Directly on the Skin Tone Canvas - No Boxes)
+  const infoStartY = photoY + photoH + 60;
+
+  // Pet Name in Grandstander
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#2C211B';
+  ctx.font = '900 76px "Grandstander", -apple-system, sans-serif';
+  const displayName = puppy.name.length > 18 ? puppy.name.slice(0, 16) + '...' : puppy.name;
+  ctx.fillText(displayName, photoX, infoStartY);
+
+  // Breed & Details
+  ctx.fillStyle = '#8B5E3C';
+  ctx.font = '700 36px "Grandstander", -apple-system, sans-serif';
+  const details = [
+    puppy.breed,
+    puppy.sex ? (puppy.sex === 'male' ? 'Male' : 'Female') : null,
+    puppy.weight ? `${puppy.weight} lbs` : null
+  ].filter(Boolean).join(' • ');
+  ctx.fillText(details || 'Puppy Companion', photoX, infoStartY + 52);
+
+  // Status highlights
+  ctx.font = '800 24px "Grandstander", -apple-system, sans-serif';
+  ctx.fillStyle = '#2E7D32';
+  ctx.fillText('🛡️ Smart Collar Tag Active   •   💉 Vaccinated', photoX, infoStartY + 106);
+
+  // Temperament or Care Note
+  if (puppy.temperament) {
+    ctx.font = '600 24px "Grandstander", -apple-system, sans-serif';
+    ctx.fillStyle = '#766A63';
+    ctx.fillText(`“${puppy.temperament}”`, photoX, infoStartY + 152);
+  }
+
+  // 6. Seamless Scannable QR Code Tag (Bottom Right)
   try {
     const qrDataUrl = await generatePupLumeQRDataUrl(profileUrl, { size: 360 });
     const qrImg = await loadImageSafe(qrDataUrl);
-    const qrSize = 180;
-    const qrX = cardX + cardW - photoMargin - qrSize;
-    const qrY = photoY + photoH + 28;
+    const qrSize = 190;
+    const qrX = photoX + photoW - qrSize;
+    const qrY = infoStartY - 60;
 
-    // QR container box
+    // Draw QR code cleanly with subtle soft shadow
     ctx.save();
+    ctx.shadowColor = 'rgba(44, 33, 27, 0.08)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 8;
     ctx.fillStyle = '#FFFFFF';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 4;
-    drawRoundedRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 20);
+    drawRoundedRect(ctx, qrX - 12, qrY - 12, qrSize + 24, qrSize + 24, 28);
     ctx.fill();
     ctx.restore();
 
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-    // QR Label
-    ctx.fillStyle = '#766A63';
-    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    // QR Subtitle
+    ctx.font = '800 16px "Grandstander", -apple-system, sans-serif';
+    ctx.fillStyle = '#5F3E29';
     ctx.textAlign = 'center';
-    ctx.fillText('SCAN PASSPORT', qrX + qrSize / 2, qrY + qrSize + 18);
+    ctx.fillText('SCAN TAG', qrX + qrSize / 2, qrY + qrSize + 30);
   } catch {
-    // Graceful QR fallback if offline
+    // Graceful fallback
   }
 
-  // 8. Instagram Sticker / Tap to Open prompt footer
-  const footerY = cardY + cardH + 70;
+  // 7. Instagram Story Tap-to-Open Callout (Bottom Bar)
+  const footerY = height - 240;
 
-  // Instagram Story Link Sticker Pill graphic
-  const stickerW = 540;
-  const stickerH = 88;
+  // Clean pill sticker
+  const stickerW = 680;
+  const stickerH = 92;
   const stickerX = (width - stickerW) / 2;
 
-  // Glowing Spotify/Instagram style link sticker
   ctx.save();
-  ctx.shadowColor = 'rgba(255, 255, 255, 0.18)';
+  ctx.shadowColor = 'rgba(44, 33, 27, 0.08)';
   ctx.shadowBlur = 20;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  drawRoundedRect(ctx, stickerX, footerY, stickerW, stickerH, 44);
+  ctx.shadowOffsetY = 6;
+  ctx.fillStyle = '#FFFFFF';
+  drawRoundedRect(ctx, stickerX, footerY, stickerW, stickerH, 46);
   ctx.fill();
   ctx.restore();
 
-  // Sticker text
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#1E140E';
-  ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('🔗 Tap Link to View Passport', width / 2, footerY + stickerH / 2);
+  ctx.fillStyle = '#2C211B';
+  ctx.font = '800 28px "Grandstander", -apple-system, sans-serif';
+  ctx.fillText('🔗 Tap Link to Open Digital Passport', width / 2, footerY + stickerH / 2);
 
-  // Bottom caption
-  ctx.fillStyle = '#A8988D';
-  ctx.font = '500 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('Created with PupLume • The Smart Dog Companion', width / 2, footerY + stickerH + 55);
+  // Bottom brand domain
+  ctx.fillStyle = '#8B5E3C';
+  ctx.font = '900 26px "Grandstander", -apple-system, sans-serif';
+  ctx.fillText('puplumepet.vercel.app', width / 2, footerY + stickerH + 60);
 
   // Return canvas as PNG Blob
   return new Promise((resolve, reject) => {

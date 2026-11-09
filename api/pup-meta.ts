@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let title = 'PupLume — AI Puppy Manager & Digital Pet Passport';
   let description = 'Verified digital pet passport and smart safety collar tag on PupLume.';
   // Default to the designed high-res OpenGraph card
-  let imageUrl = `${baseUrl}/og-pup-preview.png`;
+  let imageUrl = `${baseUrl}/og-pup-preview.png?v=2`;
   const pageUrl = rawSlug ? `${baseUrl}/pup/${encodeURIComponent(rawSlug)}` : baseUrl;
   let found = false;
 
@@ -38,9 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           
           // Use the real designed preview card for Graxzo, or the universal designed passport card
           if (slug === 'graxzo' || pup.name.toLowerCase() === 'graxzo') {
-            imageUrl = `${baseUrl}/og-graxzo.png`;
+            imageUrl = `${baseUrl}/og-graxzo.png?v=2`;
           } else {
-            imageUrl = `${baseUrl}/og-pup-preview.png`;
+            imageUrl = `${baseUrl}/og-pup-preview.png?v=2`;
           }
         }
       }
@@ -53,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!found && slug) {
     title = 'Puppy Passport Not Found — PupLume';
     description = `No active puppy collar tag found for "${rawSlug}". The link might be mistyped or unregistered.`;
-    imageUrl = `${baseUrl}/og-pup-not-found.png`;
+    imageUrl = `${baseUrl}/og-pup-not-found.png?v=2`;
   }
 
   // Detect whether this is a crawler or human browser

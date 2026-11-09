@@ -3,11 +3,12 @@
     <!-- Warm Skin / Cream Tone Background (Zero Dark Brown) -->
     <linearGradient id="errSkinBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFDF9"/>
-      <stop offset="45%" stop-color="#FFF9F2"/>
-      <stop offset="100%" stop-color="#FCEEE6"/>
+      <stop offset="40%" stop-color="#FFF9F2"/>
+      <stop offset="85%" stop-color="#FAF2E6"/>
+      <stop offset="100%" stop-color="#F5E8D8"/>
     </linearGradient>
-    <radialGradient id="errPeachGlow" cx="50%" cy="30%" r="65%">
-      <stop offset="0%" stop-color="#FED7AA" stop-opacity="0.4"/>
+    <radialGradient id="errPeachGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FED7AA" stop-opacity="0.45"/>
       <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -17,24 +18,23 @@
     <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FDE68A"/>
       <stop offset="50%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#8B5E3C"/>
+      <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
-    <filter id="errSoftShadow" x="-10%" y="-10%" width="120%" height="120%">
+    <filter id="errSoftShadow" x="-15%" y="-15%" width="130%" height="130%">
       <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.08"/>
       <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2C211B" flood-opacity="0.03"/>
     </filter>
   </defs>
 
-  <!-- Clean Warm Skin Background -->
+  <!-- Clean Warm Skin Background (Seamless Canvas) -->
   <rect width="1200" height="630" fill="url(#errSkinBg)"/>
   <rect width="1200" height="630" fill="url(#errPeachGlow)"/>
 
   <!-- Top Center Brand Header (Official PupLume Logo + Textual Logo) -->
   <g transform="translate(460, 65)">
     <!-- Official Squircle Icon (56x56) -->
-    <rect width="56" height="56" rx="18" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="1.5" filter="url(#errSoftShadow)"/>
-    <g transform="translate(3, 2) scale(0.105)">
-      <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#logoPupGrad)" />
+    <rect width="56" height="56" rx="18" fill="url(#logoPupGrad)" filter="url(#errSoftShadow)"/>
+    <g transform="translate(0, -2) scale(0.12)">
       <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
       <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
       <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
@@ -51,37 +51,40 @@
     </g>
 
     <!-- Wordmark in Grandstander font -->
-    <text x="74" y="34" font-family="Grandstander, -apple-system, sans-serif" font-size="34" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+    <text x="74" y="34" font-family="Grandstander" font-size="36" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
       Pup<tspan fill="#8B5E3C">Lume</tspan>
     </text>
-    <text x="76" y="52" font-family="Grandstander, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
+    <text x="76" y="52" font-family="Outfit" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
       SAFETY COLLAR TAG NETWORK
     </text>
   </g>
 
-  <!-- Center Editorial Area (No Nested Boxes) -->
+  <!-- Center Editorial Area (Seamless, Zero Nested Boxes) -->
   <g transform="translate(600, 260)">
-    <!-- Alert Icon -->
-    <text x="0" y="0" font-size="52" text-anchor="middle">🔍</text>
+    <!-- Magnifier Vector Icon -->
+    <g transform="translate(-20, -20) scale(1.6)">
+      <circle cx="10" cy="10" r="7" fill="none" stroke="#2C211B" stroke-width="2.5"/>
+      <line x1="15" y1="15" x2="21" y2="21" stroke="#2C211B" stroke-width="3" stroke-linecap="round"/>
+    </g>
 
     <!-- Headline in Bold Grandstander -->
-    <text x="0" y="60" font-family="Grandstander, -apple-system, sans-serif" font-size="46" font-weight="900" fill="#2C211B" text-anchor="middle" letter-spacing="-1">
+    <text x="0" y="65" font-family="Grandstander" font-size="52" font-weight="900" fill="#2C211B" text-anchor="middle" letter-spacing="-1">
       Puppy Passport Not Found
     </text>
 
     <!-- Subtitle (Clean & Friendly) -->
-    <text x="0" y="105" font-family="Grandstander, -apple-system, sans-serif" font-size="20" font-weight="500" fill="#766A63" text-anchor="middle">
+    <text x="0" y="112" font-family="Outfit" font-size="20" font-weight="500" fill="#766A63" text-anchor="middle">
       This collar tag or passport link is inactive, mistyped, or not yet registered.
     </text>
 
     <!-- Direct Guidance (No Nested Box) -->
-    <text x="0" y="150" font-family="Grandstander, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#8B5E3C" text-anchor="middle">
-      ⚠️ If you found this pet, please verify the QR code on the physical collar tag.
+    <text x="0" y="155" font-family="Outfit" font-size="18" font-weight="700" fill="#8B5E3C" text-anchor="middle">
+      If you found this pet, please verify the QR code on the physical collar tag.
     </text>
 
     <!-- URL in Brand Bronze -->
-    <g transform="translate(0, 205)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="24" font-weight="900" fill="#8B5E3C" text-anchor="middle">
+    <g transform="translate(0, 215)">
+      <text x="0" y="0" font-family="Grandstander" font-size="28" font-weight="900" fill="#8B5E3C" text-anchor="middle">
         puplumepet.vercel.app &#8594;
       </text>
     </g>

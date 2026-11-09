@@ -3,15 +3,16 @@
     <!-- Warm Skin / Cream Tone Background (Zero Dark Brown) -->
     <linearGradient id="pupSkinBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFDF9"/>
-      <stop offset="45%" stop-color="#FFF9F2"/>
-      <stop offset="100%" stop-color="#F8ECE1"/>
+      <stop offset="40%" stop-color="#FFF9F2"/>
+      <stop offset="85%" stop-color="#FAF2E6"/>
+      <stop offset="100%" stop-color="#F5E8D8"/>
     </linearGradient>
-    <radialGradient id="pupPeachGlow" cx="20%" cy="30%" r="65%">
-      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.45"/>
+    <radialGradient id="pupPeachGlow" cx="18%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.55"/>
       <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="pupAmberGlow" cx="85%" cy="80%" r="60%">
-      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.3"/>
+    <radialGradient id="pupAmberGlow" cx="80%" cy="75%" r="65%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.4"/>
       <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -21,40 +22,44 @@
     <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FDE68A"/>
       <stop offset="50%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#8B5E3C"/>
+      <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
-    <filter id="softCardShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.08"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2C211B" flood-opacity="0.03"/>
+    <filter id="softCardShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.10"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#2C211B" flood-opacity="0.04"/>
     </filter>
+    <clipPath id="heroPhotoClip">
+      <rect x="0" y="0" width="440" height="470" rx="36" />
+    </clipPath>
   </defs>
 
-  <!-- Clean Warm Skin Background -->
+  <!-- Clean Warm Skin Background (Seamless Canvas) -->
   <rect width="1200" height="630" fill="url(#pupSkinBg)"/>
   <rect width="1200" height="630" fill="url(#pupPeachGlow)"/>
   <rect width="1200" height="630" fill="url(#pupAmberGlow)"/>
 
-  <!-- Left Side: Clean Hero Pet Photo (Seamless, Beautifully Framed) -->
-  <g transform="translate(90, 85)" filter="url(#softCardShadow)">
-    <rect width="440" height="460" rx="36" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2"/>
-    <rect x="18" y="18" width="404" height="424" rx="26" fill="#FFF9F2"/>
-    <text x="220" y="260" font-size="140" text-anchor="middle">🐶</text>
+  <!-- Left Side: Hero Pet Photo (Borderless, Direct on Canvas, Zero Nested Boxes) -->
+  <g transform="translate(85, 80)" filter="url(#softCardShadow)">
+    <rect width="440" height="470" rx="36" fill="#FBF3EB"/>
+    <g clip-path="url(#heroPhotoClip)">
+      <rect width="440" height="470" fill="#FAF0E4"/>
+      <text id="heroPhotoEmoji" x="220" y="275" font-size="150" text-anchor="middle">🐶</text>
+    </g>
     
-    <!-- Verified Emerald Badge -->
-    <g transform="translate(340, 360)">
-      <circle cx="35" cy="35" r="30" fill="#059669" stroke="#FFFFFF" stroke-width="4"/>
-      <text x="35" y="44" font-size="26" text-anchor="middle" fill="#FFFFFF">✓</text>
+    <!-- Verified Emerald Badge on Top Right of Photo -->
+    <g transform="translate(370, 20)">
+      <circle cx="25" cy="25" r="24" fill="#059669" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="25" y="33" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Outfit" font-weight="900">✓</text>
     </g>
   </g>
 
-  <!-- Right Side: Clean Editorial Typography (No Nested Boxes) -->
-  <g transform="translate(580, 85)">
+  <!-- Right Side: Editorial Passport Typography (Seamless, Zero Boxes) -->
+  <g transform="translate(575, 80)">
     <!-- Official PupLume Brand Header -->
     <g transform="translate(0, 0)">
       <!-- Official Squircle Icon (52x52) -->
-      <rect width="52" height="52" rx="16" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="1.5" filter="url(#softCardShadow)"/>
-      <g transform="translate(3, 2) scale(0.10)">
-        <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#logoPupGrad)" />
+      <rect width="52" height="52" rx="16" fill="url(#logoPupGrad)" filter="url(#softCardShadow)"/>
+      <g transform="translate(0, -2) scale(0.11)">
         <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
         <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
         <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
@@ -71,61 +76,59 @@
       </g>
 
       <!-- Wordmark in Grandstander font -->
-      <text x="68" y="32" font-family="Grandstander, -apple-system, sans-serif" font-size="32" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+      <text x="68" y="32" font-family="Grandstander" font-size="34" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
         Pup<tspan fill="#8B5E3C">Lume</tspan>
       </text>
-      <text x="70" y="49" font-family="Grandstander, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
-        DIGITAL PET PASSPORT
+      <text x="70" y="50" font-family="Outfit" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
+        VERIFIED DIGITAL PET PASSPORT
       </text>
     </g>
 
     <!-- Pet Name in Bold Grandstander -->
-    <text x="0" y="145" font-family="Grandstander, -apple-system, sans-serif" font-size="64" font-weight="900" fill="#2C211B" letter-spacing="-1">
-      Bella
-    </text>
+    <text id="pupNameText" x="0" y="145" font-family="Grandstander" font-size="68" font-weight="900" fill="#2C211B" letter-spacing="-1.5">Bella</text>
 
     <!-- Breed & Details -->
-    <text x="0" y="185" font-family="Grandstander, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#8B5E3C">
-      Golden Retriever • 6 months old
-    </text>
+    <text id="pupBreedText" x="0" y="188" font-family="Grandstander" font-size="26" font-weight="700" fill="#8B5E3C">Golden Retriever • 6 months old</text>
 
-    <!-- Status Highlights (Flowing line, No Nested Boxes) -->
-    <text x="0" y="235" font-family="Grandstander, -apple-system, sans-serif" font-size="17" font-weight="800" fill="#2E7D32">
-      🛡️ Smart Collar Tag Active  •  💉 Vaccinated
-    </text>
-
-    <!-- Microchip & Temperament -->
-    <g transform="translate(0, 275)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
-        MICROCHIP ID:
-      </text>
-      <text x="135" y="0" font-family="monospace" font-size="17" font-weight="700" fill="#2C211B">
-        985-141-002-841-920
+    <!-- Status Highlights directly on canvas -->
+    <g transform="translate(0, 238)">
+      <circle cx="6" cy="-5" r="4" fill="#059669" />
+      <text x="18" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+        Active Collar Tag
       </text>
 
-      <text x="0" y="35" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
-        CARE NOTES:
+      <circle cx="180" cy="-5" r="4" fill="#059669" />
+      <text x="192" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+        Vaccinated
       </text>
-      <text x="120" y="35" font-family="Grandstander, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#5F3E29">
-        Friendly, energetic, and loves children
+
+      <circle cx="316" cy="-5" r="4" fill="#059669" />
+      <text x="328" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+        Emergency Ready
       </text>
     </g>
 
+    <!-- Microchip & Temperament -->
+    <g transform="translate(0, 282)">
+      <text x="0" y="0" font-family="Outfit" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        MICROCHIP ID:
+      </text>
+      <text id="pupChipText" x="135" y="0" font-family="Outfit" font-size="17" font-weight="800" fill="#2C211B">985-141-002-841-920</text>
+
+      <text x="0" y="36" font-family="Outfit" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+        CARE NOTES:
+      </text>
+      <text id="pupNotesText" x="120" y="36" font-family="Outfit" font-size="16" font-weight="600" fill="#5F3E29">Friendly, energetic, and loves children</text>
+    </g>
+
     <!-- Bottom QR Tag & URL -->
-    <g transform="translate(0, 385)">
-      <text x="0" y="0" font-family="Grandstander, -apple-system, sans-serif" font-size="22" font-weight="900" fill="#8B5E3C">
+    <g transform="translate(0, 400)">
+      <text x="0" y="0" font-family="Grandstander" font-size="28" font-weight="900" fill="#2C211B">
         puplumepet.vercel.app
       </text>
-      <text x="0" y="24" font-family="Grandstander, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#766A63">
-        Scan tag for live emergency contacts &amp; medical vault
+      <text x="0" y="26" font-family="Outfit" font-size="15" font-weight="600" fill="#766A63">
+        Scan collar tag for live emergency contacts &amp; medical vault
       </text>
-
-      <!-- Clean QR Tag Emblem -->
-      <g transform="translate(420, -60)">
-        <rect width="100" height="100" rx="20" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#softCardShadow)"/>
-        <text x="50" y="52" font-size="40" text-anchor="middle">🐾</text>
-        <text x="50" y="80" font-family="Grandstander, -apple-system, sans-serif" font-size="10" font-weight="800" fill="#5F3E29" text-anchor="middle">SCAN PASSPORT</text>
-      </g>
     </g>
   </g>
 </svg>

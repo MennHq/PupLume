@@ -4,6 +4,7 @@ const path = require('path');
 
 async function main() {
   const photoUrl = 'https://res.cloudinary.com/puplume/image/upload/v1792845578/puplume/pets/j76lqhakqxgczyplknen.jpg';
+  console.log('Fetching Graxzo photo from Cloudinary...');
   const res = await fetch(photoUrl);
   const buf = await res.arrayBuffer();
   const b64 = Buffer.from(buf).toString('base64');
@@ -12,19 +13,25 @@ async function main() {
   const svgPath = path.join(__dirname, '..', 'public', 'og-pup-preview.svg');
   let svg = fs.readFileSync(svgPath, 'utf8');
 
-  // Embed Graxzo's real photo with rounded clipping inside photo frame
-  const imageTag = `<defs><clipPath id="graxzoPhotoClip"><rect x="18" y="18" width="404" height="424" rx="26" /></clipPath></defs><image href="${dataUri}" x="18" y="18" width="404" height="424" preserveAspectRatio="xMidYMid slice" clip-path="url(#graxzoPhotoClip)" />`;
-  svg = svg.replace('<text x="220" y="260" font-size="140" text-anchor="middle">🐶</text>', imageTag);
+  // Embed Graxzo's real photo directly into the borderless hero photo clip
+  const imageTag = `<image href="${dataUri}" width="440" height="470" preserveAspectRatio="xMidYMid slice" />`;
+  svg = svg.replace(/<text id="heroPhotoEmoji"[\s\S]*?<\/text>/, imageTag);
   svg = svg.replace('>Bella<', '>Graxzo<');
-  svg = svg.replace('>Golden Retriever • 6 months old<', '>German Shepherd • 12 lbs<');
+  svg = svg.replace('>Golden Retriever • 6 months old<', '>German Shepherd • 12 lbs • 6 mo<');
   svg = svg.replace('>Friendly, energetic, and loves children<', '>Playful, affectionate, and learning fast<');
-  svg = svg.replace('985-141-002-841-920', '985-GRAXZO-2025-PUP');
+  svg = svg.replace('>985-141-002-841-920<', '>985-GRAXZO-2025-PUP<');
 
-  const fontPath = path.join(__dirname, '..', 'fonts', 'Grandstander.ttf');
+  const fonts = [
+    path.join(__dirname, '..', 'fonts', 'Grandstander-Black.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Grandstander-Bold.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Outfit-Bold.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Outfit-SemiBold.ttf'),
+  ];
+
   const resvg = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
     font: {
-      fontFiles: [fontPath],
+      fontFiles: fonts,
       defaultFontFamily: 'Grandstander'
     }
   });
@@ -32,7 +39,7 @@ async function main() {
 
   const outPath = path.join(__dirname, '..', 'public', 'og-graxzo.png');
   fs.writeFileSync(outPath, pngData);
-  console.log('Successfully generated Graxzo skin-toned OG card:', outPath, 'Bytes:', pngData.length);
+  console.log('Successfully generated Graxzo skin-toned OG card (Zero Boxes, Real Grandstander):', outPath, 'Bytes:', pngData.length);
 }
 
 main().catch(console.error);
