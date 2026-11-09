@@ -49,17 +49,17 @@
     <!-- Verified Emerald Badge on Top Right of Photo -->
     <g transform="translate(370, 20)">
       <circle cx="25" cy="25" r="24" fill="#059669" stroke="#FFFFFF" stroke-width="3"/>
-      <text x="25" y="33" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Outfit" font-weight="900">✓</text>
+      <text x="25" y="33" font-size="20" text-anchor="middle" fill="#FFFFFF" font-family="Grandstander" font-weight="900">✓</text>
     </g>
   </g>
 
-  <!-- Right Side: Editorial Passport Typography (Seamless, Zero Boxes) -->
+  <!-- Right Side: Editorial Passport Typography (Pure Grandstander Typography, Zero Boxes) -->
   <g transform="translate(575, 80)">
     <!-- Official PupLume Brand Header -->
     <g transform="translate(0, 0)">
-      <!-- Official Squircle Icon (52x52) -->
-      <rect width="52" height="52" rx="16" fill="url(#logoPupGrad)" filter="url(#softCardShadow)"/>
-      <g transform="translate(0, -2) scale(0.11)">
+      <!-- Official Squircle Icon (56x56) -->
+      <rect width="56" height="56" rx="18" fill="url(#logoPupGrad)" filter="url(#softCardShadow)"/>
+      <g transform="translate(1, -1) scale(0.12)">
         <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
         <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
         <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
@@ -76,57 +76,57 @@
       </g>
 
       <!-- Wordmark in Grandstander font -->
-      <text x="68" y="32" font-family="Grandstander" font-size="34" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+      <text x="74" y="34" font-family="Grandstander" font-size="38" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
         Pup<tspan fill="#8B5E3C">Lume</tspan>
       </text>
-      <text x="70" y="50" font-family="Outfit" font-size="11" font-weight="800" fill="#766A63" letter-spacing="3">
+      <text x="76" y="52" font-family="Grandstander" font-size="12" font-weight="700" fill="#766A63" letter-spacing="2.5">
         VERIFIED DIGITAL PET PASSPORT
       </text>
     </g>
 
-    <!-- Pet Name in Bold Grandstander -->
-    <text id="pupNameText" x="0" y="145" font-family="Grandstander" font-size="68" font-weight="900" fill="#2C211B" letter-spacing="-1.5">Bella</text>
+    <!-- Pet Name in Bold Grandstander (Bold & High Visibility) -->
+    <text id="pupNameText" x="0" y="150" font-family="Grandstander" font-size="78" font-weight="900" fill="#2C211B" letter-spacing="-1.5">Bella</text>
 
-    <!-- Breed & Details -->
-    <text id="pupBreedText" x="0" y="188" font-family="Grandstander" font-size="26" font-weight="700" fill="#8B5E3C">Golden Retriever • 6 months old</text>
+    <!-- Breed & Details (Medium Bold & High Visibility) -->
+    <text id="pupBreedText" x="0" y="196" font-family="Grandstander" font-size="30" font-weight="700" fill="#8B5E3C">Golden Retriever • 6 months old</text>
 
     <!-- Status Highlights directly on canvas -->
-    <g transform="translate(0, 238)">
-      <circle cx="6" cy="-5" r="4" fill="#059669" />
-      <text x="18" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+    <g transform="translate(0, 244)">
+      <circle cx="6" cy="-6" r="5" fill="#059669" />
+      <text x="20" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
         Active Collar Tag
       </text>
 
-      <circle cx="180" cy="-5" r="4" fill="#059669" />
-      <text x="192" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+      <circle cx="205" cy="-6" r="5" fill="#059669" />
+      <text x="220" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
         Vaccinated
       </text>
 
-      <circle cx="316" cy="-5" r="4" fill="#059669" />
-      <text x="328" y="0" font-family="Outfit" font-size="18" font-weight="800" fill="#2E7D32">
+      <circle cx="360" cy="-6" r="5" fill="#059669" />
+      <text x="375" y="0" font-family="Grandstander" font-size="20" font-weight="700" fill="#059669">
         Emergency Ready
       </text>
     </g>
 
-    <!-- Microchip & Temperament -->
-    <g transform="translate(0, 282)">
-      <text x="0" y="0" font-family="Outfit" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+    <!-- Microchip & Temperament (Real PupLume Font) -->
+    <g transform="translate(0, 292)">
+      <text x="0" y="0" font-family="Grandstander" font-size="15" font-weight="700" fill="#766A63" letter-spacing="1.5">
         MICROCHIP ID:
       </text>
-      <text id="pupChipText" x="135" y="0" font-family="Outfit" font-size="17" font-weight="800" fill="#2C211B">985-141-002-841-920</text>
+      <text id="pupChipText" x="145" y="0" font-family="Grandstander" font-size="18" font-weight="800" fill="#2C211B">985-141-002-841-920</text>
 
-      <text x="0" y="36" font-family="Outfit" font-size="14" font-weight="800" fill="#766A63" letter-spacing="1.5">
+      <text x="0" y="38" font-family="Grandstander" font-size="15" font-weight="700" fill="#766A63" letter-spacing="1.5">
         CARE NOTES:
       </text>
-      <text id="pupNotesText" x="120" y="36" font-family="Outfit" font-size="16" font-weight="600" fill="#5F3E29">Friendly, energetic, and loves children</text>
+      <text id="pupNotesText" x="130" y="38" font-family="Grandstander" font-size="18" font-weight="600" fill="#5F3E29">Friendly, energetic, and loves children</text>
     </g>
 
     <!-- Bottom QR Tag & URL -->
-    <g transform="translate(0, 400)">
-      <text x="0" y="0" font-family="Grandstander" font-size="28" font-weight="900" fill="#2C211B">
+    <g transform="translate(0, 410)">
+      <text x="0" y="0" font-family="Grandstander" font-size="30" font-weight="900" fill="#2C211B">
         puplumepet.vercel.app
       </text>
-      <text x="0" y="26" font-family="Outfit" font-size="15" font-weight="600" fill="#766A63">
+      <text x="0" y="28" font-family="Grandstander" font-size="16" font-weight="600" fill="#766A63">
         Scan collar tag for live emergency contacts &amp; medical vault
       </text>
     </g>

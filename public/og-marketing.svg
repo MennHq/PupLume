@@ -44,9 +44,9 @@
   <g transform="translate(85, 75)">
     <!-- Official PupLume Logo + Textual Wordmark -->
     <g transform="translate(0, 0)">
-      <!-- Official Squircle Icon (68x68) -->
-      <rect width="68" height="68" rx="22" fill="url(#logoPupGrad)" filter="url(#softEmblemShadow)"/>
-      <g transform="translate(0, -2) scale(0.145)">
+      <!-- Official Squircle Icon (70x70) -->
+      <rect width="70" height="70" rx="22" fill="url(#logoPupGrad)" filter="url(#softEmblemShadow)"/>
+      <g transform="translate(1, -2) scale(0.15)">
         <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
         <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
         <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
@@ -63,51 +63,51 @@
       </g>
 
       <!-- Official Wordmark in Grandstander font -->
-      <text x="88" y="44" font-family="Grandstander" font-size="46" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
+      <text x="90" y="46" font-family="Grandstander" font-size="48" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
         Pup<tspan fill="#8B5E3C">Lume</tspan>
       </text>
-      <text x="90" y="65" font-family="Outfit" font-size="12" font-weight="800" fill="#766A63" letter-spacing="3.5">
+      <text x="92" y="68" font-family="Grandstander" font-size="13" font-weight="700" fill="#766A63" letter-spacing="3">
         THE SMART DOG PASSPORT &amp; AI CARE ROUTINE
       </text>
     </g>
 
     <!-- Headline (Clean, Bold Grandstander - Pure Editorial) -->
-    <text x="0" y="172" font-family="Grandstander" font-size="62" font-weight="900" fill="#2C211B" letter-spacing="-1.5">
+    <text x="0" y="174" font-family="Grandstander" font-size="64" font-weight="900" fill="#2C211B" letter-spacing="-1.5">
       The Smart Dog Passport
     </text>
-    <text x="0" y="242" font-family="Grandstander" font-size="62" font-weight="900" fill="#8B5E3C" letter-spacing="-1.5">
+    <text x="0" y="246" font-family="Grandstander" font-size="64" font-weight="900" fill="#8B5E3C" letter-spacing="-1.5">
       &amp; AI Care Routine
     </text>
 
     <!-- Subtitle (Directly on skin canvas, zero boxes) -->
-    <text x="0" y="302" font-family="Outfit" font-size="22" font-weight="600" fill="#5F3E29">
+    <text x="0" y="306" font-family="Grandstander" font-size="24" font-weight="600" fill="#5F3E29">
       Smart QR collar tags, AI daily routines &amp; vaccine records.
     </text>
 
-    <!-- Feature Highlights (Directly on skin canvas) -->
-    <g transform="translate(0, 362)">
-      <circle cx="8" cy="-5" r="4" fill="#8B5E3C" />
-      <text x="24" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
-        Smart QR Collar Tag
+    <!-- Feature Highlights (Directly on skin canvas, real brand font) -->
+    <g transform="translate(0, 366)">
+      <circle cx="8" cy="-6" r="5" fill="#8B5E3C" />
+      <text x="24" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
+        Smart QR Tag
       </text>
 
-      <circle cx="236" cy="-5" r="4" fill="#8B5E3C" />
-      <text x="252" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
-        Verified Vaccine Vault
+      <circle cx="205" cy="-6" r="5" fill="#8B5E3C" />
+      <text x="221" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
+        Vaccine Vault
       </text>
 
-      <circle cx="484" cy="-5" r="4" fill="#8B5E3C" />
-      <text x="500" y="0" font-family="Outfit" font-size="20" font-weight="700" fill="#8B5E3C">
+      <circle cx="410" cy="-6" r="5" fill="#8B5E3C" />
+      <text x="426" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
         AI Care Coach
       </text>
     </g>
 
     <!-- Official URL Tag -->
-    <g transform="translate(0, 435)">
-      <text x="0" y="0" font-family="Grandstander" font-size="28" font-weight="900" fill="#2C211B">
+    <g transform="translate(0, 440)">
+      <text x="0" y="0" font-family="Grandstander" font-size="30" font-weight="900" fill="#2C211B">
         puplumepet.vercel.app
       </text>
-      <text x="310" y="-3" font-family="Outfit" font-size="18" font-weight="600" fill="#766A63">
+      <text x="365" y="-3" font-family="Grandstander" font-size="18" font-weight="600" fill="#766A63">
         • Everything your puppy needs to thrive
       </text>
     </g>

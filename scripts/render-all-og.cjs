@@ -4,9 +4,11 @@ const path = require('path');
 
 const fonts = [
   path.join(__dirname, '..', 'fonts', 'Grandstander-Black.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Grandstander-ExtraBold.ttf'),
   path.join(__dirname, '..', 'fonts', 'Grandstander-Bold.ttf'),
-  path.join(__dirname, '..', 'fonts', 'Outfit-Bold.ttf'),
-  path.join(__dirname, '..', 'fonts', 'Outfit-SemiBold.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Grandstander-SemiBold.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Grandstander-Medium.ttf'),
+  path.join(__dirname, '..', 'fonts', 'Grandstander-Regular.ttf'),
 ];
 
 ['og-marketing', 'og-pup-preview', 'og-pup-not-found'].forEach(name => {

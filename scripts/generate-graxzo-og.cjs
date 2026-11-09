@@ -23,9 +23,11 @@ async function main() {
 
   const fonts = [
     path.join(__dirname, '..', 'fonts', 'Grandstander-Black.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Grandstander-ExtraBold.ttf'),
     path.join(__dirname, '..', 'fonts', 'Grandstander-Bold.ttf'),
-    path.join(__dirname, '..', 'fonts', 'Outfit-Bold.ttf'),
-    path.join(__dirname, '..', 'fonts', 'Outfit-SemiBold.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Grandstander-SemiBold.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Grandstander-Medium.ttf'),
+    path.join(__dirname, '..', 'fonts', 'Grandstander-Regular.ttf'),
   ];
 
   const resvg = new Resvg(svg, {
@@ -39,7 +41,7 @@ async function main() {
 
   const outPath = path.join(__dirname, '..', 'public', 'og-graxzo.png');
   fs.writeFileSync(outPath, pngData);
-  console.log('Successfully generated Graxzo skin-toned OG card (Zero Boxes, Real Grandstander):', outPath, 'Bytes:', pngData.length);
+  console.log('Successfully generated Graxzo skin-toned OG card (Zero Boxes, Full Grandstander Family):', outPath, 'Bytes:', pngData.length);
 }
 
 main().catch(console.error);
