@@ -491,6 +491,9 @@ export default function App() {
   // Hydrate from Convex reactive cloud subscription (No fake data!)
   useEffect(() => {
     if (cloudData && user?.id) {
+      if (cloudData.user?.hasAccess && typeof window !== 'undefined') {
+        localStorage.setItem(`puplume_access_${user.id}`, 'true');
+      }
       if (cloudData.puppies && cloudData.puppies.length > 0) {
         storage.hydrateFromConvex(cloudData);
         const activePup = storage.getPuppy();
@@ -680,6 +683,14 @@ export default function App() {
     dietaryRestrictions: cloudData.puppies[0].dietaryRestrictions,
     favoriteTreat: cloudData.puppies[0].favoriteTreat,
     createdAt: cloudData.puppies[0].createdAt,
+    hasSmartTagPass: Boolean(cloudData.puppies[0].hasSmartTagPass),
+    isLost: Boolean(cloudData.puppies[0].isLost),
+    ownerPhone: cloudData.puppies[0].ownerPhone,
+    ownerEmail: cloudData.puppies[0].ownerEmail,
+    emergencyNotes: cloudData.puppies[0].emergencyNotes,
+    emergencyContactName: cloudData.puppies[0].emergencyContactName,
+    emergencyContactPhone: cloudData.puppies[0].emergencyContactPhone,
+    communicationLinks: cloudData.puppies[0].communicationLinks,
   } : null);
 
   // 4. Show onboarding only if user explicitly navigated to it, OR if user has no puppy profile yet

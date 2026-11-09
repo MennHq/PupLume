@@ -409,27 +409,51 @@ class StorageManager {
     // 1. Puppies
     if (Array.isArray(cloudData.puppies)) {
       if (cloudData.puppies.length > 0) {
-        const rawPuppies = cloudData.puppies.map((p: any) => ({
-          id: p._id || p.id || 'pup-1',
-          name: p.name,
-          breed: p.breed,
-          birthDate: p.birthDate,
-          sex: p.sex,
-          weightLbs: p.weightLbs,
-          photoUrl: p.photoUrl,
-          temperament: p.temperament,
-          dietaryRestrictions: p.dietaryRestrictions,
-          microchipNumber: p.microchipNumber,
-          allergies: p.allergies,
-          vetClinic: p.vetClinic,
-          vetPhone: p.vetPhone,
-          vetName: p.vetName,
-          insuranceProvider: p.insuranceProvider,
-          insurancePolicyNumber: p.insurancePolicyNumber,
-          favoriteTreat: p.favoriteTreat,
-          adoptionDate: p.adoptionDate,
-          createdAt: p.createdAt,
-        }));
+        const rawPuppies = cloudData.puppies.map((p: any) => {
+          const pupId = p._id || p.id || 'pup-1';
+          const hasPass = Boolean(
+            p.hasSmartTagPass ||
+            (typeof window !== 'undefined' && localStorage.getItem(`puplume_smart_tag_pass_${pupId}`) === 'true')
+          );
+          if (hasPass && typeof window !== 'undefined') {
+            localStorage.setItem(`puplume_smart_tag_pass_${pupId}`, 'true');
+          }
+          return {
+            id: pupId,
+            name: p.name,
+            breed: p.breed,
+            birthDate: p.birthDate,
+            sex: p.sex,
+            weightLbs: p.weightLbs,
+            photoUrl: p.photoUrl,
+            temperament: p.temperament,
+            dietaryRestrictions: p.dietaryRestrictions,
+            microchipNumber: p.microchipNumber,
+            allergies: p.allergies,
+            vetClinic: p.vetClinic,
+            vetPhone: p.vetPhone,
+            vetName: p.vetName,
+            insuranceProvider: p.insuranceProvider,
+            insurancePolicyNumber: p.insurancePolicyNumber,
+            favoriteTreat: p.favoriteTreat,
+            adoptionDate: p.adoptionDate,
+            createdAt: p.createdAt,
+            ownerPhone: p.ownerPhone,
+            ownerEmail: p.ownerEmail,
+            emergencyContactName: p.emergencyContactName,
+            emergencyContactPhone: p.emergencyContactPhone,
+            emergencyNotes: p.emergencyNotes,
+            isLost: p.isLost ?? false,
+            rewardAmount: p.rewardAmount,
+            hasSmartTagPass: hasPass,
+            ownerInstagram: p.ownerInstagram,
+            ownerFacebook: p.ownerFacebook,
+            ownerWhatsApp: p.ownerWhatsApp,
+            ownerTelegram: p.ownerTelegram,
+            ownerSlack: p.ownerSlack,
+            communicationLinks: p.communicationLinks,
+          };
+        });
 
         // Deduplicate puppies by trimmed lowercase name and ID
         const seenNames = new Set<string>();
@@ -800,6 +824,10 @@ class StorageManager {
   savePuppy(puppy: PuppyProfile): void {
     const index = this.puppies.findIndex((p) => p.id === puppy.id || p.name === puppy.name);
     if (index >= 0) {
+      const existing = this.puppies[index];
+      if (existing?.hasSmartTagPass && !puppy.hasSmartTagPass) {
+        puppy.hasSmartTagPass = true;
+      }
       this.puppies[index] = puppy;
     } else {
       this.puppies.push(puppy);

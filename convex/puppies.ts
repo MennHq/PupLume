@@ -219,7 +219,7 @@ export const savePuppy = mutation({
       emergencyNotes: args.emergencyNotes,
       isLost: args.isLost,
       rewardAmount: args.rewardAmount,
-      hasSmartTagPass: args.hasSmartTagPass,
+      hasSmartTagPass: (args.hasSmartTagPass || existing?.hasSmartTagPass) ?? false,
       ownerInstagram: args.ownerInstagram,
       ownerFacebook: args.ownerFacebook,
       ownerWhatsApp: args.ownerWhatsApp,
@@ -368,7 +368,7 @@ export const updateSmartTagLostMode = mutation({
 // Mutation to unlock Smart Tag Pass (Owner only)
 export const unlockSmartTagPass = mutation({
   args: {
-    puppyId: v.optional(v.id("puppies")),
+    puppyId: v.optional(v.string()),
     identifier: v.optional(v.string()),
     userId: v.optional(v.string()),
   },
@@ -376,22 +376,30 @@ export const unlockSmartTagPass = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     let puppy = null;
-    if (args.puppyId) {
-      puppy = await ctx.db.get(args.puppyId);
-    } else if (args.identifier) {
-      const raw = args.identifier.trim();
-      const normId = ctx.db.normalizeId("puppies", raw);
+    const candidateId = args.puppyId || args.identifier;
+    if (candidateId) {
+      const normId = ctx.db.normalizeId("puppies", candidateId.trim());
       if (normId) {
-        puppy = await ctx.db.get(normId);
+        const p = await ctx.db.get(normId);
+        if (p && p.userId === userId) {
+          puppy = p;
+        }
       }
-      if (!puppy) {
-        const userPups = await ctx.db
-          .query("puppies")
-          .withIndex("by_user", (q) => q.eq("userId", userId))
-          .collect();
+    }
+
+    if (!puppy) {
+      const userPups = await ctx.db
+        .query("puppies")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      if (args.identifier) {
+        const raw = args.identifier.trim().toLowerCase();
         puppy = userPups.find(
-          (p) => p.name.trim().toLowerCase() === raw.toLowerCase()
+          (p) => p.name.trim().toLowerCase() === raw
         ) || null;
+      }
+      if (!puppy && userPups.length > 0) {
+        puppy = userPups[0];
       }
     }
 

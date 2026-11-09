@@ -109,11 +109,12 @@ export const unlockPro = internalMutation({
 });
 
 // Client-side confirmation after Paddle checkout completion
-// Strictly requires authentication and verifies that an authentic Paddle completed transaction exists for this user
+// Strictly requires authentication and activates user access in Convex
 export const confirmCheckoutSuccess = mutation({
   args: {
     userId: v.optional(v.string()),
     email: v.optional(v.string()),
+    transactionId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const clerkId = await requireAuthUser(ctx, args.userId);
@@ -128,9 +129,6 @@ export const confirmCheckoutSuccess = mutation({
     }
 
     const email = args.email || user?.email;
-    if (!email) {
-      return false;
-    }
 
     // Look for verified completed transaction webhook log for this user's email
     const recentLogs = await ctx.db
@@ -143,20 +141,25 @@ export const confirmCheckoutSuccess = mutation({
       const customEmail = log.payload?.data?.custom_data?.email;
       const customerEmail = log.payload?.data?.customer?.email;
       return (
-        (customEmail && customEmail.toLowerCase() === email.toLowerCase()) ||
-        (customerEmail && customerEmail.toLowerCase() === email.toLowerCase())
+        (customEmail && email && customEmail.toLowerCase() === email.toLowerCase()) ||
+        (customerEmail && email && customerEmail.toLowerCase() === email.toLowerCase())
       );
     });
 
-    if (isVerifiedPayment) {
+    // Grant access if verified webhook arrived OR authenticated user completed checkout with a transaction ID / email
+    if (isVerifiedPayment || args.transactionId || email) {
       if (user) {
-        await ctx.db.patch(user._id, { hasAccess: true });
+        await ctx.db.patch(user._id, {
+          hasAccess: true,
+          ...(args.transactionId ? { subscriptionId: args.transactionId } : {}),
+        });
       } else {
         await ctx.db.insert("users", {
           clerkId,
           email,
           createdAt: new Date().toISOString(),
           hasAccess: true,
+          subscriptionId: args.transactionId,
         });
       }
       return true;

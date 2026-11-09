@@ -1,0 +1,97 @@
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+    <defs>
+      <filter id="cleanShadow" x="-5%" y="-5%" width="110%" height="110%">
+        <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#2C211B" flood-opacity="0.08" />
+      </filter>
+      <clipPath id="swissPhotoClip">
+        <rect x="100" y="260" width="880" height="720" rx="28" />
+      </clipPath>
+    </defs>
+
+    <rect width="1080" height="1920" fill="#FBF8F4" />
+
+    <!-- Subtle Technical Grid Lines -->
+    <line x1="100" y1="180" x2="980" y2="180" stroke="#E8DDD3" stroke-width="1.5" />
+    <line x1="100" y1="1030" x2="980" y2="1030" stroke="#E8DDD3" stroke-width="1.5" />
+    <line x1="100" y1="1680" x2="980" y2="1680" stroke="#E8DDD3" stroke-width="1.5" />
+
+    <!-- Top Grid Header -->
+    <g transform="translate(100, 130)">
+      <text x="0" y="0" font-family="monospace" font-weight="900" font-size="28" fill="#2C211B">PUPLUME // DIGITAL REGISTRY</text>
+      <text x="880" y="0" text-anchor="end" font-family="monospace" font-weight="700" font-size="22" fill="#8B5E3C">SERIES 2026.4</text>
+    </g>
+
+    <!-- Photo Container -->
+    <g clip-path="url(#swissPhotoClip)">
+      <rect x="100" y="260" width="880" height="720" fill="#EADCCF" />
+      <circle cx="540" cy="620" r="230" fill="#DFCEBE" />
+      <ellipse cx="400" cy="580" rx="60" ry="110" fill="#C5B19E" transform="rotate(-15 400 580)" />
+      <ellipse cx="680" cy="580" rx="60" ry="110" fill="#C5B19E" transform="rotate(15 680 580)" />
+      <ellipse cx="540" cy="670" rx="70" ry="50" fill="#F4EAE0" />
+      <ellipse cx="540" cy="655" rx="28" ry="18" fill="#2C211B" />
+      <circle cx="475" cy="575" r="14" fill="#2C211B" />
+      <circle cx="605" cy="575" r="14" fill="#2C211B" />
+    </g>
+
+    <!-- Official Badge -->
+    <g transform="translate(140, 300)">
+      <rect x="0" y="0" width="260" height="42" rx="8" fill="#2C211B" />
+      <text x="130" y="27" text-anchor="middle" font-family="monospace" font-weight="800" font-size="16" letter-spacing="1.5" fill="#FFF9F2">GOVERNMENT VERIFIED ID</text>
+    </g>
+
+    <!-- Data Specification Grid Table -->
+    <g transform="translate(100, 1070)">
+      <!-- Name -->
+      <text x="0" y="40" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="64" fill="#2C211B">MILO</text>
+      <text x="880" y="40" text-anchor="end" font-family="monospace" font-weight="800" font-size="28" fill="#059669">● ACTIVE ON COLLAR</text>
+
+      <line x1="0" y1="70" x2="880" y2="70" stroke="#E8DDD3" stroke-width="1.5" />
+
+      <!-- Row 1 -->
+      <g transform="translate(0, 120)">
+        <text x="0" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">BREED</text>
+        <text x="0" y="32" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="28" fill="#2C211B">Golden Retriever</text>
+
+        <text x="350" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">SEX / WEIGHT</text>
+        <text x="350" y="32" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="28" fill="#2C211B">Male / 18.2 lbs</text>
+
+        <text x="650" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">AGE</text>
+        <text x="650" y="32" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="28" fill="#2C211B">4 Months</text>
+      </g>
+
+      <line x1="0" y1="180" x2="880" y2="180" stroke="#E8DDD3" stroke-width="1.5" />
+
+      <!-- Row 2 -->
+      <g transform="translate(0, 230)">
+        <text x="0" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">MICROCHIP RFID</text>
+        <text x="0" y="32" font-family="monospace" font-weight="900" font-size="26" fill="#2C211B">985-141-002348-A</text>
+
+        <text x="350" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">VET CLINIC</text>
+        <text x="350" y="32" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="28" fill="#2C211B">Mission Pet Hospital</text>
+
+        <text x="650" y="0" font-family="monospace" font-weight="700" font-size="18" fill="#766A63">VACCINES</text>
+        <text x="650" y="32" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="28" fill="#059669">Verified ✓</text>
+      </g>
+    </g>
+
+    <!-- Scan Card -->
+    <g transform="translate(100, 1370)" filter="url(#cleanShadow)">
+      <rect x="0" y="0" width="880" height="270" rx="20" fill="#FFFFFF" stroke="#2C211B" stroke-width="3" />
+      <g transform="translate(35, 35)">
+        <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMSAzMSIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMCAwaDMxdjMxSDB6Ii8+PHBhdGggc3Ryb2tlPSIjMkMyMTFCIiBkPSJNMSAxLjVoN20zIDBoNm0zIDBoMm0xIDBoN00xIDIuNWgxbTUgMGgxbTQgMGg2bTEgMGgxbTEgMGgxbTEgMGgxbTUgMGgxTTEgMy41aDFtMSAwaDNtMSAwaDFtMSAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMSAwaDFtMSAwaDNtMSAwaDFNMSA0LjVoMW0xIDBoM20xIDBoMW0xIDBoMm0xIDBoMW0yIDBoMm0xIDBoMm0xIDBoMW0xIDBoMW0xIDBoM20xIDBoMU0xIDUuNWgxbTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTMgMGg2bTEgMGgxbTEgMGgzbTEgMGgxTTEgNi41aDFtNSAwaDFtMSAwaDFtMSAwaDFtNiAwaDFtNCAwaDFtNSAwaDFNMSA3LjVoN20xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoN005IDguNWg0bTIgMGgxbTEgMGgxTTEgOS41aDFtMSAwaDVtNSAwaDFtMyAwaDJtMiAwaDFtMSAwaDVNMiAxMC41aDFtMSAwaDFtNCAwaDFtMSAwaDJtMSAwaDNtMSAwaDRtMSAwaDNtMyAwaDFNMiAxMS41aDJtMSAwaDFtMSAwaDFtMyAwaDJtMSAwaDRtMyAwaDFtMyAwaDFNMSAxMi41aDFtMSAwaDFtMiAwaDFtMSAwaDNtMyAwaDFtMSAwaDFtMyAwaDJtMiAwaDFtMSAwaDFtMSAwaDFNMiAxMy41aDFtMyAwaDJtMSAwaDFtNSAwaDJtMSAwaDFtMSAwaDFtNSAwaDJNMyAxNC41aDJtMSAwaDFtMSAwaDNtMiAwaDFtMiAwaDVtMSAwaDRtMyAwaDFNNCAxNS41aDFtMSAwaDJtMyAwaDJtNiAwaDFtMyAwaDFtMSAwaDNNMiAxNi41aDFtMyAwaDFtMSAwaDJtMyAwaDFtMSAwaDFtMSAwaDFtMyAwaDFtMyAwaDFtMiAwaDFNMSAxNy41aDJtMSAwaDFtMSAwaDRtMSAwaDJtNCAwaDJtMiAwaDFtMiAwaDFtMSAwaDJNMSAxOC41aDRtNSAwaDJtMSAwaDRtMSAwaDhtMSAwaDFtMSAwaDFNMSAxOS41aDFtMSAwaDFtMSAwaDEzbTMgMGgxbTIgMGgybTEgMGgxTTEgMjAuNWgxbTMgMGgxbTQgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTIgMGgybTIgMGgxTTEgMjEuNWgxbTEgMGgxbTMgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgxbTIgMGg1bTEgMGgzTTkgMjIuNWgxbTMgMGgxbTIgMGg0bTEgMGgxbTMgMGg1TTEgMjMuNWg3bTQgMGgybTQgMGgxbTEgMGgybTEgMGgxbTEgMGgzTTEgMjQuNWgxbTUgMGgxbTEgMGgxbTMgMGgxbTEgMGgxbTEgMGgxbTIgMGgybTMgMGgxbTIgMGgxTTEgMjUuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTQgMGgxbTEgMGgxbTEgMGg1bTEgMGgxbTEgMGgxTTEgMjYuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgybTIgMGgxbTEgMGgxbTEgMGgyTTEgMjcuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTUgMGg0bTMgMGg3TTEgMjguNWgxbTUgMGgxbTUgMGgybTEgMGgxbTEgMGg0bTEgMGgxbTEgMGgybTEgMGgxTTEgMjkuNWg3bTEgMGgxbTEgMGgybTIgMGgybTMgMGgxbTEgMGgybTEgMGgzIi8+PC9zdmc+Cg==" x="0" y="0" width="200" height="200" />
+      </g>
+      <g transform="translate(280, 75)">
+        <text x="0" y="0" font-family="monospace" font-weight="800" font-size="18" letter-spacing="1.5" fill="#8B5E3C">INSTANT SCAN ACCESS</text>
+        <text x="0" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="32" fill="#2C211B">Scan To View Pet Passport</text>
+        <text x="0" y="72" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="20" fill="#766A63">Instant reunification info &amp; medical records.</text>
+      </g>
+    </g>
+
+    <!-- Footer -->
+    <g transform="translate(100, 1750)">
+      <text x="0" y="0" font-family="monospace" font-weight="700" font-size="20" fill="#766A63">WWW.PUPLUME.PET</text>
+      <text x="880" y="0" text-anchor="end" font-family="monospace" font-weight="700" font-size="20" fill="#766A63">DESIGNED WITH DISCIPLINE</text>
+    </g>
+  </svg>
+  

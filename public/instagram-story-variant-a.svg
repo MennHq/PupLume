@@ -1,0 +1,154 @@
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+    <defs>
+      <linearGradient id="bgGradA" x1="0" y1="0" x2="0" y2="1920" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FFFDF9" />
+        <stop offset="40%" stop-color="#FFF9F2" />
+        <stop offset="80%" stop-color="#FAF3E8" />
+        <stop offset="100%" stop-color="#F5EBE1" />
+      </linearGradient>
+
+      <radialGradient id="orb1A" cx="300" cy="400" r="600" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.45" />
+        <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0" />
+      </radialGradient>
+
+      <radialGradient id="orb2A" cx="800" cy="1500" r="700" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.35" />
+        <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0" />
+      </radialGradient>
+
+      <linearGradient id="logoGrad" x1="0" y1="0" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#A27046" />
+        <stop offset="100%" stop-color="#734927" />
+      </linearGradient>
+
+      <linearGradient id="btnGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#8B5E3C" />
+        <stop offset="100%" stop-color="#6F4629" />
+      </linearGradient>
+
+      <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#2C211B" flood-opacity="0.10" />
+      </filter>
+
+      <filter id="photoShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#2C211B" flood-opacity="0.12" />
+      </filter>
+
+      <clipPath id="photoClip">
+        <rect x="100" y="240" width="880" height="800" rx="44" />
+      </clipPath>
+    </defs>
+
+    <!-- Background -->
+    <rect width="1080" height="1920" fill="url(#bgGradA)" />
+    <rect width="1080" height="1920" fill="url(#orb1A)" />
+    <rect width="1080" height="1920" fill="url(#orb2A)" />
+
+    <!-- Top Brand Header Bar -->
+    <g transform="translate(540, 130)">
+      <!-- Logo Squircle -->
+      <rect x="-140" y="-32" width="56" height="56" rx="18" fill="url(#logoGrad)" />
+      <!-- Logo Paw inside squircle -->
+      <circle cx="-112" cy="-4" r="14" fill="#FFF9F2" />
+      <circle cx="-98" cy="-20" r="6" fill="#F59E0B" />
+
+      <!-- Wordmark -->
+      <text x="-70" y="8" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="46" fill="#2C211B">Pup<tspan fill="#8B5E3C">Lume</tspan></text>
+      <!-- Subtitle -->
+      <text x="0" y="46" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="16" letter-spacing="3" fill="#766A63">VERIFIED DIGITAL PET PASSPORT</text>
+    </g>
+
+    <!-- Hero Photo Container -->
+    <g filter="url(#photoShadow)">
+      <rect x="100" y="240" width="880" height="800" rx="44" fill="#F5EBE1" stroke="#EADCCF" stroke-width="2" />
+    </g>
+
+    <!-- Pet Photo Artwork -->
+    <g clip-path="url(#photoClip)">
+      <rect x="100" y="240" width="880" height="800" fill="#EBD9C8" />
+      <!-- Stylized Golden Retriever Illustration -->
+      <circle cx="540" cy="580" r="260" fill="#E6A868" />
+      <circle cx="540" cy="620" r="200" fill="#F3C28A" />
+      <!-- Ears -->
+      <ellipse cx="360" cy="540" rx="70" ry="140" fill="#C98B4B" transform="rotate(-15 360 540)" />
+      <ellipse cx="720" cy="540" rx="70" ry="140" fill="#C98B4B" transform="rotate(15 720 540)" />
+      <!-- Snout & Nose -->
+      <ellipse cx="540" cy="660" rx="80" ry="60" fill="#FFF2DF" />
+      <ellipse cx="540" cy="640" rx="34" ry="24" fill="#2C211B" />
+      <path d="M540,664 L540,690 Q540,705 520,705 M540,690 Q540,705 560,705" stroke="#2C211B" stroke-width="5" fill="none" stroke-linecap="round" />
+      <!-- Eyes -->
+      <circle cx="460" cy="550" r="18" fill="#2C211B" />
+      <circle cx="465" cy="545" r="6" fill="#FFFFFF" />
+      <circle cx="620" cy="550" r="18" fill="#2C211B" />
+      <circle cx="625" cy="545" r="6" fill="#FFFFFF" />
+      <!-- Cheeks -->
+      <ellipse cx="430" cy="600" rx="20" ry="12" fill="#F29F80" opacity="0.6" />
+      <ellipse cx="650" cy="600" rx="20" ry="12" fill="#F29F80" opacity="0.6" />
+      <!-- Collar -->
+      <rect x="420" y="790" width="240" height="40" rx="20" fill="#8B5E3C" />
+      <circle cx="540" cy="830" r="22" fill="#F59E0B" />
+      <circle cx="540" cy="830" r="14" fill="#FEF3C7" />
+    </g>
+
+    <!-- Verified Badge -->
+    <g transform="translate(915, 295)">
+      <circle cx="0" cy="0" r="36" fill="#059669" filter="url(#cardShadow)" />
+      <circle cx="0" cy="0" r="36" fill="none" stroke="#FFFFFF" stroke-width="4" />
+      <path d="M-12,-2 L-4,8 L14,-10" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </g>
+
+    <!-- Pet Details Section -->
+    <g transform="translate(100, 1100)">
+      <!-- Name -->
+      <text x="0" y="0" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="76" fill="#2C211B">Milo</text>
+      <!-- Breed & Bio -->
+      <text x="0" y="52" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="700" font-size="34" fill="#8B5E3C">Golden Retriever • Male • 18 lbs</text>
+      <!-- Verified Status Pills -->
+      <g transform="translate(0, 80)">
+        <rect x="0" y="0" width="310" height="44" rx="22" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1.5" />
+        <text x="24" y="28" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="18" fill="#065F46">🛡️ Smart Collar Tag Active</text>
+
+        <rect x="325" y="0" width="220" height="44" rx="22" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5" />
+        <text x="345" y="28" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="18" fill="#92400E">💉 All Vaccines Up-to-Date</text>
+      </g>
+    </g>
+
+    <!-- Scannable Passport & QR Card -->
+    <g transform="translate(100, 1310)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="880" height="340" rx="36" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" />
+
+      <!-- QR Code on left -->
+      <g transform="translate(45, 45)">
+        <rect x="0" y="0" width="250" height="250" rx="20" fill="#FFF9F2" stroke="#E8DDD3" stroke-width="1.5" />
+        <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMSAzMSIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMCAwaDMxdjMxSDB6Ii8+PHBhdGggc3Ryb2tlPSIjMkMyMTFCIiBkPSJNMSAxLjVoN20zIDBoNm0zIDBoMm0xIDBoN00xIDIuNWgxbTUgMGgxbTQgMGg2bTEgMGgxbTEgMGgxbTEgMGgxbTUgMGgxTTEgMy41aDFtMSAwaDNtMSAwaDFtMSAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMSAwaDFtMSAwaDNtMSAwaDFNMSA0LjVoMW0xIDBoM20xIDBoMW0xIDBoMm0xIDBoMW0yIDBoMm0xIDBoMm0xIDBoMW0xIDBoMW0xIDBoM20xIDBoMU0xIDUuNWgxbTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTMgMGg2bTEgMGgxbTEgMGgzbTEgMGgxTTEgNi41aDFtNSAwaDFtMSAwaDFtMSAwaDFtNiAwaDFtNCAwaDFtNSAwaDFNMSA3LjVoN20xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoN005IDguNWg0bTIgMGgxbTEgMGgxTTEgOS41aDFtMSAwaDVtNSAwaDFtMyAwaDJtMiAwaDFtMSAwaDVNMiAxMC41aDFtMSAwaDFtNCAwaDFtMSAwaDJtMSAwaDNtMSAwaDRtMSAwaDNtMyAwaDFNMiAxMS41aDJtMSAwaDFtMSAwaDFtMyAwaDJtMSAwaDRtMyAwaDFtMyAwaDFNMSAxMi41aDFtMSAwaDFtMiAwaDFtMSAwaDNtMyAwaDFtMSAwaDFtMyAwaDJtMiAwaDFtMSAwaDFtMSAwaDFNMiAxMy41aDFtMyAwaDJtMSAwaDFtNSAwaDJtMSAwaDFtMSAwaDFtNSAwaDJNMyAxNC41aDJtMSAwaDFtMSAwaDNtMiAwaDFtMiAwaDVtMSAwaDRtMyAwaDFNNCAxNS41aDFtMSAwaDJtMyAwaDJtNiAwaDFtMyAwaDFtMSAwaDNNMiAxNi41aDFtMyAwaDFtMSAwaDJtMyAwaDFtMSAwaDFtMSAwaDFtMyAwaDFtMyAwaDFtMiAwaDFNMSAxNy41aDJtMSAwaDFtMSAwaDRtMSAwaDJtNCAwaDJtMiAwaDFtMiAwaDFtMSAwaDJNMSAxOC41aDRtNSAwaDJtMSAwaDRtMSAwaDhtMSAwaDFtMSAwaDFNMSAxOS41aDFtMSAwaDFtMSAwaDEzbTMgMGgxbTIgMGgybTEgMGgxTTEgMjAuNWgxbTMgMGgxbTQgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTIgMGgybTIgMGgxTTEgMjEuNWgxbTEgMGgxbTMgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgxbTIgMGg1bTEgMGgzTTkgMjIuNWgxbTMgMGgxbTIgMGg0bTEgMGgxbTMgMGg1TTEgMjMuNWg3bTQgMGgybTQgMGgxbTEgMGgybTEgMGgxbTEgMGgzTTEgMjQuNWgxbTUgMGgxbTEgMGgxbTMgMGgxbTEgMGgxbTEgMGgxbTIgMGgybTMgMGgxbTIgMGgxTTEgMjUuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTQgMGgxbTEgMGgxbTEgMGg1bTEgMGgxbTEgMGgxTTEgMjYuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgybTIgMGgxbTEgMGgxbTEgMGgyTTEgMjcuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTUgMGg0bTMgMGg3TTEgMjguNWgxbTUgMGgxbTUgMGgybTEgMGgxbTEgMGg0bTEgMGgxbTEgMGgybTEgMGgxTTEgMjkuNWg3bTEgMGgxbTEgMGgybTIgMGgybTMgMGgxbTEgMGgybTEgMGgzIi8+PC9zdmc+Cg==" x="15" y="15" width="220" height="220" />
+      </g>
+
+      <!-- Passport Data on right -->
+      <g transform="translate(330, 70)">
+        <text x="0" y="0" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="16" letter-spacing="2" fill="#8B5E3C">DIGITAL PASSPORT ID</text>
+        <text x="0" y="32" font-family="monospace" font-weight="900" font-size="32" fill="#2C211B">#PL-84920-MILO</text>
+
+        <text x="0" y="74" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="18" fill="#766A63">Microchip: <tspan font-weight="800" fill="#2C211B">985 141 002 348 910</tspan></text>
+        <text x="0" y="104" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="18" fill="#766A63">Emergency: <tspan font-weight="800" fill="#2C211B">Owner Contact 24/7</tspan></text>
+
+        <rect x="0" y="134" width="480" height="54" rx="16" fill="url(#btnGrad)" />
+        <text x="240" y="168" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="20" fill="#FFFFFF">📷 Scan or Tap to View Passport →</text>
+      </g>
+    </g>
+
+    <!-- Bottom Instagram Link Sticker Helper -->
+    <g transform="translate(540, 1750)">
+      <rect x="-240" y="0" width="480" height="56" rx="28" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="1.5" filter="url(#cardShadow)" />
+      <!-- Instagram Gradient Icon -->
+      <circle cx="-195" cy="28" r="16" fill="#E1306C" />
+      <rect x="-205" y="18" width="20" height="20" rx="5" fill="none" stroke="#FFFFFF" stroke-width="2.5" />
+      <circle cx="-195" cy="28" r="4.5" fill="none" stroke="#FFFFFF" stroke-width="2" />
+      <text x="-165" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="18" fill="#2C211B">puplume.pet/pup/milo</text>
+      <text x="145" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="16" fill="#8B5E3C">LINK ↗</text>
+    </g>
+
+    <text x="540" y="1845" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="700" font-size="16" fill="#766A63">Powered by PupLume • The AI Companion for Happy Puppies</text>
+  </svg>
+  

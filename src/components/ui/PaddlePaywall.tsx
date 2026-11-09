@@ -48,10 +48,13 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
             localStorage.setItem(`puplume_access_${user.id}`, 'true');
           }
 
+          const txnId = (data as any)?.data?.id || (data as any)?.data?.transaction_id;
+
           // Instantly activate user access in Convex
           confirmSuccessMutation({
             userId: user?.id,
             email: userEmail,
+            transactionId: txnId,
           })
             .then(() => {
               if (typeof window !== 'undefined') {

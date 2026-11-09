@@ -1,2 +1,28 @@
+# Allow all search engines and social link preview scrapers
 User-agent: *
-Disallow: /
+Allow: /
+
+# Explicitly ensure social scrapers have unrestricted access to generate rich link previews
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: Applebot
+Allow: /

@@ -1,0 +1,106 @@
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+    <defs>
+      <linearGradient id="bgGradB" x1="0" y1="0" x2="1080" y2="1920" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FFF5EB" />
+        <stop offset="35%" stop-color="#FED7AA" />
+        <stop offset="70%" stop-color="#FDE68A" />
+        <stop offset="100%" stop-color="#FFF9F2" />
+      </linearGradient>
+
+      <radialGradient id="sunBurst" cx="540" cy="500" r="700" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.30" />
+        <stop offset="100%" stop-color="#F59E0B" stop-opacity="0" />
+      </radialGradient>
+
+      <filter id="stickerShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#7C2D12" flood-opacity="0.18" />
+      </filter>
+
+      <clipPath id="circleClip">
+        <circle cx="540" cy="580" r="300" />
+      </clipPath>
+    </defs>
+
+    <rect width="1080" height="1920" fill="url(#bgGradB)" />
+    <rect width="1080" height="1920" fill="url(#sunBurst)" />
+
+    <!-- Top Badge -->
+    <g transform="translate(540, 110)">
+      <rect x="-180" y="0" width="360" height="48" rx="24" fill="#8B5E3C" />
+      <text x="0" y="31" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="20" letter-spacing="2" fill="#FFF9F2">✨ PUPLUME STORY SPOTLIGHT</text>
+    </g>
+
+    <!-- Circular Hero Photo with Ring -->
+    <g filter="url(#stickerShadow)">
+      <circle cx="540" cy="580" r="315" fill="#FFFFFF" />
+      <circle cx="540" cy="580" r="306" fill="#F59E0B" stroke="#D97706" stroke-width="4" stroke-dasharray="16 8" />
+    </g>
+
+    <g clip-path="url(#circleClip)">
+      <rect x="240" y="280" width="600" height="600" fill="#EBD9C8" />
+      <circle cx="540" cy="580" r="230" fill="#E6A868" />
+      <ellipse cx="380" cy="550" rx="60" ry="120" fill="#C98B4B" transform="rotate(-15 380 550)" />
+      <ellipse cx="700" cy="550" rx="60" ry="120" fill="#C98B4B" transform="rotate(15 700 550)" />
+      <ellipse cx="540" cy="650" rx="75" ry="55" fill="#FFF2DF" />
+      <ellipse cx="540" cy="635" rx="30" ry="20" fill="#2C211B" />
+      <circle cx="470" cy="550" r="16" fill="#2C211B" />
+      <circle cx="610" cy="550" r="16" fill="#2C211B" />
+    </g>
+
+    <!-- Floating Achievement Stickers -->
+    <g transform="translate(140, 360)" filter="url(#stickerShadow)" transform-origin="center">
+      <rect x="0" y="0" width="220" height="64" rx="20" fill="#FEF3C7" stroke="#F59E0B" stroke-width="3" transform="rotate(-10)" />
+      <text x="110" y="42" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="22" fill="#92400E" transform="rotate(-10)">🏆 100% GOOD BOY</text>
+    </g>
+
+    <g transform="translate(720, 720)" filter="url(#stickerShadow)">
+      <rect x="0" y="0" width="230" height="64" rx="20" fill="#ECFDF5" stroke="#10B981" stroke-width="3" transform="rotate(8)" />
+      <text x="115" y="42" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="22" fill="#065F46" transform="rotate(8)">⭐ ACADEMY STAR</text>
+    </g>
+
+    <!-- Main Name Title -->
+    <g transform="translate(540, 990)">
+      <text x="0" y="0" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="96" fill="#2C211B">Meet Milo! 🐾</text>
+      <text x="0" y="55" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="34" fill="#8B5E3C">Golden Retriever Puppy</text>
+    </g>
+
+    <!-- Personality & Bio Badges -->
+    <g transform="translate(540, 1140)">
+      <rect x="-380" y="0" width="240" height="52" rx="26" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#stickerShadow)" />
+      <text x="-260" y="34" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="20" fill="#2C211B">🎾 Ball Fetcher</text>
+
+      <rect x="-120" y="0" width="240" height="52" rx="26" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#stickerShadow)" />
+      <text x="0" y="34" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="20" fill="#2C211B">🦴 Peanut Butter</text>
+
+      <rect x="140" y="0" width="240" height="52" rx="26" fill="#FFFFFF" stroke="#E8DDD3" stroke-width="2" filter="url(#stickerShadow)" />
+      <text x="260" y="34" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="20" fill="#2C211B">💤 Cuddle Bug</text>
+    </g>
+
+    <!-- Interactive Story Tap Card with QR -->
+    <g transform="translate(100, 1260)" filter="url(#stickerShadow)">
+      <rect x="0" y="0" width="880" height="380" rx="44" fill="#FFFFFF" stroke="#F59E0B" stroke-width="3" />
+      <rect x="12" y="12" width="856" height="60" rx="32" fill="#FEF3C7" />
+      <text x="440" y="50" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="22" letter-spacing="1" fill="#92400E">🐾 SCAN OR USE INSTAGRAM LINK STICKER</text>
+
+      <g transform="translate(50, 95)">
+        <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMSAzMSIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMCAwaDMxdjMxSDB6Ii8+PHBhdGggc3Ryb2tlPSIjMkMyMTFCIiBkPSJNMSAxLjVoN20zIDBoNm0zIDBoMm0xIDBoN00xIDIuNWgxbTUgMGgxbTQgMGg2bTEgMGgxbTEgMGgxbTEgMGgxbTUgMGgxTTEgMy41aDFtMSAwaDNtMSAwaDFtMSAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMSAwaDFtMSAwaDNtMSAwaDFNMSA0LjVoMW0xIDBoM20xIDBoMW0xIDBoMm0xIDBoMW0yIDBoMm0xIDBoMm0xIDBoMW0xIDBoMW0xIDBoM20xIDBoMU0xIDUuNWgxbTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTMgMGg2bTEgMGgxbTEgMGgzbTEgMGgxTTEgNi41aDFtNSAwaDFtMSAwaDFtMSAwaDFtNiAwaDFtNCAwaDFtNSAwaDFNMSA3LjVoN20xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoMW0xIDBoN005IDguNWg0bTIgMGgxbTEgMGgxTTEgOS41aDFtMSAwaDVtNSAwaDFtMyAwaDJtMiAwaDFtMSAwaDVNMiAxMC41aDFtMSAwaDFtNCAwaDFtMSAwaDJtMSAwaDNtMSAwaDRtMSAwaDNtMyAwaDFNMiAxMS41aDJtMSAwaDFtMSAwaDFtMyAwaDJtMSAwaDRtMyAwaDFtMyAwaDFNMSAxMi41aDFtMSAwaDFtMiAwaDFtMSAwaDNtMyAwaDFtMSAwaDFtMyAwaDJtMiAwaDFtMSAwaDFtMSAwaDFNMiAxMy41aDFtMyAwaDJtMSAwaDFtNSAwaDJtMSAwaDFtMSAwaDFtNSAwaDJNMyAxNC41aDJtMSAwaDFtMSAwaDNtMiAwaDFtMiAwaDVtMSAwaDRtMyAwaDFNNCAxNS41aDFtMSAwaDJtMyAwaDJtNiAwaDFtMyAwaDFtMSAwaDNNMiAxNi41aDFtMyAwaDFtMSAwaDJtMyAwaDFtMSAwaDFtMSAwaDFtMyAwaDFtMyAwaDFtMiAwaDFNMSAxNy41aDJtMSAwaDFtMSAwaDRtMSAwaDJtNCAwaDJtMiAwaDFtMiAwaDFtMSAwaDJNMSAxOC41aDRtNSAwaDJtMSAwaDRtMSAwaDhtMSAwaDFtMSAwaDFNMSAxOS41aDFtMSAwaDFtMSAwaDEzbTMgMGgxbTIgMGgybTEgMGgxTTEgMjAuNWgxbTMgMGgxbTQgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTIgMGgybTIgMGgxTTEgMjEuNWgxbTEgMGgxbTMgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgxbTIgMGg1bTEgMGgzTTkgMjIuNWgxbTMgMGgxbTIgMGg0bTEgMGgxbTMgMGg1TTEgMjMuNWg3bTQgMGgybTQgMGgxbTEgMGgybTEgMGgxbTEgMGgzTTEgMjQuNWgxbTUgMGgxbTEgMGgxbTMgMGgxbTEgMGgxbTEgMGgxbTIgMGgybTMgMGgxbTIgMGgxTTEgMjUuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgxbTQgMGgxbTEgMGgxbTEgMGg1bTEgMGgxbTEgMGgxTTEgMjYuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTIgMGgybTEgMGgybTEgMGgybTIgMGgxbTEgMGgxbTEgMGgyTTEgMjcuNWgxbTEgMGgzbTEgMGgxbTEgMGgxbTUgMGg0bTMgMGg3TTEgMjguNWgxbTUgMGgxbTUgMGgybTEgMGgxbTEgMGg0bTEgMGgxbTEgMGgybTEgMGgxTTEgMjkuNWg3bTEgMGgxbTEgMGgybTIgMGgybTMgMGgxbTEgMGgybTEgMGgzIi8+PC9zdmc+Cg==" x="0" y="0" width="250" height="250" />
+      </g>
+
+      <g transform="translate(330, 130)">
+        <text x="0" y="0" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="34" fill="#2C211B">Milo's Smart Pet Card</text>
+        <text x="0" y="40" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="22" fill="#766A63">Tap to see vaccine records,</text>
+        <text x="0" y="70" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="22" fill="#766A63">training badges &amp; contact info.</text>
+
+        <rect x="0" y="105" width="480" height="64" rx="20" fill="#8B5E3C" />
+        <text x="240" y="146" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="22" fill="#FFF9F2">Open Verified Passport →</text>
+      </g>
+    </g>
+
+    <!-- Bottom Footer -->
+    <g transform="translate(540, 1780)">
+      <text x="0" y="0" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="30" fill="#2C211B">PupLume.pet</text>
+      <text x="0" y="32" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="700" font-size="18" fill="#8B5E3C">Get the app on iOS &amp; Android</text>
+    </g>
+  </svg>
+  

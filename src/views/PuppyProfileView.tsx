@@ -219,7 +219,10 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     onUpdatePuppy(updated);
     setIsPaywallOpen(false);
 
-    unlockSmartTagPassMutation({ identifier: puppy.name }).catch((err) => {
+    unlockSmartTagPassMutation({
+      identifier: puppy.name,
+      puppyId: puppy.id,
+    }).catch((err) => {
       console.debug('[PuppyProfileView] Convex smart tag unlock sync error:', err);
     });
   };
