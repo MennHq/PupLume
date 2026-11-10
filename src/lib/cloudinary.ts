@@ -30,15 +30,67 @@ export async function uploadImageToCloudinary(
     previousPublicId?: string;
   } = {}
 ): Promise<UploadResult> {
-  let base64Data: string;
+  const folder = options.folder || 'puplume/pets';
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'puplume';
+  const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || '676714719837168';
+  const apiSecret = 'OdMstlADoBFXHObvTBGhUR091Lk';
 
+  // Attempt direct signed upload to Cloudinary (fastest, supports large files, no serverless limits)
+  try {
+    const timestamp = Math.round(Date.now() / 1000);
+    const strToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+    
+    // Compute SHA-1 signature using browser-native WebCrypto
+    const encoder = new TextEncoder();
+    const hashBuf = await crypto.subtle.digest('SHA-1', encoder.encode(strToSign));
+    const signature = Array.from(new Uint8Array(hashBuf))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    const formData = new FormData();
+    if (fileOrBase64 instanceof Blob || fileOrBase64 instanceof File) {
+      formData.append('file', fileOrBase64);
+    } else {
+      formData.append('file', fileOrBase64);
+    }
+    formData.append('api_key', apiKey);
+    formData.append('timestamp', timestamp.toString());
+    formData.append('folder', folder);
+    formData.append('signature', signature);
+
+    const directRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (directRes.ok) {
+      const data = await directRes.json();
+      if (data?.secure_url || data?.url) {
+        // If there was a previous image, asynchronously trigger delete
+        const previousTarget = options.previousImageUrl || options.previousPublicId;
+        if (previousTarget) {
+          deleteImageFromCloudinary(previousTarget).catch(() => {});
+        }
+        return {
+          url: data.secure_url || data.url,
+          publicId: data.public_id,
+          width: data.width,
+          height: data.height,
+          format: data.format,
+        };
+      }
+    }
+  } catch (directErr) {
+    console.warn('[Cloudinary Direct Upload] Direct upload error, trying proxy fallback:', directErr);
+  }
+
+  // Fallback to server-side proxy endpoint
+  let base64Data: string;
   if (typeof fileOrBase64 === 'string') {
     base64Data = fileOrBase64;
   } else {
     base64Data = await readFileAsDataUrl(fileOrBase64);
   }
-
-  const folder = options.folder || 'puplume/pets';
 
   try {
     const response = await fetch('/api/upload', {

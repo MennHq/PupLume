@@ -10,10 +10,12 @@
 
 import type * as ai from "../ai.js";
 import type * as app from "../app.js";
+import type * as authHelper from "../authHelper.js";
 import type * as behavior from "../behavior.js";
 import type * as debug from "../debug.js";
 import type * as debugLogs from "../debugLogs.js";
 import type * as documents from "../documents.js";
+import type * as emails from "../emails.js";
 import type * as expenses from "../expenses.js";
 import type * as family from "../family.js";
 import type * as feeding from "../feeding.js";
@@ -41,10 +43,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   ai: typeof ai;
   app: typeof app;
+  authHelper: typeof authHelper;
   behavior: typeof behavior;
   debug: typeof debug;
   debugLogs: typeof debugLogs;
   documents: typeof documents;
+  emails: typeof emails;
   expenses: typeof expenses;
   family: typeof family;
   feeding: typeof feeding;

@@ -265,22 +265,37 @@ export const deletePuppy = mutation({
 export const getPublicPuppyByTag = query({
   args: { identifier: v.string() },
   handler: async (ctx, args) => {
-    const raw = (args.identifier || "").trim();
+    let raw = (args.identifier || "").trim();
     if (!raw) return null;
 
-    // Check if it's a valid Convex puppy ID
+    try {
+      raw = decodeURIComponent(raw).trim();
+    } catch {
+      // Keep raw if decoding fails
+    }
+
+    // 1. Check if it's a valid Convex puppy ID
     const normId = ctx.db.normalizeId("puppies", raw);
     let puppy = null;
     if (normId) {
       puppy = await ctx.db.get(normId);
     }
 
-    // If not found by ID, look up by name
+    // 2. If not found by ID, look up by name or slugified variants
     if (!puppy) {
       const allPups = await ctx.db.query("puppies").collect();
-      puppy = allPups.find(
-        (p) => p.name.trim().toLowerCase() === raw.toLowerCase()
-      ) || null;
+      const cleanRaw = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      puppy = allPups.find((p) => {
+        const pName = (p.name || '').trim().toLowerCase();
+        if (pName === raw.toLowerCase()) return true;
+        // Compare slugified (spaces replaced by hyphens)
+        if (pName.replace(/[\s_]+/g, '-') === raw.toLowerCase().replace(/[\s_]+/g, '-')) return true;
+        // Compare alphanumeric only
+        const cleanPName = pName.replace(/[^a-z0-9]/g, '');
+        if (cleanPName && cleanPName === cleanRaw) return true;
+        return false;
+      }) || null;
     }
 
     if (!puppy) return null;
