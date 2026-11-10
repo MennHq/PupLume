@@ -192,16 +192,10 @@
         <!-- Bottom Integrated Scan Collar Banner (582 x 88 px at Y=292) -->
         <g transform="translate(0, 292)">
           <rect width="582" height="88" rx="22" fill="#FAF6F0" stroke="#EDE4D8" stroke-width="1.2"/>
-          <!-- Mini QR Matrix -->
-          <g transform="translate(18, 16)">
-            <rect width="56" height="56" rx="12" fill="#FFFFFF" stroke="#E2D7C8" stroke-width="1"/>
-            <g transform="translate(13, 13)" fill="#241912">
-              <rect width="10" height="10" rx="2"/>
-              <rect x="20" y="0" width="10" height="10" rx="2"/>
-              <rect x="0" y="20" width="10" height="10" rx="2"/>
-              <rect x="13" y="13" width="5" height="5" rx="1"/>
-              <rect x="22" y="22" width="8" height="8" rx="1"/>
-            </g>
+          <!-- Real Scannable QR Matrix -->
+          <g transform="translate(18, 14)">
+            <rect width="60" height="60" rx="12" fill="#FFFFFF" stroke="#E2D7C8" stroke-width="1.2"/>
+            <image href="data:image/png;base64,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" x="4" y="4" width="52" height="52" />
           </g>
           <g transform="translate(90, 36)">
             <text x="0" y="0" font-family="Outfit" font-size="15" font-weight="800" fill="#1C140E">
@@ -223,7 +217,7 @@
     <!-- FOOTER SIGNATURE (Aligned with Card Margins: X=60 to X=1140) -->
     <g transform="translate(60, 608)">
       <text x="0" y="0" font-family="Outfit" font-size="12" font-weight="600" fill="#8C7A6D">
-        puplumepet.vercel.app/pup/graxzo
+        petttttttpuplume.vercel.app/pup/graxzo
       </text>
     </g>
     <g transform="translate(1140, 608)">
