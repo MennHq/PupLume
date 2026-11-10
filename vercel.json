@@ -18,12 +18,12 @@
     {
       "source": "/pup/:slug",
       "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
-      "permanent": false
+      "permanent": true
     },
     {
       "source": "/safety/:slug",
       "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
-      "permanent": false
+      "permanent": true
     }
   ],
   "rewrites": [
