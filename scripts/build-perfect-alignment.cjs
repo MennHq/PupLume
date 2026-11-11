@@ -253,7 +253,7 @@ async function main() {
     <!-- Footer Signature (x=64 to 1136) -->
     <g transform="translate(64, 608)">
       <text x="0" y="0" font-family="Outfit" font-size="12" font-weight="600" fill="#8C7A6D">
-        puplumepet.vercel.app/pup/graxzo
+        puplume.com/leo
       </text>
     </g>
     <g transform="translate(1136, 608)">

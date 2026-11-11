@@ -291,7 +291,7 @@ async function main() {
     <!-- Footer Live Link -->
     <g transform="translate(80, 608)">
       <text x="0" y="0" font-family="Grandstander" font-size="12" font-weight="800" fill="#8C7A6D">
-        puplumepet.vercel.app/pup/graxzo
+        puplume.com/leo
       </text>
     </g>
     <g transform="translate(1120, 608)">

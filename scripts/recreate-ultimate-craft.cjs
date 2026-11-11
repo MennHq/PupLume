@@ -259,7 +259,7 @@ async function main() {
     <!-- FOOTER SIGNATURE (Aligned with Card Margins: X=60 to X=1140) -->
     <g transform="translate(60, 608)">
       <text x="0" y="0" font-family="Outfit" font-size="12" font-weight="600" fill="#8C7A6D">
-        puplumepet.vercel.app/pup/graxzo
+        puplume.com/leo
       </text>
     </g>
     <g transform="translate(1140, 608)">

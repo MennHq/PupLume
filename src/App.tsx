@@ -102,41 +102,14 @@ const MarketingCarousel = () => {
   );
 };
 
+import { isPublicPuppyPath } from './lib/slugHelper';
+
 const VALID_VIEWS = new Set([
   'home', 'tasks', 'ai', 'academy', 'more', 'potty', 'health', 
   'expenses', 'vault', 'socialization', 'journal', 'recap', 
   'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms',
   'auth', 'signin'
 ]);
-
-export function isPublicPuppyPath(pathname: string): boolean {
-  if (!pathname) return false;
-  const clean = pathname.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
-  if (!clean) return false;
-  if (clean.startsWith('pup/') || clean === 'pup' || clean.startsWith('safety/') || clean === 'safety') {
-    return true;
-  }
-  if (
-    clean.startsWith('assets/') || 
-    clean.startsWith('api/') || 
-    clean.startsWith('@') ||
-    clean.includes('.')
-  ) {
-    return false;
-  }
-  if (
-    VALID_VIEWS.has(clean) || 
-    clean === 'sign-in' || 
-    clean === 'sign-up' || 
-    clean === 'signup' || 
-    clean === 'login' || 
-    clean === 'paddlelog' ||
-    clean === 'share-target'
-  ) {
-    return false;
-  }
-  return true;
-}
 
 function sanitizeView(view: string | null | undefined): string {
   if (!view) return 'home';

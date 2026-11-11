@@ -234,7 +234,7 @@ async function main() {
     <!-- Bottom Signature -->
     <g transform="translate(60, 608)">
       <text x="0" y="0" font-family="Grandstander" font-size="11" font-weight="800" fill="#8C7A6D">
-        puplumepet.vercel.app/pup/graxzo
+        puplume.com/leo
       </text>
     </g>
     <g transform="translate(1140, 608)">

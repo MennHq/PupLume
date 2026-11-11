@@ -40,18 +40,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/pup/:slug",
-      "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
-      "permanent": true
-    },
-    {
-      "source": "/safety/:slug",
-      "destination": "https://petttttttpuplume.vercel.app/pup/:slug",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/share-target",

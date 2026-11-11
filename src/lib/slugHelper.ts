@@ -39,6 +39,39 @@ export const RESERVED_SLUGS = new Set([
   'share-target',
 ]);
 
+/**
+ * Checks whether a given path is a public puppy route (e.g. /leo, /pup/leo, /safety/leo)
+ * as opposed to an internal application view or asset.
+ */
+export function isPublicPuppyPath(pathname: string): boolean {
+  if (!pathname || pathname === '/') return false;
+  const clean = pathname.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
+  if (!clean) return false;
+  if (clean.startsWith('pup/') || clean === 'pup' || clean.startsWith('safety/') || clean === 'safety') {
+    return true;
+  }
+  if (
+    clean.startsWith('assets/') || 
+    clean.startsWith('api/') || 
+    clean.startsWith('@') ||
+    clean.includes('.')
+  ) {
+    return false;
+  }
+  if (
+    RESERVED_SLUGS.has(clean) || 
+    clean === 'sign-in' || 
+    clean === 'sign-up' || 
+    clean === 'signup' || 
+    clean === 'login' || 
+    clean === 'paddlelog' ||
+    clean === 'share-target'
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export interface SlugValidationResult {
   isValid: boolean;
   cleanedSlug: string;

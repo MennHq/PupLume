@@ -9,7 +9,7 @@ const PUBLIC_DIR = path.resolve('public');
 async function main() {
   console.log('Generating PupLume Instagram Story & Preview Designs...');
 
-  const qrSvgRaw = await QRCode.toString('https://puplume.pet/pup/milo', {
+  const qrSvgRaw = await QRCode.toString('https://puplume.com/leo', {
     type: 'svg',
     margin: 1,
     color: {
@@ -172,7 +172,7 @@ async function main() {
       <circle cx="-195" cy="28" r="16" fill="#E1306C" />
       <rect x="-205" y="18" width="20" height="20" rx="5" fill="none" stroke="#FFFFFF" stroke-width="2.5" />
       <circle cx="-195" cy="28" r="4.5" fill="none" stroke="#FFFFFF" stroke-width="2" />
-      <text x="-165" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="18" fill="#2C211B">puplume.pet/pup/milo</text>
+      <text x="-165" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="18" fill="#2C211B">puplume.com/leo</text>
       <text x="145" y="36" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="16" fill="#8B5E3C">LINK ↗</text>
     </g>
 
