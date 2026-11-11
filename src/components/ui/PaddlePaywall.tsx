@@ -23,7 +23,59 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
   const [paddle, setPaddle] = useState<Paddle>();
   const [isVerifying, setIsVerifying] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+
   const confirmSuccessMutation = useMutation(api.users.confirmCheckoutSuccess);
+  const restoreAccessMutation = useMutation(api.users.restoreUserAccess);
+
+  // Auto-restore check on mount: If this user already paid, unlock immediately!
+  const hasAutoChecked = useRef(false);
+  useEffect(() => {
+    if (hasAutoChecked.current || !userEmail) return;
+    hasAutoChecked.current = true;
+
+    restoreAccessMutation({
+      userId: user?.id,
+      email: userEmail.trim().toLowerCase(),
+    })
+      .then((res) => {
+        if (res.restored) {
+          if (typeof window !== 'undefined') {
+            if (user?.id) localStorage.setItem(`puplume_access_${user.id}`, 'true');
+            localStorage.setItem(`puplume_access_${userEmail.trim().toLowerCase()}`, 'true');
+            window.location.reload();
+          }
+        }
+      })
+      .catch((err) => {
+        console.debug('[PaddlePaywall] Auto-check error:', err);
+      });
+  }, [userEmail, user?.id, restoreAccessMutation]);
+
+  const handleManualRestore = async () => {
+    setIsRestoring(true);
+    setRestoreMessage(null);
+    try {
+      const res = await restoreAccessMutation({
+        userId: user?.id,
+        email: userEmail.trim().toLowerCase(),
+      });
+      if (res.restored) {
+        if (typeof window !== 'undefined') {
+          if (user?.id) localStorage.setItem(`puplume_access_${user.id}`, 'true');
+          localStorage.setItem(`puplume_access_${userEmail.trim().toLowerCase()}`, 'true');
+          window.location.reload();
+        }
+      } else {
+        setRestoreMessage(res.message);
+      }
+    } catch (e: any) {
+      setRestoreMessage("Unable to verify purchase status. Please ensure your connection is active or contact support.");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
 
   const paddleRef = useRef<Paddle | undefined>(undefined);
   // Initialize Paddle.js
@@ -44,8 +96,9 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
           }
 
           // Save local access immediately so user is never locked out
-          if (typeof window !== 'undefined' && user?.id) {
-            localStorage.setItem(`puplume_access_${user.id}`, 'true');
+          if (typeof window !== 'undefined') {
+            if (user?.id) localStorage.setItem(`puplume_access_${user.id}`, 'true');
+            if (userEmail) localStorage.setItem(`puplume_access_${userEmail.trim().toLowerCase()}`, 'true');
           }
 
           const txnId = (data as any)?.data?.id || (data as any)?.data?.transaction_id;
@@ -53,7 +106,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
           // Instantly activate user access in Convex
           confirmSuccessMutation({
             userId: user?.id,
-            email: userEmail,
+            email: userEmail.trim().toLowerCase(),
             transactionId: txnId,
           })
             .then(() => {
@@ -207,7 +260,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
               size="lg" 
               className="w-full h-14 text-base font-bold flex items-center justify-center gap-2 shadow-xl shadow-amber-600/20"
               onClick={openCheckout}
-              disabled={isOpeningCheckout}
+              disabled={isOpeningCheckout || isRestoring}
             >
               {isOpeningCheckout ? (
                 <span className="flex items-center gap-2">
@@ -221,7 +274,32 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
                 </>
               )}
             </Button>
-            <p className="text-center text-xs text-[#9C928B] mt-4 font-medium">
+
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={handleManualRestore}
+                disabled={isRestoring}
+                className="text-xs font-semibold text-[#8B5E3C] hover:text-[#5F3E29] underline cursor-pointer disabled:opacity-50"
+              >
+                {isRestoring ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin inline" />
+                    Checking purchase in database...
+                  </span>
+                ) : (
+                  "Already paid? Restore Access"
+                )}
+              </button>
+            </div>
+
+            {restoreMessage && (
+              <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 text-center font-medium animate-in fade-in">
+                {restoreMessage}
+              </div>
+            )}
+
+            <p className="text-center text-xs text-[#9C928B] mt-3 font-medium">
               You are signed in as <span className="text-[#2C211B] font-bold">{userEmail}</span>
             </p>
             {import.meta.env.DEV && (

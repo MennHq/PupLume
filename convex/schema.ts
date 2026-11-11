@@ -11,9 +11,29 @@ export default defineSchema({
     createdAt: v.string(),
     hasAccess: v.optional(v.boolean()),
     subscriptionId: v.optional(v.string()),
+    paddleCustomerId: v.optional(v.string()),
+    paddleTransactionId: v.optional(v.string()),
+    paidAt: v.optional(v.string()),
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"]),
+
+  // Immutable, authoritative purchases ledger (Enterprise standard)
+  purchases: defineTable({
+    email: v.string(), // normalized lowercase
+    userId: v.optional(v.string()), // clerkId if known
+    transactionId: v.string(),
+    customerId: v.optional(v.string()),
+    status: v.string(), // "completed"
+    itemType: v.string(), // "lifetime_access" | "smart_tag_pass"
+    amount: v.optional(v.string()),
+    currency: v.optional(v.string()),
+    createdAt: v.string(),
+    rawData: v.optional(v.any()),
+  })
+    .index("by_email", ["email"])
+    .index("by_transaction_id", ["transactionId"])
+    .index("by_user_id", ["userId"]),
 
   webhookLogs: defineTable({
     action: v.string(),

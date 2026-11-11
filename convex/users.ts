@@ -2,6 +2,81 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAuthUser } from "./authHelper";
 
+/**
+ * Checks whether an account has lifetime access by querying all authoritative sources:
+ * 1. The immutable `purchases` ledger
+ * 2. Any completed transactions in `webhookLogs`
+ * 3. Any existing user document with `hasAccess === true`
+ */
+async function checkUserHasPurchased(
+  ctx: any,
+  email?: string,
+  clerkId?: string
+): Promise<{ hasAccess: boolean; transactionId?: string; customerId?: string }> {
+  const normEmail = email ? email.trim().toLowerCase() : null;
+
+  // 1. Check purchases ledger by email
+  if (normEmail) {
+    const purchaseByEmail = await ctx.db
+      .query("purchases")
+      .withIndex("by_email", (q: any) => q.eq("email", normEmail))
+      .first();
+
+    if (purchaseByEmail && purchaseByEmail.status === "completed") {
+      return {
+        hasAccess: true,
+        transactionId: purchaseByEmail.transactionId,
+        customerId: purchaseByEmail.customerId,
+      };
+    }
+  }
+
+  // 2. Check purchases ledger by userId
+  if (clerkId) {
+    const purchaseByUserId = await ctx.db
+      .query("purchases")
+      .withIndex("by_user_id", (q: any) => q.eq("userId", clerkId))
+      .first();
+
+    if (purchaseByUserId && purchaseByUserId.status === "completed") {
+      return {
+        hasAccess: true,
+        transactionId: purchaseByUserId.transactionId,
+        customerId: purchaseByUserId.customerId,
+      };
+    }
+  }
+
+  // 3. Fallback scan of recent webhook logs for completed Paddle transactions
+  if (normEmail) {
+    const recentLogs = await ctx.db
+      .query("webhookLogs")
+      .order("desc")
+      .take(50);
+
+    for (const log of recentLogs) {
+      if (log.action !== "PADDLE_transaction.completed") continue;
+      const customEmail = log.payload?.data?.custom_data?.email;
+      const customerEmail = log.payload?.data?.customer?.email;
+      const txnId = log.payload?.data?.id;
+      const custId = log.payload?.data?.customer_id;
+
+      if (
+        (customEmail && customEmail.trim().toLowerCase() === normEmail) ||
+        (customerEmail && customerEmail.trim().toLowerCase() === normEmail)
+      ) {
+        return {
+          hasAccess: true,
+          transactionId: txnId,
+          customerId: custId,
+        };
+      }
+    }
+  }
+
+  return { hasAccess: false };
+}
+
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
@@ -26,32 +101,69 @@ export const syncUser = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.clerkId);
+    const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
 
-    const existing = await ctx.db
+    // 1. Look up existing user by clerkId
+    let existing = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
       .first();
 
+    // 2. If not found by clerkId, search by email (case-insensitive) to prevent duplicate accounts
+    if (!existing && normEmail) {
+      const allUsers = await ctx.db.query("users").collect();
+      existing = allUsers.find(
+        (u) => u.email && u.email.trim().toLowerCase() === normEmail
+      ) || null;
+      if (existing) {
+        // Link this clerkId to the existing user profile
+        await ctx.db.patch(existing._id, { clerkId: userId });
+      }
+    }
+
+    // 3. Check purchase status across all authoritative ledgers
+    const purchaseStatus = await checkUserHasPurchased(ctx, normEmail, userId);
+    const hasAccess = Boolean(
+      existing?.hasAccess || purchaseStatus.hasAccess
+    );
+
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        email: args.email,
-        name: args.name,
-        avatarUrl: args.avatarUrl,
-      });
+      const patchData: Record<string, any> = {
+        email: normEmail || existing.email,
+        name: args.name || existing.name,
+        avatarUrl: args.avatarUrl || existing.avatarUrl,
+      };
+
+      if (hasAccess && !existing.hasAccess) {
+        patchData.hasAccess = true;
+        if (purchaseStatus.transactionId) {
+          patchData.subscriptionId = purchaseStatus.transactionId;
+        }
+        if (purchaseStatus.customerId) {
+          patchData.paddleCustomerId = purchaseStatus.customerId;
+        }
+        patchData.paidAt = existing.paidAt || new Date().toISOString();
+      }
+
+      await ctx.db.patch(existing._id, patchData);
       return existing._id;
     }
 
     return await ctx.db.insert("users", {
       clerkId: userId,
-      email: args.email,
+      email: normEmail,
       name: args.name,
       avatarUrl: args.avatarUrl,
       createdAt: new Date().toISOString(),
+      hasAccess,
+      subscriptionId: purchaseStatus.transactionId,
+      paddleCustomerId: purchaseStatus.customerId,
+      paidAt: hasAccess ? new Date().toISOString() : undefined,
     });
   },
 });
 
-// Developer bypass - converted to internalMutation so it CANNOT be called from the browser/client API
+// Developer bypass - internalMutation so it CANNOT be called from untrusted clients
 export const unlockDeveloperAccess = internalMutation({
   args: {
     userId: v.optional(v.string()),
@@ -59,7 +171,8 @@ export const unlockDeveloperAccess = internalMutation({
   },
   handler: async (ctx, args) => {
     const clerkId = args.userId;
-    if (!clerkId && !args.email) return false;
+    const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
+    if (!clerkId && !normEmail) return false;
 
     let user = null;
     if (clerkId) {
@@ -68,22 +181,23 @@ export const unlockDeveloperAccess = internalMutation({
         .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
         .first();
     }
-    if (!user && args.email) {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", args.email))
-        .first();
+    if (!user && normEmail) {
+      const allUsers = await ctx.db.query("users").collect();
+      user = allUsers.find(
+        (u) => u.email && u.email.trim().toLowerCase() === normEmail
+      ) || null;
     }
 
     if (user) {
-      await ctx.db.patch(user._id, { hasAccess: true });
+      await ctx.db.patch(user._id, { hasAccess: true, paidAt: new Date().toISOString() });
       return true;
     } else if (clerkId) {
       await ctx.db.insert("users", {
         clerkId,
-        email: args.email,
+        email: normEmail,
         createdAt: new Date().toISOString(),
         hasAccess: true,
+        paidAt: new Date().toISOString(),
       });
       return true;
     }
@@ -91,25 +205,85 @@ export const unlockDeveloperAccess = internalMutation({
   }
 });
 
-// Paddle Webhook internal mutation to grant access by customer email (Authoritative source)
+/**
+ * Paddle Webhook internal mutation to grant access by customer email.
+ * This is an authoritative source. It records the purchase in `purchases`
+ * and updates or pre-provisions the user account.
+ */
 export const unlockPro = internalMutation({
-  args: { email: v.string() },
+  args: {
+    email: v.string(),
+    transactionId: v.optional(v.string()),
+    customerId: v.optional(v.string()),
+    amount: v.optional(v.string()),
+    currency: v.optional(v.string()),
+    rawData: v.optional(v.any()),
+  },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
+    const normEmail = args.email.trim().toLowerCase();
 
-    if (user) {
-      await ctx.db.patch(user._id, { hasAccess: true });
+    // 1. Record in immutable purchases ledger (idempotent)
+    if (args.transactionId) {
+      const existingPurchase = await ctx.db
+        .query("purchases")
+        .withIndex("by_transaction_id", (q) => q.eq("transactionId", args.transactionId!))
+        .first();
+
+      if (!existingPurchase) {
+        await ctx.db.insert("purchases", {
+          email: normEmail,
+          transactionId: args.transactionId,
+          customerId: args.customerId,
+          status: "completed",
+          itemType: "lifetime_access",
+          amount: args.amount,
+          currency: args.currency,
+          createdAt: new Date().toISOString(),
+          rawData: args.rawData,
+        });
+      }
+    }
+
+    // 2. Find any matching users by case-insensitive email
+    const allUsers = await ctx.db.query("users").collect();
+    const matchingUsers = allUsers.filter(
+      (u) => u.email && u.email.trim().toLowerCase() === normEmail
+    );
+
+    if (matchingUsers.length > 0) {
+      for (const user of matchingUsers) {
+        await ctx.db.patch(user._id, {
+          hasAccess: true,
+          subscriptionId: args.transactionId || user.subscriptionId,
+          paddleCustomerId: args.customerId || user.paddleCustomerId,
+          paddleTransactionId: args.transactionId || user.paddleTransactionId,
+          paidAt: user.paidAt || new Date().toISOString(),
+        });
+      }
       return true;
     }
-    return false;
+
+    // 3. User hasn't signed up in Clerk yet. Pre-provision the account so when they sign in,
+    // they get immediate premium access without ever seeing the paywall!
+    await ctx.db.insert("users", {
+      clerkId: "pending_" + Date.now(),
+      email: normEmail,
+      createdAt: new Date().toISOString(),
+      hasAccess: true,
+      subscriptionId: args.transactionId,
+      paddleCustomerId: args.customerId,
+      paddleTransactionId: args.transactionId,
+      paidAt: new Date().toISOString(),
+    });
+
+    return true;
   },
 });
 
-// Client-side confirmation after Paddle checkout completion
-// Strictly requires authentication and activates user access in Convex
+/**
+ * Client-side confirmation after Paddle checkout completion.
+ * Instantly records the purchase in the database and updates user access.
+ */
 export const confirmCheckoutSuccess = mutation({
   args: {
     userId: v.optional(v.string()),
@@ -118,53 +292,179 @@ export const confirmCheckoutSuccess = mutation({
   },
   handler: async (ctx, args) => {
     const clerkId = await requireAuthUser(ctx, args.userId);
+    const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
 
+    // 1. Record in purchases ledger if transactionId is present
+    if (args.transactionId && normEmail) {
+      const existingPurchase = await ctx.db
+        .query("purchases")
+        .withIndex("by_transaction_id", (q) => q.eq("transactionId", args.transactionId!))
+        .first();
+
+      if (!existingPurchase) {
+        await ctx.db.insert("purchases", {
+          email: normEmail,
+          userId: clerkId,
+          transactionId: args.transactionId,
+          status: "completed",
+          itemType: "lifetime_access",
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    // 2. Find user by clerkId or email
     let user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
-    if (user?.hasAccess) {
-      return true;
+    if (!user && normEmail) {
+      const allUsers = await ctx.db.query("users").collect();
+      user = allUsers.find(
+        (u) => u.email && u.email.trim().toLowerCase() === normEmail
+      ) || null;
     }
 
-    const email = args.email || user?.email;
+    if (user) {
+      await ctx.db.patch(user._id, {
+        clerkId,
+        hasAccess: true,
+        ...(normEmail ? { email: normEmail } : {}),
+        ...(args.transactionId ? { subscriptionId: args.transactionId, paddleTransactionId: args.transactionId } : {}),
+        paidAt: user.paidAt || new Date().toISOString(),
+      });
+      return true;
+    } else {
+      await ctx.db.insert("users", {
+        clerkId,
+        email: normEmail,
+        createdAt: new Date().toISOString(),
+        hasAccess: true,
+        subscriptionId: args.transactionId,
+        paddleTransactionId: args.transactionId,
+        paidAt: new Date().toISOString(),
+      });
+      return true;
+    }
+  },
+});
 
-    // Look for verified completed transaction webhook log for this user's email
-    const recentLogs = await ctx.db
-      .query("webhookLogs")
-      .order("desc")
-      .take(25);
+/**
+ * Explicit "Restore Purchases" action.
+ * Allows a user to restore access on any device or after clearing browser data.
+ */
+export const restoreUserAccess = mutation({
+  args: {
+    userId: v.optional(v.string()),
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const clerkId = await requireAuthUser(ctx, args.userId);
+    const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
 
-    const isVerifiedPayment = recentLogs.some((log) => {
-      if (log.action !== "PADDLE_transaction.completed") return false;
-      const customEmail = log.payload?.data?.custom_data?.email;
-      const customerEmail = log.payload?.data?.customer?.email;
-      return (
-        (customEmail && email && customEmail.toLowerCase() === email.toLowerCase()) ||
-        (customerEmail && email && customerEmail.toLowerCase() === email.toLowerCase())
-      );
-    });
+    const purchaseStatus = await checkUserHasPurchased(ctx, normEmail, clerkId);
 
-    // Grant access if verified webhook arrived OR authenticated user completed checkout with a transaction ID / email
-    if (isVerifiedPayment || args.transactionId || email) {
+    if (purchaseStatus.hasAccess) {
+      let user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
+        .first();
+
+      if (!user && normEmail) {
+        const allUsers = await ctx.db.query("users").collect();
+        user = allUsers.find((u) => u.email && u.email.trim().toLowerCase() === normEmail) || null;
+      }
+
       if (user) {
         await ctx.db.patch(user._id, {
+          clerkId,
           hasAccess: true,
-          ...(args.transactionId ? { subscriptionId: args.transactionId } : {}),
+          subscriptionId: purchaseStatus.transactionId || user.subscriptionId,
+          paddleCustomerId: purchaseStatus.customerId || user.paddleCustomerId,
+          paidAt: user.paidAt || new Date().toISOString(),
         });
       } else {
         await ctx.db.insert("users", {
           clerkId,
-          email,
+          email: normEmail,
           createdAt: new Date().toISOString(),
           hasAccess: true,
-          subscriptionId: args.transactionId,
+          subscriptionId: purchaseStatus.transactionId,
+          paddleCustomerId: purchaseStatus.customerId,
+          paidAt: new Date().toISOString(),
         });
       }
-      return true;
+
+      return {
+        success: true,
+        restored: true,
+        message: "Lifetime access confirmed and restored! Enjoy PupLume.",
+      };
     }
 
-    return false;
+    return {
+      success: false,
+      restored: false,
+      message: "No purchase found for this account. If you believe this is an error, please contact support with your receipt.",
+    };
+  },
+});
+
+/**
+ * Migration helper to backfill past completed transactions from webhookLogs into purchases
+ */
+export const backfillPurchasesFromLogs = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const logs = await ctx.db.query("webhookLogs").collect();
+    let migrated = 0;
+
+    for (const log of logs) {
+      if (log.action !== "PADDLE_transaction.completed") continue;
+      const data = log.payload?.data;
+      if (!data) continue;
+
+      const txnId = data.id;
+      const email = (data.custom_data?.email || data.customer?.email || "").trim().toLowerCase();
+      if (!txnId || !email) continue;
+
+      // Check if already in purchases
+      const existing = await ctx.db
+        .query("purchases")
+        .withIndex("by_transaction_id", (q) => q.eq("transactionId", txnId))
+        .first();
+
+      if (!existing) {
+        await ctx.db.insert("purchases", {
+          email,
+          transactionId: txnId,
+          customerId: data.customer_id,
+          status: "completed",
+          itemType: "lifetime_access",
+          amount: data.details?.totals?.total || "2499",
+          currency: data.currency_code || "USD",
+          createdAt: data.created_at || log.processedAt || new Date().toISOString(),
+          rawData: log.payload,
+        });
+        migrated++;
+      }
+
+      // Also ensure matching users have hasAccess: true
+      const allUsers = await ctx.db.query("users").collect();
+      const matched = allUsers.filter((u) => u.email && u.email.trim().toLowerCase() === email);
+      for (const u of matched) {
+        if (!u.hasAccess || !u.subscriptionId) {
+          await ctx.db.patch(u._id, {
+            hasAccess: true,
+            subscriptionId: txnId,
+            paddleCustomerId: data.customer_id,
+            paidAt: u.paidAt || data.created_at || new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    return { migrated };
   },
 });

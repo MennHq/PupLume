@@ -103,9 +103,14 @@ http.route({
           console.log(`[Paddle] Unlocked Smart Tag Pass for puppy: ${customData.puppyName || customData.puppyId}`);
         } else if (email) {
           await ctx.runMutation(internal.users.unlockPro, {
-            email: email
+            email: email,
+            transactionId: parsedEvent.data?.id,
+            customerId: parsedEvent.data?.customer_id || parsedEvent.data?.customer?.id,
+            amount: String(parsedEvent.data?.details?.totals?.total || parsedEvent.data?.details?.grand_total || "2499"),
+            currency: parsedEvent.data?.currency_code || "USD",
+            rawData: parsedEvent.data,
           });
-          console.log(`[Paddle] Unlocked user: ${email}`);
+          console.log(`[Paddle] Unlocked user: ${email} (txn: ${parsedEvent.data?.id})`);
         } else {
           console.error("[Paddle] No email or puppy found in custom_data!");
         }

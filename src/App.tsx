@@ -493,6 +493,10 @@ export default function App() {
     if (cloudData && user?.id) {
       if (cloudData.user?.hasAccess && typeof window !== 'undefined') {
         localStorage.setItem(`puplume_access_${user.id}`, 'true');
+        const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+        if (email) {
+          localStorage.setItem(`puplume_access_${email}`, 'true');
+        }
       }
       if (cloudData.puppies && cloudData.puppies.length > 0) {
         storage.hydrateFromConvex(cloudData);
@@ -659,13 +663,19 @@ export default function App() {
   }
 
   // 3. Waiting for user's cloud data to load before making routing decision
-  if (cloudData === undefined && !puppy) {
+  const currentUserEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+  const hasLocalAccess = typeof window !== 'undefined' && (
+    (user?.id && localStorage.getItem(`puplume_access_${user.id}`) === 'true') ||
+    (currentUserEmail && localStorage.getItem(`puplume_access_${currentUserEmail}`) === 'true')
+  );
+
+  if (isSignedIn && (cloudData === undefined || (cloudData === null && !hasLocalAccess)) && !puppy) {
     return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading ${currentView}...`} />;
   }
 
   // 4. Paddle Paywall Gate
-  const hasLocalAccess = typeof window !== 'undefined' && user?.id && localStorage.getItem(`puplume_access_${user.id}`) === 'true';
-  if (cloudData !== undefined && !cloudData?.user?.hasAccess && !hasLocalAccess) {
+  const isPaidUser = Boolean(cloudData?.user?.hasAccess || hasLocalAccess);
+  if (isSignedIn && cloudData !== undefined && cloudData !== null && !isPaidUser) {
     return <PaddlePaywall onSignOut={signOut} />;
   }
 

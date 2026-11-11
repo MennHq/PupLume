@@ -12,7 +12,33 @@ export const getUserAppData = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return null;
 
-    const user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).first();
+    let user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).first();
+
+    // If not found by clerkId, search by email or pending accounts to link access
+    if (!user) {
+      const allUsers = await ctx.db.query('users').collect();
+      user = allUsers.find(u => u.clerkId === userId) || null;
+    }
+
+    // Enterprise entitlement verification: check purchases and webhook logs
+    if (user && !user.hasAccess && user.email) {
+      const normEmail = user.email.trim().toLowerCase();
+      const purchase = await ctx.db.query('purchases').withIndex('by_email', q => q.eq('email', normEmail)).first();
+      if (purchase && purchase.status === 'completed') {
+        user = { ...user, hasAccess: true, subscriptionId: purchase.transactionId };
+      } else {
+        const recentLogs = await ctx.db.query('webhookLogs').order('desc').take(50);
+        const logMatch = recentLogs.find(l => {
+          if (l.action !== 'PADDLE_transaction.completed') return false;
+          const e1 = l.payload?.data?.custom_data?.email;
+          const e2 = l.payload?.data?.customer?.email;
+          return (e1 && e1.trim().toLowerCase() === normEmail) || (e2 && e2.trim().toLowerCase() === normEmail);
+        });
+        if (logMatch) {
+          user = { ...user, hasAccess: true, subscriptionId: logMatch.payload?.data?.id };
+        }
+      }
+    }
 
     const [
       puppies, tasks, pottyLogs, feedingLogs, sleepLogs, walkLogs, vaccinations, medications, appointments, expenses, documents, behaviorLogs, groomingTasks, socialization, journalEntries, trainingLessons, notifications, familyMembers, memories, settings
