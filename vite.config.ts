@@ -252,7 +252,7 @@ export default defineConfig(() => {
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           importScripts: ['/sw-custom.js'],
-          navigateFallbackDenylist: [/^\/api\//, /^\/share-target/],
+          navigateFallbackDenylist: [/^\/api\//, /^\/share-target/, /^\/assets\//, /\.[a-zA-Z0-9]+$/],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {

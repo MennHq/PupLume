@@ -5,6 +5,30 @@ import { AppProviders } from './components/providers/AppProviders.tsx';
 import './index.css';
 import posthog from 'posthog-js';
 
+// Global handler for dynamic module import errors (Vite stale chunk protection)
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault(); // Suppress the unhandled rejection in browser console
+    const lastReload = sessionStorage.getItem('puplume_vite_preload_reload');
+    const now = Date.now();
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem('puplume_vite_preload_reload', now.toString());
+      window.location.reload();
+    }
+  });
+
+  // Seamless update when service worker installs a new build
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  }
+}
+
 // Defer PostHog initialization so it does not block the main thread during initial render
 const initPostHog = () => {
   if ((posthog as any).__loaded) return;

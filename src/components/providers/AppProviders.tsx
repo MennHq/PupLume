@@ -23,15 +23,45 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
 
   render() {
     if (this.state.hasError) {
+      const errMsg = String(this.state.error?.message || this.state.error || '');
+      const isChunkError =
+        errMsg.includes('Failed to fetch dynamically imported module') ||
+        errMsg.includes('Loading chunk') ||
+        errMsg.includes('error loading dynamically imported module') ||
+        errMsg.includes('Importing a module script failed') ||
+        errMsg.includes('error loading module');
+
+      // Auto-recover from deployment chunk mismatch without showing an error screen
+      if (isChunkError && typeof window !== 'undefined') {
+        const lastReload = sessionStorage.getItem('puplume_eb_reload');
+        const now = Date.now();
+        if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+          sessionStorage.setItem('puplume_eb_reload', now.toString());
+          window.location.reload();
+          return (
+            <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm font-bold text-[#8B5E3C]">Updating PupLume to latest version...</p>
+              </div>
+            </div>
+          );
+        }
+      }
+
       return (
         <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
           <div className="max-w-md bg-white p-8 rounded-3xl border border-[#E8DDD3] shadow-sm flex flex-col items-center gap-4">
             <span className="text-4xl">🐾</span>
-            <h2 className="text-xl font-bold text-[#2C211B]">Something went wrong</h2>
+            <h2 className="text-xl font-bold text-[#2C211B]">
+              {isChunkError ? "New Update Available" : "Something went wrong"}
+            </h2>
             <p className="text-xs text-[#766A63] leading-relaxed">
-              We encountered a minor hiccup loading your puppy data. Please reload the page to reconnect.
+              {isChunkError 
+                ? "A new version of PupLume has been released. Tap reload to update."
+                : "We encountered a minor hiccup loading your puppy data. Please reload the page to reconnect."}
             </p>
-            {this.state.error && (
+            {this.state.error && !isChunkError && (
               <details className="w-full text-left bg-red-50/80 border border-red-200/60 rounded-xl p-3 text-[11px] text-red-700">
                 <summary className="cursor-pointer font-bold select-none text-red-800">Error Details</summary>
                 <div className="mt-2 font-mono whitespace-pre-wrap break-words">{this.state.error.message || String(this.state.error)}</div>
