@@ -116,8 +116,19 @@ export const syncUser = mutation({
         (u) => u.email && u.email.trim().toLowerCase() === normEmail
       ) || null;
       if (existing) {
+        const oldClerkId = existing.clerkId;
         // Link this clerkId to the existing user profile
         await ctx.db.patch(existing._id, { clerkId: userId });
+        // Re-link any puppies belonging to the old clerk ID
+        if (oldClerkId && oldClerkId !== userId) {
+          const oldPuppies = await ctx.db
+            .query("puppies")
+            .withIndex("by_user", (q) => q.eq("userId", oldClerkId))
+            .collect();
+          for (const pup of oldPuppies) {
+            await ctx.db.patch(pup._id, { userId });
+          }
+        }
       }
     }
 
@@ -129,18 +140,19 @@ export const syncUser = mutation({
 
     if (existing) {
       const patchData: Record<string, any> = {
+        clerkId: userId,
         email: normEmail || existing.email,
         name: args.name || existing.name,
         avatarUrl: args.avatarUrl || existing.avatarUrl,
       };
 
-      if (hasAccess && !existing.hasAccess) {
+      if (hasAccess) {
         patchData.hasAccess = true;
-        if (purchaseStatus.transactionId) {
-          patchData.subscriptionId = purchaseStatus.transactionId;
+        if (purchaseStatus.transactionId || existing.subscriptionId) {
+          patchData.subscriptionId = purchaseStatus.transactionId || existing.subscriptionId;
         }
-        if (purchaseStatus.customerId) {
-          patchData.paddleCustomerId = purchaseStatus.customerId;
+        if (purchaseStatus.customerId || existing.paddleCustomerId) {
+          patchData.paddleCustomerId = purchaseStatus.customerId || existing.paddleCustomerId;
         }
         patchData.paidAt = existing.paidAt || new Date().toISOString();
       }

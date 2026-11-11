@@ -8,6 +8,11 @@ export default defineSchema({
     email: v.optional(v.string()),
     name: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
+    avatarPublicId: v.optional(v.string()),
+    avatarFormat: v.optional(v.string()),
+    avatarSize: v.optional(v.number()),
+    avatarWidth: v.optional(v.number()),
+    avatarHeight: v.optional(v.number()),
     createdAt: v.string(),
     hasAccess: v.optional(v.boolean()),
     subscriptionId: v.optional(v.string()),
@@ -17,6 +22,23 @@ export default defineSchema({
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"]),
+
+  // Tracked optimized image uploads
+  images: defineTable({
+    userId: v.string(),
+    targetType: v.string(), // "puppy_profile" | "user_avatar" | "journal" | "document" | "general"
+    targetId: v.optional(v.string()),
+    url: v.string(),
+    publicId: v.string(),
+    format: v.string(), // "webp"
+    size: v.number(),
+    width: v.number(),
+    height: v.number(),
+    uploadedAt: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_target", ["targetType", "targetId"])
+    .index("by_public_id", ["publicId"]),
 
   // Immutable, authoritative purchases ledger (Enterprise standard)
   purchases: defineTable({
@@ -52,6 +74,11 @@ export default defineSchema({
     sex: v.string(),
     weightLbs: v.number(),
     photoUrl: v.string(),
+    photoPublicId: v.optional(v.string()),
+    photoFormat: v.optional(v.string()),
+    photoSize: v.optional(v.number()),
+    photoWidth: v.optional(v.number()),
+    photoHeight: v.optional(v.number()),
     temperament: v.string(),
     dietaryRestrictions: v.optional(v.string()),
     microchipNumber: v.optional(v.string()),
@@ -71,6 +98,7 @@ export default defineSchema({
     emergencyNotes: v.optional(v.string()),
     isLost: v.optional(v.boolean()),
     rewardAmount: v.optional(v.string()),
+    slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
@@ -83,7 +111,8 @@ export default defineSchema({
       value: v.string(),
       label: v.optional(v.string()),
     }))),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"])
+    .index("by_slug", ["slug"]),
 
   // User Settings & Preferences
   userSettings: defineTable({
@@ -335,6 +364,7 @@ export default defineSchema({
   // Notifications
   notifications: defineTable({
     userId: v.string(),
+    puppyId: v.optional(v.string()),
     title: v.string(),
     message: v.string(),
     category: v.string(),
@@ -377,6 +407,17 @@ export default defineSchema({
     fact: v.string(),
     category: v.optional(v.string()), // e.g. behavior, medical, preference
     createdAt: v.string(),
+  }).index("by_user", ["userId"]),
+
+  // Email delivery logs
+  emailLogs: defineTable({
+    userId: v.string(),
+    emailType: v.string(),
+    recipientEmail: v.string(),
+    subject: v.string(),
+    resendId: v.optional(v.string()),
+    error: v.optional(v.string()),
+    sentAt: v.string(),
   }).index("by_user", ["userId"]),
 });
 

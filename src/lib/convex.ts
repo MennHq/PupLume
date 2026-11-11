@@ -82,6 +82,7 @@ export async function syncPuppyToConvex(
     emergencyNotes: puppy.emergencyNotes,
     isLost: puppy.isLost,
     rewardAmount: puppy.rewardAmount,
+    slug: puppy.slug,
     hasSmartTagPass: puppy.hasSmartTagPass,
     ownerInstagram: puppy.ownerInstagram,
     ownerFacebook: puppy.ownerFacebook,

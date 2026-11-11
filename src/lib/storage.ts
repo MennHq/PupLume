@@ -445,6 +445,7 @@ class StorageManager {
             emergencyNotes: p.emergencyNotes,
             isLost: p.isLost ?? false,
             rewardAmount: p.rewardAmount,
+            slug: p.slug,
             hasSmartTagPass: hasPass,
             ownerInstagram: p.ownerInstagram,
             ownerFacebook: p.ownerFacebook,

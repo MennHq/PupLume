@@ -35,15 +35,31 @@ export function lazyWithRetry<T extends ComponentType<any>>(
               }, interval);
             } else if (isChunkLoadError && typeof window !== 'undefined') {
               // The server deployed a new release and the old chunk hash was purged.
-              // Auto-reload to seamlessly fetch the latest version without showing an error!
+              // Clear any cached SW assets and reload with cache-buster.
+              try {
+                if ('caches' in window) {
+                  caches.keys().then((names) => {
+                    names.forEach((name) => {
+                      if (name.includes('workbox') || name.includes('precache')) {
+                        caches.delete(name);
+                      }
+                    });
+                  });
+                }
+              } catch (_) {}
+
               const lastReload = sessionStorage.getItem('puplume_chunk_reload');
               const now = Date.now();
-              if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+              if (!lastReload || now - parseInt(lastReload, 10) > 15000) {
                 sessionStorage.setItem('puplume_chunk_reload', now.toString());
-                window.location.reload();
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.set('_v', now.toString());
+                window.location.replace(cleanUrl.toString());
                 return;
               }
-              reject(error);
+              // Even if reload occurred recently, don't show the crash screen immediately
+              window.location.reload();
+              return;
             } else {
               reject(error);
             }

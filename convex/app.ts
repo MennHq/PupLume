@@ -5,6 +5,7 @@ import { requireAuthUser, getAuthUser } from './authHelper';
 export const getUserAppData = query({
   args: { 
     userId: v.optional(v.string()),
+    userEmail: v.optional(v.string()),
     puppyId: v.optional(v.string())
   },
   handler: async (ctx, args) => {
@@ -12,32 +13,66 @@ export const getUserAppData = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return null;
 
+    const normEmail = args.userEmail ? args.userEmail.trim().toLowerCase() : undefined;
+
     let user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).first();
 
-    // If not found by clerkId, search by email or pending accounts to link access
-    if (!user) {
+    // If not found by clerkId, search by email to match any existing account
+    if (!user && normEmail) {
       const allUsers = await ctx.db.query('users').collect();
-      user = allUsers.find(u => u.clerkId === userId) || null;
+      user = allUsers.find(u => u.email && u.email.trim().toLowerCase() === normEmail) || null;
     }
 
-    // Enterprise entitlement verification: check purchases and webhook logs
-    if (user && !user.hasAccess && user.email) {
-      const normEmail = user.email.trim().toLowerCase();
-      const purchase = await ctx.db.query('purchases').withIndex('by_email', q => q.eq('email', normEmail)).first();
+    // Enterprise entitlement verification: check purchases ledger and webhook logs
+    const effectiveEmail = normEmail || (user?.email ? user.email.trim().toLowerCase() : undefined);
+    let hasAuthoritativePurchase = false;
+    let purchaseTxnId: string | undefined = undefined;
+
+    if (effectiveEmail) {
+      const purchase = await ctx.db.query('purchases').withIndex('by_email', q => q.eq('email', effectiveEmail)).first();
       if (purchase && purchase.status === 'completed') {
-        user = { ...user, hasAccess: true, subscriptionId: purchase.transactionId };
+        hasAuthoritativePurchase = true;
+        purchaseTxnId = purchase.transactionId;
       } else {
         const recentLogs = await ctx.db.query('webhookLogs').order('desc').take(50);
         const logMatch = recentLogs.find(l => {
           if (l.action !== 'PADDLE_transaction.completed') return false;
           const e1 = l.payload?.data?.custom_data?.email;
           const e2 = l.payload?.data?.customer?.email;
-          return (e1 && e1.trim().toLowerCase() === normEmail) || (e2 && e2.trim().toLowerCase() === normEmail);
+          return (e1 && e1.trim().toLowerCase() === effectiveEmail) || (e2 && e2.trim().toLowerCase() === effectiveEmail);
         });
         if (logMatch) {
-          user = { ...user, hasAccess: true, subscriptionId: logMatch.payload?.data?.id };
+          hasAuthoritativePurchase = true;
+          purchaseTxnId = logMatch.payload?.data?.id;
         }
       }
+    }
+
+    if (!hasAuthoritativePurchase) {
+      const purchaseByUserId = await ctx.db.query('purchases').withIndex('by_user_id', q => q.eq('userId', userId)).first();
+      if (purchaseByUserId && purchaseByUserId.status === 'completed') {
+        hasAuthoritativePurchase = true;
+        purchaseTxnId = purchaseByUserId.transactionId;
+      }
+    }
+
+    if (user) {
+      if (hasAuthoritativePurchase || user.hasAccess) {
+        user = {
+          ...user,
+          hasAccess: true,
+          subscriptionId: purchaseTxnId || user.subscriptionId,
+        };
+      }
+    } else if (hasAuthoritativePurchase) {
+      // User paid, but user record is still pending sync. Provide synthetic user with full access
+      user = {
+        clerkId: userId,
+        email: effectiveEmail,
+        hasAccess: true,
+        subscriptionId: purchaseTxnId,
+        createdAt: new Date().toISOString(),
+      } as any;
     }
 
     const [

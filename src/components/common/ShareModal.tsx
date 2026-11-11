@@ -189,7 +189,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
   // 1. Direct Instagram App Open (Bypasses the OS Multi-App Share Sheet!)
   const handleOpenInstagramDirect = async () => {
-    nativeBridge.haptics.heavy();
+    nativeBridge.haptics.medium();
     try {
       // 1. Copy link to clipboard
       await copyToClipboard(url);
@@ -278,7 +278,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     setIsDownloadingCard(true);
 
     try {
-      const slug = puppy.tagId || (puppy as any).slug || puppy.name?.toLowerCase().trim() || 'puppy';
+      const slug = (puppy as any).slug || puppy.id || puppy.name?.toLowerCase().trim() || 'puppy';
       // Fetch dynamic high-res passport card with real scannable QR code from marketing engine
       const dynamicCardUrl = `https://petttttttpuplume.vercel.app/api/og/pup?slug=${encodeURIComponent(slug)}`;
       const fallbackLocalUrl = puppy.name?.toLowerCase() === 'graxzo' ? '/og-graxzo.png?v=3' : '/og-pup-preview.png?v=3';
@@ -288,7 +288,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       if (!response || !response.ok) {
         response = await fetch(fallbackLocalUrl).catch(() => null);
       }
-      if (response.ok) {
+      if (response && response.ok) {
         const blob = await response.blob();
         triggerDownload(blob, filename);
         showToast(`✓ ${puppy.name}'s passport card downloaded!`);

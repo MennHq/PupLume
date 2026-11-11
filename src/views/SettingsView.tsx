@@ -893,8 +893,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             }}
             folder="puplume/puppies"
             label={`Upload New Photo for ${puppy.name}`}
-            sublabel="Upload new pet picture • Automatically synced to database"
+            sublabel="JPG, PNG, or WebP (Max 10MB)"
             variant="card"
+            targetType="puppy_profile"
+            targetId={puppy.id}
+            enableCrop={true}
           />
         </div>
       </div>

@@ -9,23 +9,25 @@ import { storage } from './lib/storage';
 import { AppLayout } from './components/layout/AppLayout';
 import { PupLumeLogo } from './components/common/PupLumeLogo';
 
-// Views
+// Core Views (bundled for zero latency and zero stale-chunk 404 errors)
 import { HomeScreen } from './views/HomeScreen';
+import { OnboardingWizard } from './views/OnboardingWizard';
+import { TasksView } from './views/TasksView';
+import { AIAssistantView } from './views/AIAssistantView';
+import { TrainingAcademyView } from './views/TrainingAcademyView';
+import { PottyTrackerView } from './views/PottyTrackerView';
+import { HealthCenterView } from './views/HealthCenterView';
+import { ExpensesView } from './views/ExpensesView';
+import { DocumentVaultView } from './views/DocumentVaultView';
+import { SocializationGroomingView } from './views/SocializationGroomingView';
+import { PuppyJournalView } from './views/PuppyJournalView';
+import { PuppyProfileView } from './views/PuppyProfileView';
+import { FamilySharingView } from './views/FamilySharingView';
+import { SettingsView } from './views/SettingsView';
+import { MoreMenuView } from './views/MoreMenuView';
+
+// Secondary / External Views (lazy loaded with retry protection)
 import { lazyWithRetry } from './lib/lazyWithRetry';
-const OnboardingWizard = lazyWithRetry(() => import('./views/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
-const TasksView = lazyWithRetry(() => import('./views/TasksView').then(m => ({ default: m.TasksView })));
-const AIAssistantView = lazyWithRetry(() => import('./views/AIAssistantView').then(m => ({ default: m.AIAssistantView })));
-const TrainingAcademyView = lazyWithRetry(() => import('./views/TrainingAcademyView').then(m => ({ default: m.TrainingAcademyView })));
-const PottyTrackerView = lazyWithRetry(() => import('./views/PottyTrackerView').then(m => ({ default: m.PottyTrackerView })));
-const HealthCenterView = lazyWithRetry(() => import('./views/HealthCenterView').then(m => ({ default: m.HealthCenterView })));
-const ExpensesView = lazyWithRetry(() => import('./views/ExpensesView').then(m => ({ default: m.ExpensesView })));
-const DocumentVaultView = lazyWithRetry(() => import('./views/DocumentVaultView').then(m => ({ default: m.DocumentVaultView })));
-const SocializationGroomingView = lazyWithRetry(() => import('./views/SocializationGroomingView').then(m => ({ default: m.SocializationGroomingView })));
-const PuppyJournalView = lazyWithRetry(() => import('./views/PuppyJournalView').then(m => ({ default: m.PuppyJournalView })));
-const PuppyProfileView = lazyWithRetry(() => import('./views/PuppyProfileView').then(m => ({ default: m.PuppyProfileView })));
-const FamilySharingView = lazyWithRetry(() => import('./views/FamilySharingView').then(m => ({ default: m.FamilySharingView })));
-const SettingsView = lazyWithRetry(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
-const MoreMenuView = lazyWithRetry(() => import('./views/MoreMenuView').then(m => ({ default: m.MoreMenuView })));
 const PublicPupSafetyPage = lazyWithRetry(() => import('./views/PublicPupSafetyPage').then(m => ({ default: m.PublicPupSafetyPage })));
 const PaddleLogPage = lazyWithRetry(() => import('./views/PaddleLogPage').then(m => ({ default: m.PaddleLogPage })));
 const RecapView = lazyWithRetry(() => import('./views/RecapView').then(m => ({ default: m.RecapView })));
@@ -106,6 +108,35 @@ const VALID_VIEWS = new Set([
   'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms',
   'auth', 'signin'
 ]);
+
+export function isPublicPuppyPath(pathname: string): boolean {
+  if (!pathname) return false;
+  const clean = pathname.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
+  if (!clean) return false;
+  if (clean.startsWith('pup/') || clean === 'pup' || clean.startsWith('safety/') || clean === 'safety') {
+    return true;
+  }
+  if (
+    clean.startsWith('assets/') || 
+    clean.startsWith('api/') || 
+    clean.startsWith('@') ||
+    clean.includes('.')
+  ) {
+    return false;
+  }
+  if (
+    VALID_VIEWS.has(clean) || 
+    clean === 'sign-in' || 
+    clean === 'sign-up' || 
+    clean === 'signup' || 
+    clean === 'login' || 
+    clean === 'paddlelog' ||
+    clean === 'share-target'
+  ) {
+    return false;
+  }
+  return true;
+}
 
 function sanitizeView(view: string | null | undefined): string {
   if (!view) return 'home';
@@ -268,18 +299,7 @@ export default function App() {
   const [transitionSeconds, setTransitionSeconds] = useState(0.0);
   const loadedViewsRef = React.useRef<Set<string>>(new Set());
 
-  // Preload tab code in idle time so switching between them is 100% loaded and instant
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const handle = (window as any).requestIdleCallback(() => {
-        import('./views/TasksView');
-        import('./views/AIAssistantView');
-        import('./views/TrainingAcademyView');
-        import('./views/MoreMenuView');
-      });
-      return () => (window as any).cancelIdleCallback(handle);
-    }
-  }, []);
+  // Core tabs are bundled for zero latency and instant tab switching
 
   useEffect(() => {
     // When tabs are 100% loaded, DO NOT show skeleton again!
@@ -334,14 +354,8 @@ export default function App() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
-      // NEVER overwrite public routes (like /pup/*, /safety/*, or /paddlelog)
-      if (
-        path.startsWith('/pup/') || 
-        path === '/pup' || 
-        path.startsWith('/safety/') || 
-        path === '/safety' || 
-        path === '/paddlelog'
-      ) {
+      // NEVER overwrite public routes (like /pup/*, /safety/*, custom puppy slugs, or /paddlelog)
+      if (isPublicPuppyPath(path) || path === '/paddlelog') {
         return;
       }
 
@@ -428,10 +442,15 @@ export default function App() {
   }, []);
 
 
-  // Authoritative real-time data subscription from Convex scoped to user.id
+  const currentUserEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+
+  // Authoritative real-time data subscription from Convex scoped to user.id and verified email
   const cloudData = useQuery(
     api.app.getUserAppData,
-    isSignedIn && user?.id ? { userId: user.id } : 'skip'
+    isSignedIn && user?.id ? { 
+      userId: user.id,
+      userEmail: currentUserEmail,
+    } : 'skip'
   );
   
   // Since the entire app is gated by the Paddle lifetime purchase paywall, 
@@ -494,6 +513,7 @@ export default function App() {
     if (cloudData && user?.id) {
       if (cloudData.user?.hasAccess && typeof window !== 'undefined') {
         localStorage.setItem(`puplume_access_${user.id}`, 'true');
+        localStorage.setItem('puplume_access_permanent', 'true');
         const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
         if (email) {
           localStorage.setItem(`puplume_access_${email}`, 'true');
@@ -524,15 +544,10 @@ export default function App() {
     return () => notificationEngine.stop();
   }, []);
 
-  // 0. Public zero-auth emergency page for collar tag scans (/pup/* and /safety/*)
+  // 0. Public zero-auth emergency page for collar tag scans (/pup/*, /safety/*, or custom puppy slug e.g. /leo)
   if (typeof window !== 'undefined') {
     const path = window.location.pathname.toLowerCase();
-    if (
-      path.startsWith('/pup/') || 
-      path === '/pup' || 
-      path.startsWith('/safety/') || 
-      path === '/safety'
-    ) {
+    if (isPublicPuppyPath(path)) {
       return (
         <Suspense fallback={<PupLumeSkeleton variant="safety" label="Loading puppy safety card..." />}>
           <PublicPupSafetyPage />
@@ -664,19 +679,20 @@ export default function App() {
   }
 
   // 3. Waiting for user's cloud data to load before making routing decision
-  const currentUserEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
   const hasLocalAccess = typeof window !== 'undefined' && (
     (user?.id && localStorage.getItem(`puplume_access_${user.id}`) === 'true') ||
-    (currentUserEmail && localStorage.getItem(`puplume_access_${currentUserEmail}`) === 'true')
+    (currentUserEmail && localStorage.getItem(`puplume_access_${currentUserEmail}`) === 'true') ||
+    localStorage.getItem('puplume_access_permanent') === 'true'
   );
 
-  if (isSignedIn && (cloudData === undefined || (cloudData === null && !hasLocalAccess)) && !puppy) {
+  // Wait for user cloud data and user account resolution before routing
+  if (isSignedIn && !hasLocalAccess && (cloudData === undefined || cloudData === null || cloudData.user === null)) {
     return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading ${currentView}...`} />;
   }
 
-  // 4. Paddle Paywall Gate
+  // 4. Paddle Paywall Gate (only shown if user profile is resolved and definitively unpaid)
   const isPaidUser = Boolean(cloudData?.user?.hasAccess || hasLocalAccess);
-  if (isSignedIn && cloudData !== undefined && cloudData !== null && !isPaidUser) {
+  if (isSignedIn && cloudData !== undefined && cloudData !== null && cloudData.user !== null && !isPaidUser) {
     return <PaddlePaywall onSignOut={signOut} />;
   }
 

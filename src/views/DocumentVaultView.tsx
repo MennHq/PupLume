@@ -293,8 +293,10 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
               onUploadSuccess={(url) => setFileUrl(url)}
               folder="puplume/documents"
               label="Upload Medical / Adoption Document"
-              sublabel="Upload vet certificate, vaccine record photo, or receipt directly to Cloudinary"
+              sublabel="JPG, PNG, or WebP (Max 10MB)"
               variant="card"
+              targetType="document"
+              enableCrop={false}
             />
           </div>
 

@@ -22,6 +22,8 @@ import type * as feeding from "../feeding.js";
 import type * as grooming from "../grooming.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as imageMutations from "../imageMutations.js";
+import type * as images from "../images.js";
 import type * as journal from "../journal.js";
 import type * as notifications from "../notifications.js";
 import type * as potty from "../potty.js";
@@ -55,6 +57,8 @@ declare const fullApi: ApiFromModules<{
   grooming: typeof grooming;
   health: typeof health;
   http: typeof http;
+  imageMutations: typeof imageMutations;
+  images: typeof images;
   journal: typeof journal;
   notifications: typeof notifications;
   potty: typeof potty;

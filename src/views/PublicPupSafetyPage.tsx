@@ -85,6 +85,9 @@ const PublicPupSafetyContent: React.FC = () => {
       if ((prefix === 'pup' || prefix === 'safety' || prefix === 'p') && parts[1]) {
         return decodeURIComponent(parts[1]).trim();
       }
+      if (parts[0]) {
+        return decodeURIComponent(parts[0]).trim();
+      }
     }
     return '';
   });
@@ -100,8 +103,8 @@ const PublicPupSafetyContent: React.FC = () => {
   const activePup = convexPup || (
     localPup && (
       localPup.id === identifier || 
-      localPup.name.toLowerCase() === identifier.toLowerCase() ||
-      identifier === ''
+      (localPup.slug && localPup.slug.toLowerCase() === identifier.toLowerCase()) ||
+      (!localPup.slug && (localPup.name.toLowerCase() === identifier.toLowerCase() || identifier === ''))
     ) ? {
       _id: localPup.id,
       name: localPup.name,
@@ -124,6 +127,7 @@ const PublicPupSafetyContent: React.FC = () => {
       emergencyNotes: localPup.emergencyNotes,
       isLost: localPup.isLost ?? false,
       rewardAmount: localPup.rewardAmount,
+      slug: localPup.slug,
       hasSmartTagPass: localPup.hasSmartTagPass ?? (
         typeof window !== 'undefined' && localStorage.getItem(`puplume_smart_tag_pass_${localPup.id}`) === 'true'
       ),
@@ -651,7 +655,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         puppy={activePup}
-        url={typeof window !== 'undefined' ? window.location.href : `https://puplume.pet/pup/${encodeURIComponent(activePup.name?.toLowerCase() || '')}`}
+        url={typeof window !== 'undefined' ? window.location.href : `https://puplume.com/${encodeURIComponent(activePup.slug || activePup.name?.toLowerCase() || '')}`}
         title={`Share ${activePup.name}'s Profile 🐾`}
         isEmergency={Boolean(activePup.isLost)}
       />

@@ -255,8 +255,10 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
               onUploadSuccess={(url) => setPhotoUrl(url)}
               folder="puplume/journal"
               label="Upload Memory Photo"
-              sublabel="Upload a picture to attach to this memory"
+              sublabel="JPG, PNG, or WebP (Max 10MB)"
               variant="card"
+              targetType="journal"
+              enableCrop={false}
             />
           </div>
 

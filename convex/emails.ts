@@ -410,7 +410,7 @@ export const getUsersWithUpcomingVaccines = internalQuery({
       if (!user?.email) continue;
 
       const puppies = await ctx.db.query("puppies").withIndex("by_user", (q) => q.eq("userId", userId)).collect();
-      const puppyMap = new Map(puppies.map((p) => [p._id, p.name]));
+      const puppyMap = new Map<string, string>(puppies.map((p) => [p._id as string, p.name]));
 
       for (const vax of vaccines) {
         results.push({

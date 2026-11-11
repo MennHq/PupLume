@@ -27,6 +27,7 @@ export interface PuppyProfile {
   emergencyNotes?: string;
   isLost?: boolean;
   rewardAmount?: string;
+  slug?: string;
   hasSmartTagPass?: boolean;
   ownerInstagram?: string;
   ownerFacebook?: string;

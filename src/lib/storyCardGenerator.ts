@@ -237,7 +237,7 @@ export async function generatePuppyStoryBlob(
   const details = [
     puppy.breed,
     puppy.sex ? (puppy.sex === 'male' ? 'Male' : 'Female') : null,
-    puppy.weight ? `${puppy.weight} lbs` : null
+    puppy.weightLbs ? `${puppy.weightLbs} lbs` : null
   ].filter(Boolean).join(' • ');
   ctx.fillText(details || 'Puppy Companion', photoX, infoStartY + 52);
 

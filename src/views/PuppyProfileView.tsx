@@ -1,6 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { PuppyProfile } from '../types';
+import { storage } from '../lib/storage';
+import { nativeBridge } from '../lib/nativeBridge';
+import { copyToClipboard } from '../lib/clipboard';
 import { generatePupLumeQRDataUrl } from '../lib/qrCodeGenerator';
 import { PupLumeQRCode } from '../components/common/PupLumeQRCode';
+import { 
+  validatePuppySlug, 
+  getPuppyPublicUrl, 
+  getPuppyDisplayUrl, 
+  generateDefaultSlug,
+  normalizeSlug 
+} from '../lib/slugHelper';
 import { 
   Dog, 
   Edit3, 
@@ -10,31 +23,27 @@ import {
   Calendar, 
   Award, 
   Sparkles, 
-  Camera,
-  Cloud,
-  QrCode,
-  Printer,
-  ExternalLink,
-  Copy,
-  Check,
-  AlertTriangle,
-  Zap,
-  Lock,
-  Unlock,
-  MapPin,
-  FileText,
-  Mail,
-  Share2,
-  Globe,
-  MessageCircle
+  QrCode, 
+  Printer, 
+  ExternalLink, 
+  Copy, 
+  Check, 
+  AlertTriangle, 
+  Zap, 
+  Lock, 
+  FileText, 
+  Share2, 
+  Globe, 
+  Link as LinkIcon,
+  RefreshCw,
+  Info,
+  Stethoscope,
+  Smile,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  BadgeAlert
 } from 'lucide-react';
-import { useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { PuppyProfile } from '../types';
-import { storage } from '../lib/storage';
-import { nativeBridge } from '../lib/nativeBridge';
-import { copyToClipboard } from '../lib/clipboard';
-import { ShareModal } from '../components/common/ShareModal';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
@@ -42,6 +51,7 @@ import { SmartTagPaywallModal } from '../components/ui/SmartTagPaywallModal';
 import { MissingPupFlyerModal } from '../components/ui/MissingPupFlyerModal';
 import { PrintableCollarTagModal } from '../components/ui/PrintableCollarTagModal';
 import { SmartCollarTagLogo } from '../components/common/SmartCollarTagLogo';
+import { ShareModal } from '../components/common/ShareModal';
 import { CommunicationLinksInput, CommunicationLinkItem } from '../components/common/CommunicationLinksInput';
 import { RewardSettingInput } from '../components/common/RewardSettingInput';
 import { CountryPhoneInput } from '../components/common/CountryPhoneInput';
@@ -49,9 +59,7 @@ import {
   validatePhoneNumber, 
   validateFinderInstructions, 
   validateRewardAmount, 
-  validateCommunicationLink,
-  sanitizePhoneInput,
-  preventLetterInput
+  validateCommunicationLink 
 } from '../lib/validation';
 
 interface PuppyProfileViewProps {
@@ -60,19 +68,64 @@ interface PuppyProfileViewProps {
 }
 
 export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpdatePuppy }) => {
+  // Convex mutations & queries
   const unlockSmartTagPassMutation = useMutation(api.puppies.unlockSmartTagPass);
+  const updatePuppySlugMutation = useMutation(api.puppies.updatePuppySlug);
+
+  // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isFlyerOpen, setIsFlyerOpen] = useState(false);
   const [isCollarTagPrintOpen, setIsCollarTagPrintOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareModalConfig, setShareModalConfig] = useState<{ isEmergency: boolean; title: string }>({ isEmergency: false, title: '' });
+  const [shareModalConfig, setShareModalConfig] = useState<{ isEmergency: boolean; title: string }>({ 
+    isEmergency: false, 
+    title: '' 
+  });
 
-  // QR Code State
+  // URL Slug Editing & Migration State
+  const initialSlug = puppy.slug || generateDefaultSlug(puppy.name);
+  const [activeSlug, setActiveSlug] = useState<string>(initialSlug);
+  const [isSlugEditorOpen, setIsSlugEditorOpen] = useState(false);
+  const [slugInput, setSlugInput] = useState<string>(initialSlug);
+  const [isConfirmingSlugChange, setIsConfirmingSlugChange] = useState(false);
+  const [isSavingSlug, setIsSavingSlug] = useState(false);
+  const [slugSuccessMessage, setSlugSuccessMessage] = useState<string | null>(null);
+  const [slugErrorMessage, setSlugErrorMessage] = useState<string | null>(null);
+
+  // Check availability against Convex DB
+  const cleanCandidateSlug = normalizeSlug(slugInput);
+  const availabilityQuery = useQuery(
+    api.puppies.checkSlugAvailability,
+    cleanCandidateSlug && cleanCandidateSlug.length >= 3 && cleanCandidateSlug.length <= 7
+      ? { slug: cleanCandidateSlug, puppyId: puppy.id }
+      : 'skip'
+  );
+
+  const slugValidation = useMemo(() => {
+    return validatePuppySlug(slugInput, puppy.name);
+  }, [slugInput, puppy.name]);
+
+  // Public URL calculation
+  const publicUrl = useMemo(() => {
+    return getPuppyPublicUrl(activeSlug);
+  }, [activeSlug]);
+
+  const displayUrl = useMemo(() => {
+    return getPuppyDisplayUrl(activeSlug);
+  }, [activeSlug]);
+
+  // QR Code State (regenerated whenever publicUrl changes)
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // Smart Tag Unlock State (persisted locally & in puppy record)
+  useEffect(() => {
+    generatePupLumeQRDataUrl(publicUrl, { size: 800 })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error('Failed to generate PupLume QR code:', err));
+  }, [publicUrl]);
+
+  // Smart Tag Unlock State
   const [hasSmartTagPass, setHasSmartTagPass] = useState<boolean>(() => {
     if (puppy.hasSmartTagPass) return true;
     if (typeof window !== 'undefined') {
@@ -88,34 +141,24 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const [ownerPhone, setOwnerPhone] = useState<string>(puppy.ownerPhone || '');
   const [ownerEmail, setOwnerEmail] = useState<string>(puppy.ownerEmail || '');
 
-  // Communication links state (1 field by default: WhatsApp with 100+ app dropdown & auto-detection)
+  // Communication links state
   const [communicationLinks, setCommunicationLinks] = useState<CommunicationLinkItem[]>(() => {
     if (puppy.communicationLinks && puppy.communicationLinks.length > 0) {
       return puppy.communicationLinks;
     }
     const initial: CommunicationLinkItem[] = [];
-    if (puppy.ownerWhatsApp) {
-      initial.push({ id: 'link-wa', platform: 'whatsapp', value: puppy.ownerWhatsApp });
-    }
-    if (puppy.ownerInstagram) {
-      initial.push({ id: 'link-ig', platform: 'instagram', value: puppy.ownerInstagram });
-    }
-    if (puppy.ownerTelegram) {
-      initial.push({ id: 'link-tg', platform: 'telegram', value: puppy.ownerTelegram });
-    }
-    if (puppy.ownerFacebook) {
-      initial.push({ id: 'link-fb', platform: 'facebook', value: puppy.ownerFacebook });
-    }
-    if (puppy.ownerSlack) {
-      initial.push({ id: 'link-slack', platform: 'slack', value: puppy.ownerSlack });
-    }
+    if (puppy.ownerWhatsApp) initial.push({ id: 'link-wa', platform: 'whatsapp', value: puppy.ownerWhatsApp });
+    if (puppy.ownerInstagram) initial.push({ id: 'link-ig', platform: 'instagram', value: puppy.ownerInstagram });
+    if (puppy.ownerTelegram) initial.push({ id: 'link-tg', platform: 'telegram', value: puppy.ownerTelegram });
+    if (puppy.ownerFacebook) initial.push({ id: 'link-fb', platform: 'facebook', value: puppy.ownerFacebook });
+    if (puppy.ownerSlack) initial.push({ id: 'link-slack', platform: 'slack', value: puppy.ownerSlack });
     if (initial.length === 0) {
       return [{ id: 'link-default-wa', platform: 'whatsapp', value: '' }];
     }
     return initial;
   });
 
-  // Validation & Feedback States
+  // Feedback states
   const [contactError, setContactError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [fieldErrors, setFieldErrors] = useState<{ phone?: string; notes?: string; reward?: string }>({});
@@ -123,7 +166,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const phoneValidation = validatePhoneNumber(ownerPhone);
   const notesValidation = validateFinderInstructions(emergencyNotes);
 
-  // Form states for general profile edit
+  // General profile form fields
   const [name, setName] = useState(puppy.name);
   const [birthDate, setBirthDate] = useState(puppy.birthDate);
   const [breed, setBreed] = useState(puppy.breed);
@@ -134,29 +177,19 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const [treat, setTreat] = useState(puppy.favoriteTreat || '');
   const [vetClinic, setVetClinic] = useState(puppy.vetClinic || '');
   const [vetPhone, setVetPhone] = useState(puppy.vetPhone || '');
+  const [vetName, setVetName] = useState(puppy.vetName || '');
   const [microchip, setMicrochip] = useState(puppy.microchipNumber || '');
   const [insurance, setInsurance] = useState(puppy.insuranceProvider || '');
+  const [insurancePolicy, setInsurancePolicy] = useState(puppy.insurancePolicyNumber || '');
 
-  // Construct Public Webpage URL (points to dedicated public marketing page)
-  const marketingOrigin = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
-    ? 'http://localhost:3001'
-    : (import.meta.env.VITE_MARKETING_URL || 'https://petttttttpuplume.vercel.app');
-  const publicSlug = encodeURIComponent(puppy.name.toLowerCase());
-  const publicUrl = `${marketingOrigin}/pup/${publicSlug}`;
-
-  // Generate Custom PupLume QR Code data URL with center logo
-  useEffect(() => {
-    generatePupLumeQRDataUrl(publicUrl, { size: 800 })
-      .then((url) => setQrDataUrl(url))
-      .catch((err) => console.error('Failed to generate PupLume QR code:', err));
-  }, [publicUrl]);
-
+  // Synchronize state when switching puppy
   const lastPuppyIdRef = React.useRef(puppy.id);
-
-  // Sync state ONLY when switching to a different puppy
   useEffect(() => {
     if (lastPuppyIdRef.current !== puppy.id) {
       lastPuppyIdRef.current = puppy.id;
+      const slugVal = puppy.slug || generateDefaultSlug(puppy.name);
+      setActiveSlug(slugVal);
+      setSlugInput(slugVal);
       setName(puppy.name);
       setBirthDate(puppy.birthDate);
       setBreed(puppy.breed);
@@ -167,8 +200,10 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       setTreat(puppy.favoriteTreat || '');
       setVetClinic(puppy.vetClinic || '');
       setVetPhone(puppy.vetPhone || '');
+      setVetName(puppy.vetName || '');
       setMicrochip(puppy.microchipNumber || '');
       setInsurance(puppy.insuranceProvider || '');
+      setInsurancePolicy(puppy.insurancePolicyNumber || '');
       setIsLost(puppy.isLost ?? false);
       setRewardAmount(puppy.rewardAmount || '');
       setEmergencyNotes(puppy.emergencyNotes || '');
@@ -177,27 +212,26 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
       if (puppy.communicationLinks && puppy.communicationLinks.length > 0) {
         setCommunicationLinks(puppy.communicationLinks);
-      } else {
-        const initialLinks: CommunicationLinkItem[] = [];
-        if (puppy.ownerWhatsApp) initialLinks.push({ id: 'link-wa', platform: 'whatsapp', value: puppy.ownerWhatsApp });
-        if (puppy.ownerInstagram) initialLinks.push({ id: 'link-ig', platform: 'instagram', value: puppy.ownerInstagram });
-        if (puppy.ownerTelegram) initialLinks.push({ id: 'link-tg', platform: 'telegram', value: puppy.ownerTelegram });
-        if (puppy.ownerFacebook) initialLinks.push({ id: 'link-fb', platform: 'facebook', value: puppy.ownerFacebook });
-        if (puppy.ownerSlack) initialLinks.push({ id: 'link-slack', platform: 'slack', value: puppy.ownerSlack });
-        if (initialLinks.length === 0) {
-          initialLinks.push({ id: 'link-default-wa', platform: 'whatsapp', value: '' });
-        }
-        setCommunicationLinks(initialLinks);
       }
-
-      const localPass = typeof window !== 'undefined' ? localStorage.getItem(`puplume_smart_tag_pass_${puppy.id}`) === 'true' : false;
+      const localPass = typeof window !== 'undefined' 
+        ? localStorage.getItem(`puplume_smart_tag_pass_${puppy.id}`) === 'true' 
+        : false;
       setHasSmartTagPass(Boolean(puppy.hasSmartTagPass || localPass));
     }
-  }, [puppy.id]);
+  }, [puppy]);
 
-  // Calculate age
+  // Age calculations
   const bDate = new Date(puppy.birthDate);
-  const ageWeeks = Math.max(1, Math.floor((new Date().getTime() - bDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+  const ageWeeks = Math.max(1, Math.floor((Date.now() - bDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+  const ageDisplay = ageWeeks >= 52 
+    ? `${(ageWeeks / 52).toFixed(1)} yrs old` 
+    : `${ageWeeks} weeks old`;
+
+  // Passport serial number for editorial aesthetics
+  const passportSerial = useMemo(() => {
+    const hash = (puppy.id || puppy.name).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return `#PL-${(10000 + (hash % 90000))}`;
+  }, [puppy.id, puppy.name]);
 
   const handleCopyLink = async () => {
     nativeBridge.haptics.light();
@@ -216,6 +250,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     const updated: PuppyProfile = {
       ...puppy,
       hasSmartTagPass: true,
+      slug: activeSlug,
     };
     storage.savePuppy(updated);
     onUpdatePuppy(updated);
@@ -240,6 +275,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
     const updated: PuppyProfile = {
       ...puppy,
+      slug: activeSlug,
       isLost: nextLost,
       rewardAmount: rewardAmount.trim() || undefined,
       emergencyNotes: emergencyNotes.trim(),
@@ -276,6 +312,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
     const updated: PuppyProfile = {
       ...puppy,
+      slug: activeSlug,
       isLost,
       rewardAmount: currentReward.trim() || undefined,
       emergencyNotes: currentNotes.trim(),
@@ -289,17 +326,17 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       ownerSlack: slackLink || undefined,
     };
     storage.savePuppy(updated);
-    // Silent storage write only — no global toast popups while editing
   };
 
   const currentTagPuppy: PuppyProfile = React.useMemo(() => ({
     ...puppy,
+    slug: activeSlug,
     ownerPhone: ownerPhone.trim() || puppy.ownerPhone || '',
     emergencyNotes: emergencyNotes.trim() || puppy.emergencyNotes || '',
     rewardAmount: rewardAmount.trim() || puppy.rewardAmount,
     isLost,
     communicationLinks: communicationLinks.filter((l) => l.value.trim() !== ''),
-  }), [puppy, ownerPhone, emergencyNotes, rewardAmount, isLost, communicationLinks]);
+  }), [puppy, activeSlug, ownerPhone, emergencyNotes, rewardAmount, isLost, communicationLinks]);
 
   const handleOpenPrintCollarTag = () => {
     saveContactInfoSilently();
@@ -323,25 +360,72 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     setIsShareModalOpen(true);
   };
 
-  React.useEffect(() => {
-    const handleSos = () => {
-      handleShareEmergencyAlert();
-    };
-    window.addEventListener('open-sos-alert', handleSos);
-    return () => window.removeEventListener('open-sos-alert', handleSos);
-  }, [puppy.name]);
-
   const handleShareEmergencyAlert = async () => {
     nativeBridge.haptics.warning();
     setShareModalConfig({ isEmergency: true, title: `🚨 Missing Puppy Alert: ${puppy.name}` });
     setIsShareModalOpen(true);
   };
 
+  // Pre-save check for custom slug: prompt warning if user printed collar tag
+  const handleInitiateSlugSave = () => {
+    setSlugErrorMessage(null);
+    if (!slugValidation.isValid) {
+      const firstError = Object.values(slugValidation.errors)[0];
+      setSlugErrorMessage(firstError || 'Please fix the errors before updating.');
+      return;
+    }
+
+    if (availabilityQuery && !availabilityQuery.available) {
+      setSlugErrorMessage(availabilityQuery.reason || 'This custom URL is unavailable.');
+      return;
+    }
+
+    // Always ask the user with a short message if they printed the QR collar tag
+    setIsConfirmingSlugChange(true);
+  };
+
+  // Confirmed slug migration execution
+  const handleConfirmSlugChange = async () => {
+    setIsSavingSlug(true);
+    setSlugErrorMessage(null);
+    const targetSlug = slugValidation.cleanedSlug;
+
+    try {
+      // 1. Database update in Convex
+      if (puppy.id && !puppy.id.startsWith('pup-')) {
+        await updatePuppySlugMutation({
+          puppyId: puppy.id as any,
+          slug: targetSlug,
+        });
+      }
+
+      // 2. Update local state and persistent storage
+      setActiveSlug(targetSlug);
+      const updated: PuppyProfile = {
+        ...puppy,
+        slug: targetSlug,
+      };
+      storage.savePuppy(updated);
+      onUpdatePuppy(updated);
+
+      // 3. Close dialogs & show success
+      setIsConfirmingSlugChange(false);
+      setIsSlugEditorOpen(false);
+      setSlugSuccessMessage(`URL updated to puplume.com/${targetSlug}! QR code regenerated.`);
+      setTimeout(() => setSlugSuccessMessage(null), 4000);
+      nativeBridge.haptics.success();
+    } catch (err: any) {
+      console.error('Failed to update puppy slug:', err);
+      setSlugErrorMessage(err?.message || 'Failed to update custom URL. Please try again.');
+      setIsConfirmingSlugChange(false);
+    } finally {
+      setIsSavingSlug(false);
+    }
+  };
+
   const handleSaveEmergencyContact = () => {
     const newErrors: { phone?: string; notes?: string; reward?: string } = {};
 
-    // 1. Phone number logic:
-    // If ownerPhone is empty, but user provided a WhatsApp phone number, adopt it seamlessly!
     const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value?.trim();
     let effectivePhone = ownerPhone.trim();
     if (!effectivePhone && waLink) {
@@ -354,7 +438,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       newErrors.phone = phoneRes.error;
     }
 
-    // 2. Instructions for Finder:
     const effectiveNotes = emergencyNotes.trim();
     const notesRes = validateFinderInstructions(effectiveNotes);
     if (!effectiveNotes) {
@@ -363,13 +446,11 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       newErrors.notes = notesRes.error;
     }
 
-    // 3. Reward Setting:
     const rewardRes = validateRewardAmount(rewardAmount);
     if (!rewardRes.isValid) {
       newErrors.reward = rewardRes.error;
     }
 
-    // 4. Communication Links:
     for (const link of communicationLinks) {
       if (link.value.trim()) {
         const linkRes = validateCommunicationLink(link.platform, link.value);
@@ -390,7 +471,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     setContactError(null);
 
     const validLinks = [...communicationLinks.filter((l) => l.value.trim() !== '')];
-    // If owner phone is present but no WhatsApp link is set, automatically add it for ease of use
     if (effectivePhone && !validLinks.some((l) => l.platform === 'whatsapp')) {
       validLinks.push({ id: `link-wa-${Date.now()}`, platform: 'whatsapp', value: effectivePhone });
       setCommunicationLinks(validLinks);
@@ -404,6 +484,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
     const updated: PuppyProfile = {
       ...puppy,
+      slug: activeSlug,
       isLost,
       rewardAmount: rewardRes.cleanedValue || undefined,
       emergencyNotes: notesRes.cleanedValue || effectiveNotes,
@@ -428,12 +509,13 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     const updated: PuppyProfile = {
       ...puppy,
       photoUrl: newUrl,
+      slug: activeSlug,
     };
     storage.savePuppy(updated);
     onUpdatePuppy(updated);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSaveFullProfile = (e: React.FormEvent) => {
     e.preventDefault();
     const phoneRes = validatePhoneNumber(ownerPhone);
     if (!phoneRes.isValid) {
@@ -443,11 +525,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     const notesRes = validateFinderInstructions(emergencyNotes);
     if (!notesRes.isValid) {
       alert(`Invalid Instructions: ${notesRes.error}`);
-      return;
-    }
-    const rewardRes = validateRewardAmount(rewardAmount);
-    if (!rewardRes.isValid) {
-      alert(`Invalid Reward: ${rewardRes.error}`);
       return;
     }
 
@@ -470,8 +547,10 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       favoriteTreat: treat,
       vetClinic,
       vetPhone,
+      vetName,
       microchipNumber: microchip,
       insuranceProvider: insurance,
+      insurancePolicyNumber: insurancePolicy,
       ownerPhone: ownerPhone.trim(),
       ownerEmail: ownerEmail.trim() || undefined,
       emergencyNotes: emergencyNotes.trim(),
@@ -484,6 +563,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       ownerSlack: slackLink || undefined,
       isLost,
       hasSmartTagPass,
+      slug: activeSlug,
     };
     storage.savePuppy(updated);
     onUpdatePuppy(updated);
@@ -491,17 +571,63 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
-      
-      {/* Hero Profile Card */}
-      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          <div className="relative group">
-            <img
-              src={puppy.photoUrl}
-              alt={puppy.name}
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-[#8B5E3C] shadow-md"
-            />
+    <div className="space-y-6 max-w-5xl mx-auto pb-28 px-2 sm:px-4">
+
+      {/* Global Success / Notice Banners */}
+      {slugSuccessMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs sm:text-sm text-emerald-900 font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>{slugSuccessMessage}</span>
+          </div>
+          <button
+            onClick={() => setSlugSuccessMessage(null)}
+            className="text-emerald-700 hover:text-emerald-950 font-bold text-xs"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* SECTION 1: VERIFIED PET PASSPORT HERO CARD */}
+      <div className="bg-[#FFFDF9] rounded-3xl border-2 border-[#E8DDD3] p-6 sm:p-8 shadow-[0_8px_30px_rgba(44,33,27,0.06)] relative overflow-hidden">
+        
+        {/* Subtle decorative background watermarks */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#F3E7DA]/50 to-transparent rounded-bl-full pointer-events-none -mr-16 -mt-16" />
+        <div className="absolute top-4 right-6 text-right hidden sm:block">
+          <span className="text-[11px] font-mono tracking-widest text-[#8B5E3C] font-bold uppercase block">
+            PupLume Official Passport
+          </span>
+          <span className="text-xs font-mono text-[#766A63] font-semibold">
+            {passportSerial}
+          </span>
+        </div>
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 lg:gap-8">
+          
+          {/* Avatar with Emerald Verified Seal and Instant Uploader */}
+          <div className="relative group shrink-0">
+            <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[36px] overflow-hidden border-4 border-[#8B5E3C] shadow-lg bg-[#FAF6F0]">
+              <img
+                src={puppy.photoUrl}
+                alt={puppy.name}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              {/* Lost Mode Glow ring */}
+              {isLost && (
+                <div className="absolute inset-0 border-4 border-rose-500 animate-pulse pointer-events-none" />
+              )}
+            </div>
+
+            {/* Emerald Verified Seal */}
+            <div 
+              className="absolute -top-2 -left-2 bg-[#059669] text-white p-1.5 rounded-2xl shadow-md border-2 border-white flex items-center gap-1"
+              title="Verified Digital Pet Passport"
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+
+            {/* Upload Button Trigger */}
             <div className="absolute -bottom-2 -right-2">
               <CloudinaryImageUploader
                 currentImageUrl={puppy.photoUrl}
@@ -513,27 +639,41 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             </div>
           </div>
 
-          <div className="flex-1">
+          {/* Hero Details & Primary Identity */}
+          <div className="flex-1 text-center md:text-left space-y-3 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-[#2C211B] flex items-center justify-center sm:justify-start gap-2">
-                  {puppy.name}
-                  <span className="text-xs font-bold uppercase tracking-wider bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full">
-                    {puppy.sex}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                  <h1 className="text-3xl sm:text-4xl font-black text-[#2C211B] tracking-tight font-brand">
+                    {puppy.name}
+                  </h1>
+                  <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                    puppy.sex === 'male' 
+                      ? 'bg-blue-50 text-blue-800 border-blue-200' 
+                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}>
+                    {puppy.sex === 'male' ? '♂ Boy' : '♀ Girl'}
                   </span>
-                </h1>
-                <p className="text-sm text-[#766A63] font-medium mt-0.5">
-                  {puppy.breed} • {ageWeeks} weeks old ({puppy.weightLbs} lbs)
+                  {isLost && (
+                    <span className="px-3 py-1 bg-rose-600 text-white text-xs font-black rounded-full uppercase tracking-wider animate-pulse shadow-sm flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5" /> Missing
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-sm sm:text-base text-[#766A63] font-medium mt-1">
+                  {puppy.breed} • <span className="text-[#8B5E3C] font-semibold">{ageDisplay}</span> • {puppy.weightLbs} lbs
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 self-center sm:self-start">
+              {/* Action Buttons: Share Passport & Edit Profile */}
+              <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 pt-1 sm:pt-0">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSharePassport}
                   leftIcon={<Share2 className="w-4 h-4 text-[#8B5E3C]" />}
-                  title="Share pet passport via WhatsApp, Messages, AirDrop"
+                  className="bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF6F0]"
                 >
                   Share Passport
                 </Button>
@@ -541,62 +681,78 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                   variant="outline"
                   size="sm"
                   onClick={() => setIsEditOpen(true)}
-                  leftIcon={<Edit3 className="w-4 h-4" />}
+                  leftIcon={<Edit3 className="w-4 h-4 text-[#8B5E3C]" />}
+                  className="bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF6F0]"
                 >
                   Edit Profile
                 </Button>
               </div>
             </div>
 
-            {/* Quick stats pills */}
-            <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
-              <span className="px-3 py-1 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium">
-                🎂 Born: {puppy.birthDate || 'Date not set'}
+            {/* Quick Passport Attributes Chips */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2 text-xs">
+              <span className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                Born: {puppy.birthDate || 'Not set'}
               </span>
-              {puppy.favoriteTreat ? (
-                <span className="px-3 py-1 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium">
-                  🍖 Favorite: {puppy.favoriteTreat}
-                </span>
-              ) : null}
-              {puppy.microchipNumber ? (
-                <span className="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
-                  ✓ Microchipped
-                </span>
-              ) : null}
-              {isLost && (
-                <span className="px-3 py-1 rounded-xl bg-rose-500 text-white font-black animate-pulse">
-                  🚨 Missing Mode Active
+
+              {puppy.favoriteTreat && (
+                <span className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                  Treat: {puppy.favoriteTreat}
                 </span>
               )}
+
+              {puppy.microchipNumber ? (
+                <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5 font-mono">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  RFID: {puppy.microchipNumber}
+                </span>
+              ) : (
+                <span className="px-3 py-1.5 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] text-[#766A63] font-medium">
+                  Microchip pending
+                </span>
+              )}
+
+              <span className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 ${
+                hasSmartTagPass 
+                  ? 'bg-amber-50 border-amber-200 text-amber-900' 
+                  : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+              }`}>
+                <QrCode className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                {hasSmartTagPass ? 'Smart Collar Tag Active' : 'Smart Tag: Standard'}
+              </span>
             </div>
+
           </div>
+
         </div>
       </div>
 
-      {/* SMART QR COLLAR TAG & SAFETY HUB */}
-      <div className="bg-white rounded-3xl border-2 border-[#8B5E3C]/20 p-6 sm:p-8 shadow-xs relative overflow-hidden space-y-6">
+      {/* SECTION 2: SMART QR COLLAR TAG & CUSTOM URL HUB */}
+      <div className="bg-[#FFFDF9] rounded-3xl border-2 border-[#8B5E3C]/30 p-6 sm:p-8 shadow-[0_8px_30px_rgba(44,33,27,0.06)] space-y-6">
         
         {/* Hub Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8DDD3] pb-5">
           <div className="flex items-center gap-3">
             <SmartCollarTagLogo variant="icon" size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-black text-[#2C211B]">
-                  Smart QR Collar Tag & Safety Hub
+                <h2 className="text-xl sm:text-2xl font-black text-[#2C211B] font-brand">
+                  Custom Puppy URL &amp; Smart Collar Tag
                 </h2>
                 {hasSmartTagPass ? (
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider">
-                    Active
+                  <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
+                    Live Verified
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-amber-200">
                     $1.99 Pass
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#766A63] mt-0.5">
-                Zero-battery scannable safety webpage for {puppy.name}. Anyone who finds your pup can contact you with 1 tap.
+              <p className="text-xs sm:text-sm text-[#766A63] mt-0.5">
+                Customize {puppy.name}&apos;s public webpage link and manage their physical collar tag QR code.
               </p>
             </div>
           </div>
@@ -607,410 +763,622 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               size="sm"
               onClick={() => setIsPaywallOpen(true)}
               leftIcon={<Zap className="w-4 h-4 text-amber-300" />}
-              className="shadow-md"
+              className="shadow-sm font-bold text-xs"
             >
-              Unlock for $1.99
+              Unlock Collar Tag ($1.99)
             </Button>
           )}
         </div>
 
-        {/* Locked State Teaser / Unlocked Full Hub */}
-        {!hasSmartTagPass ? (
-          <div className="bg-[#FFF9F2] rounded-2xl border border-[#E8DDD3] p-6 text-center space-y-4">
-            <div className="max-w-md mx-auto space-y-2">
-              <div className="w-14 h-14 bg-white rounded-2xl border border-[#E8DDD3] mx-auto flex items-center justify-center text-[#8B5E3C] shadow-2xs">
-                <Lock className="w-7 h-7" />
+        {/* CUSTOM URL MANAGEMENT BAR */}
+        <div className="bg-[#FFF9F2] rounded-2xl border-2 border-[#8B5E3C]/20 p-4 sm:p-5 space-y-4">
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" /> Primary Puppy Page URL
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-base sm:text-lg font-black font-mono text-[#2C211B] bg-white px-3 py-1 rounded-xl border border-[#E8DDD3] shadow-2xs">
+                  {displayUrl}
+                </span>
+                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">
+                  Active
+                </span>
               </div>
-              <h3 className="text-base font-bold text-[#2C211B]">
-                Unlock {puppy.name}&apos;s Permanent Smart Collar Webpage
-              </h3>
-              <p className="text-xs text-[#766A63] leading-relaxed">
-                Get a scannable QR badge for your dog&apos;s collar, 1-tap GPS pin alerts from finders, and instant printable Missing Dog posters for just a one-time $1.99 micro-pass.
-              </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Button
-                variant="primary"
-                onClick={() => setIsPaywallOpen(true)}
-                leftIcon={<Sparkles className="w-4 h-4 text-amber-300" />}
+            {/* Quick link action buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-3.5 py-2 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                Activate Smart Collar Tag ($1.99)
-              </Button>
+                {copiedUrl ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-[#8B5E3C]" />}
+                <span>{copiedUrl ? 'Copied URL!' : 'Copy Link'}</span>
+              </button>
+
               <a
                 href={publicUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-neutral-50 text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors"
+                className="px-3.5 py-2 bg-white hover:bg-[#FAF6F0] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Preview Public Page
+                <ExternalLink className="w-4 h-4" />
+                <span>Test Live Page</span>
               </a>
+
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setSlugInput(activeSlug);
+                  setSlugErrorMessage(null);
+                  setIsSlugEditorOpen(!isSlugEditorOpen);
+                }}
+                leftIcon={<Edit3 className="w-3.5 h-3.5" />}
+                className="text-xs font-bold"
+              >
+                {isSlugEditorOpen ? 'Close Editor' : 'Customize URL'}
+              </Button>
             </div>
           </div>
-        ) : (
-          /* Active Unlocked Hub Content */
-          <div className="space-y-6">
-            
-            {/* Top Link Banner */}
-            <div className="bg-[#FAF6F0] rounded-2xl border border-[#E8DDD3] p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span className="text-xs font-bold text-[#5F3E29] shrink-0">Live Tag URL:</span>
-                <span className="text-xs font-mono text-[#2C211B] truncate">{publicUrl}</span>
-              </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={handleShareSafetyTag}
-                  className="px-3 py-1.5 bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                  title="Share safety tag via native mobile share"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share Tag</span>
-                </button>
+          {/* EXPANDABLE INTERACTIVE SLUG EDITOR */}
+          {isSlugEditorOpen && (
+            <div className="pt-4 border-t border-[#E8DDD3] space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] shadow-xs space-y-4">
+                
+                <div>
+                  <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+                    Edit URL Slug for {puppy.name}
+                  </label>
+                  <p className="text-xs text-[#766A63] mb-3">
+                    Choose a short, unique handle. The slug must be <strong>3 to 7 characters</strong> and contain your puppy&apos;s name.
+                  </p>
 
-                <button
-                  onClick={handleCopyLink}
-                  className="px-3 py-1.5 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedUrl ? 'Copied!' : 'Copy Link'}</span>
-                </button>
+                  {/* Slug Input with Prefix */}
+                  <div className="flex items-center rounded-xl border-2 border-[#8B5E3C]/30 focus-within:border-[#8B5E3C] bg-[#FFF9F2] overflow-hidden shadow-2xs">
+                    <span className="px-3.5 py-2.5 text-xs sm:text-sm font-bold text-[#766A63] bg-[#F3E7DA] select-none border-r border-[#E8DDD3]">
+                      puplume.com/
+                    </span>
+                    <input
+                      type="text"
+                      maxLength={7}
+                      value={slugInput}
+                      onChange={(e) => {
+                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                        setSlugInput(val);
+                        setSlugErrorMessage(null);
+                      }}
+                      placeholder={generateDefaultSlug(puppy.name)}
+                      className="flex-1 px-3 py-2.5 text-sm sm:text-base font-black font-mono text-[#2C211B] bg-transparent focus:outline-none"
+                    />
+                    <span className="px-3 text-xs font-mono font-bold text-[#766A63]">
+                      {slugInput.length}/7
+                    </span>
+                  </div>
+                </div>
 
-                <a
-                  href={publicUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-1.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Test Page</span>
-                </a>
+                {/* Real-time Validation Criteria Checklist */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
+                  
+                  {/* Rule 1: 3-7 chars */}
+                  <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                    slugValidation.checks.length 
+                      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                      : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                  }`}>
+                    {slugValidation.checks.length ? (
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full border border-amber-500 text-[10px] flex items-center justify-center text-amber-700 shrink-0">!</span>
+                    )}
+                    <span>3 to 7 characters</span>
+                  </div>
+
+                  {/* Rule 2: Contains puppy name */}
+                  <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                    slugValidation.checks.containsName 
+                      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                      : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                  }`}>
+                    {slugValidation.checks.containsName ? (
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full border border-amber-500 text-[10px] flex items-center justify-center text-amber-700 shrink-0">!</span>
+                    )}
+                    <span className="truncate">Includes &quot;{puppy.name.toLowerCase()}&quot;</span>
+                  </div>
+
+                  {/* Rule 3: URL safe */}
+                  <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                    slugValidation.checks.characters 
+                      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                      : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                  }`}>
+                    {slugValidation.checks.characters ? (
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full border border-amber-500 text-[10px] flex items-center justify-center text-amber-700 shrink-0">!</span>
+                    )}
+                    <span>URL-safe (a-z, 0-9)</span>
+                  </div>
+
+                  {/* Rule 4: Uniqueness / Availability */}
+                  <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                    availabilityQuery === undefined 
+                      ? 'bg-neutral-50 border-neutral-200 text-neutral-600'
+                      : availabilityQuery.available
+                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                        : 'bg-rose-50/80 border-rose-200 text-rose-900'
+                  }`}>
+                    {availabilityQuery === undefined ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-neutral-500 shrink-0" />
+                    ) : availabilityQuery.available ? (
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    )}
+                    <span>
+                      {availabilityQuery === undefined 
+                        ? 'Checking...' 
+                        : availabilityQuery.available 
+                          ? 'Available' 
+                          : 'Already Taken'}
+                    </span>
+                  </div>
+
+                </div>
+
+                {/* Live URL Preview Bar */}
+                <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#E8DDD3] flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="text-[#766A63] font-medium shrink-0">Live URL Preview:</span>
+                    <span className="font-mono font-bold text-[#8B5E3C] truncate">
+                      {getPuppyDisplayUrl(slugInput)}
+                    </span>
+                  </div>
+                  {cleanCandidateSlug === activeSlug && (
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">
+                      Current URL
+                    </span>
+                  )}
+                </div>
+
+                {slugErrorMessage && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>{slugErrorMessage}</span>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSlugInput(activeSlug);
+                      setIsSlugEditorOpen(false);
+                      setSlugErrorMessage(null);
+                    }}
+                    className="text-xs"
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleInitiateSlugSave}
+                    disabled={
+                      !slugValidation.isValid || 
+                      (availabilityQuery !== undefined && !availabilityQuery.available) ||
+                      cleanCandidateSlug === activeSlug
+                    }
+                    leftIcon={<Check className="w-3.5 h-3.5" />}
+                    className="text-xs font-bold"
+                  >
+                    Save &amp; Migrate URL
+                  </Button>
+                </div>
+
               </div>
             </div>
+          )}
 
-            {/* Hub Two-Column Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-              
-              {/* Left Column: Collar QR Code Card */}
-              <div className="md:col-span-5 bg-[#FFF9F2] rounded-3xl border border-[#E8DDD3] p-5 flex flex-col items-center text-center space-y-3.5">
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C]">
-                  Official PupLume Smart Collar QR Tag
-                </span>
+        </div>
 
-                {/* Branded PupLume QR Code with Center Logo & Fast Actions */}
-                <PupLumeQRCode
-                  value={publicUrl}
-                  puppyName={puppy.name}
-                  size={176}
-                  showActions={true}
-                />
+        {/* TWO-COLUMN GRID: PHYSICAL COLLAR QR BADGE & EMERGENCY LOST MODE */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column: Official PupLume Center-Logo QR Code */}
+          <div className="md:col-span-5 bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 flex flex-col items-center text-center space-y-4">
+            <div className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C] block">
+                Physical Collar Tag QR Code
+              </span>
+              <p className="text-xs text-[#766A63]">
+                Instant smartphone camera scan to open {puppy.name}&apos;s verified card
+              </p>
+            </div>
 
-                <p className="text-[11px] text-[#766A63] leading-relaxed">
-                  Anyone who points their smartphone camera at this QR code instantly accesses {puppy.name}&apos;s verified emergency card.
-                </p>
+            {/* Razor sharp custom PupLume QR with center emblem */}
+            <PupLumeQRCode
+              value={publicUrl}
+              puppyName={puppy.name}
+              size={180}
+              showActions={true}
+            />
 
-                {/* Print Collar Tag Button */}
+            {/* Print Collar Tag Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPrintCollarTag}
+              leftIcon={<Printer className="w-4 h-4 text-[#8B5E3C]" />}
+              className="w-full bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FFF9F2]"
+            >
+              Print Collar Tag (1.5&quot;)
+            </Button>
+          </div>
+
+          {/* Right Column: Emergency Lost Mode & Finder Contacts */}
+          <div className="md:col-span-7 space-y-4">
+            
+            {/* Lost Mode Card */}
+            <div className={`rounded-3xl p-5 border-2 transition-all ${
+              isLost 
+                ? 'bg-rose-50 border-rose-400 shadow-sm' 
+                : 'bg-white border-[#E8DDD3]'
+            }`}>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className={`w-5 h-5 ${isLost ? 'text-rose-600' : 'text-[#766A63]'}`} />
+                  <h3 className={`text-sm font-black uppercase tracking-wider ${isLost ? 'text-rose-900' : 'text-[#2C211B]'}`}>
+                    Emergency Lost Mode
+                  </h3>
+                </div>
+
+                {/* Toggle switch */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleLostMode(!isLost)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    isLost ? 'bg-rose-600' : 'bg-neutral-300'
+                  }`}
+                  role="switch"
+                  aria-checked={isLost}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      isLost ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <p className="text-xs text-[#766A63] leading-relaxed">
+                {isLost ? (
+                  <span className="font-bold text-rose-800">
+                    🚨 Lost Mode is ACTIVE! The public webpage is displaying urgent missing alerts and reward callouts.
+                  </span>
+                ) : (
+                  "Turn on Lost Mode if your puppy wanders away. This adds a prominent Missing Alert and reward banner to their public safety webpage."
+                )}
+              </p>
+
+              {/* Action buttons */}
+              <div className="mt-4 pt-3 border-t border-neutral-200/80 flex flex-wrap items-center gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleOpenFlyer}
+                  leftIcon={<FileText className="w-4 h-4 text-amber-300" />}
+                  className={`text-xs font-bold ${
+                    isLost ? 'bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20' : ''
+                  }`}
+                >
+                  🚨 Printable Missing Flyer
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleOpenPrintCollarTag}
-                  leftIcon={<Printer className="w-4 h-4" />}
-                  className="w-full bg-white text-xs font-bold"
+                  onClick={handleShareEmergencyAlert}
+                  leftIcon={<Share2 className="w-4 h-4 text-rose-600" />}
+                  className="text-xs font-bold border-rose-300 text-rose-700 hover:bg-rose-50"
                 >
-                  Print Physical Collar Badge (1.5&quot;)
+                  Broadcast Missing Alert
                 </Button>
-              </div>
-
-              {/* Right Column: Emergency Actions & Lost Mode */}
-              <div className="md:col-span-7 space-y-4">
-                
-                {/* Lost Mode Control Box */}
-                <div className={`rounded-3xl p-5 border-2 transition-all ${
-                  isLost 
-                    ? 'bg-rose-50/80 border-rose-400 shadow-sm' 
-                    : 'bg-white border-[#E8DDD3]'
-                }`}>
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className={`w-5 h-5 ${isLost ? 'text-rose-600' : 'text-[#766A63]'}`} />
-                      <h3 className={`text-sm font-black uppercase tracking-wider ${isLost ? 'text-rose-900' : 'text-[#2C211B]'}`}>
-                        Emergency Lost Mode
-                      </h3>
-                    </div>
-
-                    {/* Toggle Switch */}
-                    <button
-                      onClick={() => handleToggleLostMode(!isLost)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isLost ? 'bg-rose-600' : 'bg-neutral-300'
-                      }`}
-                      role="switch"
-                      aria-checked={isLost}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                          isLost ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-[#766A63] leading-relaxed">
-                    {isLost ? (
-                      <span className="font-bold text-rose-800">
-                        🚨 Lost Mode is ACTIVE! The public webpage is displaying urgent missing alerts and reward callouts.
-                      </span>
-                    ) : (
-                      "Turn on Lost Mode if your puppy wanders away. This adds a prominent Missing Alert and reward banner to their public safety webpage."
-                    )}
-                  </p>
-
-                  {/* Lost Dog Flyer Action Button */}
-                  <div className="mt-4 pt-3 border-t border-neutral-200/80 flex flex-col sm:flex-row items-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={handleOpenFlyer}
-                      leftIcon={<FileText className="w-4 h-4 text-amber-300" />}
-                      className={`w-full sm:w-auto font-bold text-xs ${
-                        isLost ? 'bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20' : ''
-                      }`}
-                    >
-                      🚨 Open Printable Flyer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleShareEmergencyAlert}
-                      leftIcon={<Share2 className="w-4 h-4 text-rose-600" />}
-                      className="w-full sm:w-auto font-bold text-xs border-rose-300 text-rose-700 hover:bg-rose-50"
-                      title="Instantly broadcast missing alert via WhatsApp, Messages, or AirDrop"
-                    >
-                      Broadcast Missing Alert
-                    </Button>
-                    <span className="text-[11px] text-[#766A63] hidden sm:inline">
-                      1-tap share with neighbors & family
-                    </span>
-                  </div>
-                </div>
-
-                {/* Emergency Contact & Finder Settings */}
-                <div className="bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5" /> Contact Information Displayed on Tag
-                    </h4>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                      Live on Scanned Tag
-                    </span>
-                  </div>
-
-                  {contactError && (
-                    <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 font-semibold flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                      <span>{contactError}</span>
-                    </div>
-                  )}
-
-                  {saveSuccess && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2">
-                      <Check className="w-4 h-4 shrink-0 text-emerald-600" />
-                      <span>Tag details and contact information updated successfully!</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Owner Phone (REQUIRED) */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] font-bold text-[#5F3E29]">
-                          Owner Phone Number <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
-                        </label>
-                        {phoneValidation.isValid && ownerPhone.trim() && (
-                          <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-600" /> Valid
-                          </span>
-                        )}
-                      </div>
-                      <CountryPhoneInput
-                        value={ownerPhone}
-                        required
-                        onChange={(val) => {
-                          setOwnerPhone(val);
-                          if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
-                          if (contactError) setContactError(null);
-                        }}
-                        placeholder="+1 (555) 123-4567 or 03XX XXXXXXX"
-                        error={fieldErrors.phone}
-                      />
-                      {!fieldErrors.phone && (
-                        <span className="text-[10px] text-[#766A63] font-medium block mt-1">
-                          Printed on collar tag & used for finder SMS/calls
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Reward Setting (DROPDOWN) */}
-                    <div>
-                      <RewardSettingInput
-                        value={rewardAmount}
-                        onChange={(val) => {
-                          setRewardAmount(val);
-                          if (fieldErrors.reward) setFieldErrors(prev => ({ ...prev, reward: undefined }));
-                          if (contactError) setContactError(null);
-                        }}
-                        error={fieldErrors.reward}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Finder Instructions (REQUIRED) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-[11px] font-bold text-[#5F3E29]">
-                        Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
-                      </label>
-                      {notesValidation.isValid && emergencyNotes.trim() ? (
-                        <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" /> Valid
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-[#766A63]">Handling, Temperament & Allergies</span>
-                      )}
-                    </div>
-                    <textarea
-                      rows={2}
-                      required
-                      value={emergencyNotes}
-                      onChange={(e) => {
-                        setEmergencyNotes(e.target.value);
-                        if (fieldErrors.notes) setFieldErrors(prev => ({ ...prev, notes: undefined }));
-                        if (contactError) setContactError(null);
-                      }}
-                      placeholder="e.g. Loves peanut butter, do not chase, friendly with kids and dogs"
-                      className={`w-full px-3 py-2 rounded-xl border ${
-                        fieldErrors.notes ? 'border-amber-400 bg-amber-50/20' : 'border-[#E8DDD3] bg-white'
-                      } text-xs text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] focus:ring-1 focus:ring-[#8B5E3C] resize-none`}
-                    />
-                    {fieldErrors.notes ? (
-                      <span className="text-[10px] text-amber-800 font-bold block mt-1 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                        {fieldErrors.notes}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-[#766A63] font-medium block mt-1">
-                        Shown immediately to anyone scanning the collar tag
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Dynamic 1-Field Communication Links with 100+ App Favicons & Auto-detect */}
-                  <div className="pt-2 border-t border-[#E8DDD3]/80">
-                    <CommunicationLinksInput
-                      links={communicationLinks}
-                      onChange={(updatedLinks) => {
-                        setCommunicationLinks(updatedLinks);
-                        const wa = updatedLinks.find(l => l.platform === 'whatsapp')?.value?.trim();
-                        if (wa && !ownerPhone.trim()) {
-                          const phoneCheck = validatePhoneNumber(wa);
-                          if (phoneCheck.isValid && phoneCheck.cleanedValue) {
-                            setOwnerPhone(phoneCheck.cleanedValue);
-                            if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
-                            if (contactError) setContactError(null);
-                          }
-                        }
-                      }}
-                      maxRecommended={3}
-                    />
-                  </div>
-
-                  {/* Save Button for Quick Tag Details */}
-                  <div className="pt-2 flex justify-end">
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={handleSaveEmergencyContact}
-                      leftIcon={<Check className="w-3.5 h-3.5" />}
-                    >
-                      Save Tag & Contact Details
-                    </Button>
-                  </div>
-                </div>
-
               </div>
             </div>
 
+            {/* Emergency Contact & Finder Information Box */}
+            <div className="bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5" /> Emergency Contacts on Tag
+                </h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                  Visible to Finders
+                </span>
+              </div>
+
+              {contactError && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>{contactError}</span>
+                </div>
+              )}
+
+              {saveSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                  <Check className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>Tag details and contact information updated successfully!</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Owner Phone */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-[#5F3E29]">
+                      Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
+                    </label>
+                    {phoneValidation.isValid && ownerPhone.trim() && (
+                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                        <Check className="w-3 h-3 text-emerald-600" /> Valid
+                      </span>
+                    )}
+                  </div>
+                  <CountryPhoneInput
+                    value={ownerPhone}
+                    required
+                    onChange={(val) => {
+                      setOwnerPhone(val);
+                      if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
+                      if (contactError) setContactError(null);
+                    }}
+                    placeholder="+1 (555) 123-4567 or 03XX XXXXXXX"
+                    error={fieldErrors.phone}
+                  />
+                </div>
+
+                {/* Reward Setting */}
+                <div>
+                  <RewardSettingInput
+                    value={rewardAmount}
+                    onChange={(val) => {
+                      setRewardAmount(val);
+                      if (fieldErrors.reward) setFieldErrors(prev => ({ ...prev, reward: undefined }));
+                      if (contactError) setContactError(null);
+                    }}
+                    error={fieldErrors.reward}
+                  />
+                </div>
+              </div>
+
+              {/* Instructions for Finder */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-[#5F3E29]">
+                    Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
+                  </label>
+                  {notesValidation.isValid && emergencyNotes.trim() && (
+                    <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-600" /> Valid
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  rows={2}
+                  required
+                  value={emergencyNotes}
+                  onChange={(e) => {
+                    setEmergencyNotes(e.target.value);
+                    if (fieldErrors.notes) setFieldErrors(prev => ({ ...prev, notes: undefined }));
+                    if (contactError) setContactError(null);
+                  }}
+                  placeholder="e.g. Loves peanut butter, friendly with kids and dogs, do not chase"
+                  className={`w-full px-3 py-2 rounded-xl border ${
+                    fieldErrors.notes ? 'border-amber-400 bg-amber-50/20' : 'border-[#E8DDD3] bg-white'
+                  } text-xs text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] resize-none`}
+                />
+              </div>
+
+              {/* Dynamic Communication Links */}
+              <div className="pt-2 border-t border-[#E8DDD3]/80">
+                <CommunicationLinksInput
+                  links={communicationLinks}
+                  onChange={(updatedLinks) => {
+                    setCommunicationLinks(updatedLinks);
+                  }}
+                  maxRecommended={3}
+                />
+              </div>
+
+              {/* Save Button for Quick Tag Details */}
+              <div className="pt-2 flex justify-end">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveEmergencyContact}
+                  leftIcon={<Check className="w-3.5 h-3.5" />}
+                  className="text-xs font-bold"
+                >
+                  Save Emergency Contacts
+                </Button>
+              </div>
+
+            </div>
+
           </div>
-        )}
+
+        </div>
 
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Behavior & Temperament */}
-        <div className="p-5 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" /> Temperament & Traits
-          </span>
+      {/* SECTION 3: EDITORIAL DETAILS DOSSIER (4 PILLARS) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        {/* Pillar 1: Temperament & Traits */}
+        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" /> Temperament &amp; Traits
+            </span>
+            <Smile className="w-4 h-4 text-[#8B5E3C]" />
+          </div>
           <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-            {puppy.temperament || (
-              <span className="text-[#766A63] italic">No temperament notes added yet. Tap &quot;Edit Profile&quot; to add details.</span>
+            {puppy.temperament ? (
+              <span className="italic font-medium">&ldquo;{puppy.temperament}&rdquo;</span>
+            ) : (
+              <span className="text-[#766A63] italic">No temperament notes added yet. Tap &quot;Edit Profile&quot; to describe personality.</span>
             )}
           </p>
         </div>
 
-        {/* Nutrition */}
-        <div className="p-5 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-            <Heart className="w-4 h-4" /> Nutrition & Diet
-          </span>
+        {/* Pillar 2: Nutrition & Diet */}
+        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+              <Heart className="w-4 h-4" /> Nutrition &amp; Diet Formula
+            </span>
+            <Heart className="w-4 h-4 text-rose-500" />
+          </div>
           <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-            {puppy.dietaryRestrictions || (
-              <span className="text-[#766A63] italic">No food brand or feeding instructions recorded yet.</span>
+            {puppy.dietaryRestrictions ? (
+              puppy.dietaryRestrictions
+            ) : (
+              <span className="text-[#766A63] italic">No dietary restrictions or food formula recorded.</span>
             )}
           </p>
+          {puppy.favoriteTreat && (
+            <p className="text-xs text-[#5F3E29] font-medium pt-1 border-t border-[#E8DDD3]/60">
+              🍖 <strong>Favorite High-Value Reward:</strong> {puppy.favoriteTreat}
+            </p>
+          )}
         </div>
 
-        {/* Primary Vet Clinic */}
-        <div className="p-5 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4" /> Veterinary Clinic
-          </span>
+        {/* Pillar 3: Veterinary Clinic */}
+        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+              <Stethoscope className="w-4 h-4" /> Primary Veterinary Clinic
+            </span>
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          </div>
           {puppy.vetClinic || puppy.vetPhone || puppy.vetName ? (
-            <>
+            <div className="space-y-1.5">
               <h4 className="text-sm font-bold text-[#2C211B]">{puppy.vetClinic || 'Clinic not specified'}</h4>
-              {puppy.vetName && <p className="text-xs text-[#5F3E29]">{puppy.vetName}</p>}
+              {puppy.vetName && <p className="text-xs text-[#5F3E29]">Attending Vet: {puppy.vetName}</p>}
               {puppy.vetPhone && (
-                <p className="text-xs font-semibold text-[#8B5E3C] flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5" /> {puppy.vetPhone}
-                </p>
+                <a
+                  href={`tel:${puppy.vetPhone}`}
+                  className="text-xs font-bold text-[#8B5E3C] hover:underline flex items-center gap-1 inline-flex pt-1"
+                >
+                  <Phone className="w-3.5 h-3.5" /> Call Clinic: {puppy.vetPhone}
+                </a>
               )}
-            </>
+            </div>
           ) : (
             <p className="text-xs text-[#766A63] italic">No veterinary clinic added yet.</p>
           )}
         </div>
 
-        {/* Identification & Insurance */}
-        <div className="p-5 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-            <Award className="w-4 h-4" /> Identification & Policy
-          </span>
-          <p className="text-xs text-[#2C211B]">
-            Microchip ID: <strong>{puppy.microchipNumber || 'Not recorded'}</strong>
-          </p>
-          <p className="text-xs text-[#2C211B]">
-            Insurance: <strong>{puppy.insuranceProvider || 'Not recorded'}</strong>
-          </p>
+        {/* Pillar 4: Official Identification & Insurance */}
+        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+              <Award className="w-4 h-4" /> Official Identification &amp; Policy
+            </span>
+            <Award className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="space-y-1.5 text-xs text-[#2C211B]">
+            <p className="flex items-center justify-between">
+              <span className="text-[#766A63]">Microchip RFID:</span>
+              <strong className="font-mono">{puppy.microchipNumber || 'Not recorded'}</strong>
+            </p>
+            <p className="flex items-center justify-between">
+              <span className="text-[#766A63]">Insurance Provider:</span>
+              <strong>{puppy.insuranceProvider || 'Not recorded'}</strong>
+            </p>
+            {puppy.insurancePolicyNumber && (
+              <p className="flex items-center justify-between">
+                <span className="text-[#766A63]">Policy Number:</span>
+                <strong className="font-mono">{puppy.insurancePolicyNumber}</strong>
+              </p>
+            )}
+            <p className="flex items-center justify-between pt-1 border-t border-[#E8DDD3]/60">
+              <span className="text-[#766A63]">Passport Serial:</span>
+              <strong className="font-mono text-[#8B5E3C]">{passportSerial}</strong>
+            </p>
+          </div>
         </div>
+
       </div>
 
-      {/* Edit Modal */}
+      {/* MODAL 1: CONFIRMATION FOR SLUG CHANGE (WARNING ABOUT PRINTED QR COLLAR) */}
+      <Modal
+        isOpen={isConfirmingSlugChange}
+        onClose={() => setIsConfirmingSlugChange(false)}
+        title="Update Puppy URL & QR Code?"
+      >
+        <div className="space-y-4">
+          <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-start gap-3">
+            <BadgeAlert className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1.5 text-xs sm:text-sm text-amber-950">
+              <p className="font-black text-amber-900">
+                ⚠️ Have you already printed {puppy.name}&apos;s QR collar tag?
+              </p>
+              <p className="leading-relaxed">
+                Changing your puppy&apos;s URL to <strong>puplume.com/{slugValidation.cleanedSlug}</strong> will update their QR code. Any previously printed tags or flyers will stop working and you will have to print them again.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-[#FAF6F0] rounded-xl p-3.5 border border-[#E8DDD3] space-y-2 text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-[#766A63]">Current URL:</span>
+              <span className="font-mono line-through text-rose-700">{displayUrl}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#766A63]">New Primary URL:</span>
+              <span className="font-mono font-bold text-emerald-800">puplume.com/{slugValidation.cleanedSlug}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsConfirmingSlugChange(false)}
+              className="flex-1 text-xs"
+              disabled={isSavingSlug}
+            >
+              Keep Current URL
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleConfirmSlugChange}
+              disabled={isSavingSlug}
+              leftIcon={isSavingSlug ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              className="flex-1 text-xs font-bold"
+            >
+              {isSavingSlug ? 'Updating...' : 'Yes, Update URL & QR'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 2: FULL EDIT PROFILE MODAL */}
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Puppy Profile">
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSaveFullProfile} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
               Puppy Name
@@ -1059,7 +1427,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               onUploadSuccess={(url) => setPhotoUrl(url)}
               folder="puplume/puppies"
               label={`Upload ${name || 'Puppy'}'s Photo`}
-              sublabel="Upload a high-quality picture of your pet"
+              sublabel="Upload a clear picture of your pet"
               variant="card"
             />
           </div>
@@ -1073,7 +1441,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
-                  Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
+                  Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
                 </label>
                 <CountryPhoneInput
                   value={ownerPhone}
@@ -1094,7 +1462,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
             <div>
               <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
-                Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
+                Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
               </label>
               <textarea
                 rows={2}
@@ -1106,7 +1474,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               />
             </div>
 
-            {/* Dynamic Communication Links in modal */}
             <div className="pt-2 border-t border-[#E8DDD3]">
               <CommunicationLinksInput
                 links={communicationLinks}
@@ -1153,18 +1520,45 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+                Vet Clinic
+              </label>
+              <input
+                type="text"
+                value={vetClinic}
+                onChange={(e) => setVetClinic(e.target.value)}
+                placeholder="Central Animal Hospital"
+                className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+                Vet Phone
+              </label>
+              <input
+                type="text"
+                value={vetPhone}
+                onChange={(e) => setVetPhone(e.target.value)}
+                placeholder="(555) 987-6543"
+                className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
+              />
+            </div>
+          </div>
+
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" variant="primary" className="flex-1">
+            <Button type="submit" variant="primary" className="flex-1 font-bold">
               Save Changes
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Paywall Modal ($1.99 micro-pass) */}
+      {/* MODAL 3: PAYWALL MODAL ($1.99 MICRO-PASS) */}
       <SmartTagPaywallModal
         isOpen={isPaywallOpen}
         puppyName={puppy.name}
@@ -1173,7 +1567,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         onUnlock={handleUnlockSmartTag}
       />
 
-      {/* 1-Click Printable Lost Dog Flyer Modal */}
+      {/* MODAL 4: 1-CLICK PRINTABLE LOST DOG FLYER */}
       <MissingPupFlyerModal
         isOpen={isFlyerOpen}
         puppy={currentTagPuppy}
@@ -1182,7 +1576,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         onClose={() => setIsFlyerOpen(false)}
       />
 
-      {/* Printable Collar Tag Badge Modal */}
+      {/* MODAL 5: PRINTABLE COLLAR TAG BADGE */}
       <PrintableCollarTagModal
         isOpen={isCollarTagPrintOpen}
         puppy={currentTagPuppy}
@@ -1191,7 +1585,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         onClose={() => setIsCollarTagPrintOpen(false)}
       />
 
-      {/* Instagram-Style Native Share Sheet Modal */}
+      {/* MODAL 6: INSTAGRAM & NATIVE SHARE SHEET */}
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}

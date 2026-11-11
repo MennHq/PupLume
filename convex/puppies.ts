@@ -98,6 +98,7 @@ export const updatePuppy = mutation({
     emergencyNotes: v.optional(v.string()),
     isLost: v.optional(v.boolean()),
     rewardAmount: v.optional(v.string()),
+    slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
@@ -154,6 +155,7 @@ export const savePuppy = mutation({
     emergencyNotes: v.optional(v.string()),
     isLost: v.optional(v.boolean()),
     rewardAmount: v.optional(v.string()),
+    slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
@@ -219,6 +221,7 @@ export const savePuppy = mutation({
       emergencyNotes: args.emergencyNotes,
       isLost: args.isLost,
       rewardAmount: args.rewardAmount,
+      slug: args.slug !== undefined ? args.slug : existing?.slug,
       hasSmartTagPass: (args.hasSmartTagPass || existing?.hasSmartTagPass) ?? false,
       ownerInstagram: args.ownerInstagram,
       ownerFacebook: args.ownerFacebook,
@@ -261,6 +264,120 @@ export const deletePuppy = mutation({
   },
 });
 
+const RESERVED_SLUGS = new Set([
+  'home', 'tasks', 'plan', 'ai', 'academy', 'more', 'potty', 'health', 
+  'expenses', 'vault', 'socialization', 'journal', 'recap', 'puppy', 
+  'profile', 'sharing', 'settings', 'onboarding', 'privacy', 'terms',
+  'auth', 'signin', 'signup', 'login', 'api', 'pup', 'safety', 'p', 
+  'sw', 'assets', 'favicon', 'robots', 'paddlelog', 'share-target'
+]);
+
+// Query to check if a custom puppy URL slug is available
+export const checkSlugAvailability = query({
+  args: {
+    slug: v.string(),
+    puppyId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const cleanSlug = (args.slug || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/^-+|-+$/g, '');
+
+    if (!cleanSlug) {
+      return { available: false, reason: "Slug cannot be empty." };
+    }
+    if (cleanSlug.length < 3 || cleanSlug.length > 7) {
+      return { available: false, reason: "Slug must be between 3 and 7 characters." };
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanSlug)) {
+      return { available: false, reason: "Slug must contain only lowercase letters, numbers, and single hyphens." };
+    }
+    if (RESERVED_SLUGS.has(cleanSlug)) {
+      return { available: false, reason: `"${cleanSlug}" is reserved for system routes.` };
+    }
+
+    const match = await ctx.db
+      .query("puppies")
+      .withIndex("by_slug", (q) => q.eq("slug", cleanSlug))
+      .first();
+
+    if (match) {
+      const matchId = match._id.toString();
+      if (args.puppyId && matchId === args.puppyId) {
+        return { available: true, isCurrent: true };
+      }
+      return { available: false, reason: "This custom URL is already in use by another puppy." };
+    }
+
+    return { available: true };
+  },
+});
+
+// Mutation to migrate/update a puppy's public URL slug
+export const updatePuppySlug = mutation({
+  args: {
+    puppyId: v.id("puppies"),
+    slug: v.string(),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+    const existing = await ctx.db.get(args.puppyId);
+    if (!existing || existing.userId !== userId) {
+      throw new Error("Puppy not found or unauthorized");
+    }
+
+    const cleanSlug = args.slug
+      .toLowerCase()
+      .trim()
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/^-+|-+$/g, '');
+
+    if (cleanSlug.length < 3 || cleanSlug.length > 7) {
+      throw new Error("Slug must be between 3 and 7 characters.");
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanSlug)) {
+      throw new Error("Slug must only contain lowercase alphanumeric characters and single hyphens.");
+    }
+    if (RESERVED_SLUGS.has(cleanSlug)) {
+      throw new Error(`"${cleanSlug}" is a reserved system path.`);
+    }
+
+    // Name inclusion rule
+    const cleanPupName = (existing.name || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, '');
+    let nameMatches = false;
+    if (cleanPupName.length <= 7) {
+      nameMatches = cleanSlug.includes(cleanPupName) || cleanSlug.replace(/-/g, '').includes(cleanPupName);
+    } else {
+      const prefix = cleanPupName.slice(0, 3);
+      nameMatches = cleanSlug.includes(prefix) || cleanSlug.replace(/-/g, '').includes(prefix);
+    }
+    if (!nameMatches && cleanPupName) {
+      throw new Error(`The slug must contain your puppy's name ("${existing.name}").`);
+    }
+
+    // Uniqueness validation
+    const collision = await ctx.db
+      .query("puppies")
+      .withIndex("by_slug", (q) => q.eq("slug", cleanSlug))
+      .first();
+
+    if (collision && collision._id !== args.puppyId) {
+      throw new Error("This custom URL is already in use by another puppy. Please choose a unique slug.");
+    }
+
+    await ctx.db.patch(args.puppyId, { slug: cleanSlug });
+    return { success: true, slug: cleanSlug };
+  },
+});
+
 // Public query for Smart QR Collar Tag emergency page (Intentionally accessible without user login when a dog is lost)
 export const getPublicPuppyByTag = query({
   args: { identifier: v.string() },
@@ -274,24 +391,45 @@ export const getPublicPuppyByTag = query({
       // Keep raw if decoding fails
     }
 
-    // 1. Check if it's a valid Convex puppy ID
-    const normId = ctx.db.normalizeId("puppies", raw);
+    const cleanSlug = raw
+      .toLowerCase()
+      .trim()
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/^-+|-+$/g, '');
+
+    // 1. Primary lookup: Match exact custom URL slug
     let puppy = null;
-    if (normId) {
-      puppy = await ctx.db.get(normId);
+    if (cleanSlug) {
+      puppy = await ctx.db
+        .query("puppies")
+        .withIndex("by_slug", (q) => q.eq("slug", cleanSlug))
+        .first();
     }
 
-    // 2. If not found by ID, look up by name or slugified variants
+    // 2. Next lookup: Check if raw identifier is a valid Convex ID
+    if (!puppy) {
+      const normId = ctx.db.normalizeId("puppies", raw);
+      if (normId) {
+        puppy = await ctx.db.get(normId);
+      }
+    }
+
+    // 3. Fallback for uncustomized puppies (NO custom slug has been chosen yet)
+    // IMPORTANT: Once a puppy sets a custom slug (e.g. 'leox'), its old name or old URL
+    // MUST NO LONGER SERVE this puppy!
     if (!puppy) {
       const allPups = await ctx.db.query("puppies").collect();
       const cleanRaw = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
 
       puppy = allPups.find((p) => {
+        // If the puppy already has an active custom slug and it doesn't match, DO NOT serve
+        if (p.slug && p.slug !== cleanSlug) {
+          return false;
+        }
         const pName = (p.name || '').trim().toLowerCase();
         if (pName === raw.toLowerCase()) return true;
-        // Compare slugified (spaces replaced by hyphens)
         if (pName.replace(/[\s_]+/g, '-') === raw.toLowerCase().replace(/[\s_]+/g, '-')) return true;
-        // Compare alphanumeric only
         const cleanPName = pName.replace(/[^a-z0-9]/g, '');
         if (cleanPName && cleanPName === cleanRaw) return true;
         return false;
@@ -323,6 +461,7 @@ export const getPublicPuppyByTag = query({
       emergencyNotes: puppy.emergencyNotes,
       isLost: puppy.isLost ?? false,
       rewardAmount: puppy.rewardAmount,
+      slug: puppy.slug,
       hasSmartTagPass: puppy.hasSmartTagPass ?? false,
       ownerInstagram: puppy.ownerInstagram,
       ownerFacebook: puppy.ownerFacebook,

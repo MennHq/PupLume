@@ -825,8 +825,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 onUploadSuccess={(url) => setPhotoUrl(url)}
                 folder="puplume/pets"
                 label={`Upload ${puppyName || 'Puppy'}'s Photo`}
-                sublabel="JPG, PNG, or WEBP (Max 25MB)"
+                sublabel="JPG, PNG, or WebP (Max 10MB)"
                 variant="card"
+                targetType="puppy_profile"
+                enableCrop={true}
               />
             </div>
 

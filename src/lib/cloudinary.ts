@@ -1,8 +1,26 @@
 /**
- * Client-side Cloudinary Upload Utility
- * Uploads photos (puppy avatar, journal photos, health docs, etc.) directly via the server-side Cloudinary proxy
- * and returns permanent HTTPS Cloudinary URLs to store in the database.
+ * Production-Ready Image Upload & Optimization Service
+ * 
+ * Architecture:
+ * 1. Validates allowed formats (JPG, PNG, WebP) and 10 MB size limit.
+ * 2. Obtains temporary authenticated upload URL from Convex.
+ * 3. Stages the uncompressed original in Convex temporary File Storage.
+ * 4. Calls Convex Node.js Action (`images:processAndStoreImage`) where Sharp:
+ *    - Validates decoded image format on server (rejecting spoofed MIME types)
+ *    - Auto-orients image via EXIF
+ *    - Applies user crop coordinates (if profile picture)
+ *    - Resizes to optimal dimensions (800x800 square for profile, max 1600 inside for general)
+ *    - Strips EXIF/GPS metadata
+ *    - Converts to lossy WebP (quality 82, effort 4)
+ * 5. Official Cloudinary Node.js SDK uploads optimized WebP to permanent Cloudinary storage.
+ * 6. Records references in Convex database.
+ * 7. Automatically deletes temporary Convex file and old Cloudinary image.
  */
+
+import { convex } from './convex';
+import { api } from '../../convex/_generated/api';
+import { storage } from './storage';
+import { Id } from '../../convex/_generated/dataModel';
 
 export interface UploadResult {
   url: string;
@@ -10,6 +28,24 @@ export interface UploadResult {
   width?: number;
   height?: number;
   format?: string;
+  size?: number;
+}
+
+export interface UploadImageOptions {
+  folder?: string;
+  tags?: string[];
+  userId?: string;
+  targetType?: 'puppy_profile' | 'user_avatar' | 'journal' | 'document' | 'general';
+  targetId?: string;
+  previousImageUrl?: string;
+  previousPublicId?: string;
+  crop?: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  };
+  onProgress?: (phase: 'validating' | 'uploading' | 'processing' | 'saving') => void;
 }
 
 export function readFileAsDataUrl(file: File | Blob): Promise<string> {
@@ -21,112 +57,140 @@ export function readFileAsDataUrl(file: File | Blob): Promise<string> {
   });
 }
 
+function dataURItoBlob(dataURI: string): Blob {
+  const byteString = atob(dataURI.split(',')[1]);
+  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeString });
+}
+
+/**
+ * Uploads an image through the production Convex + Sharp + Cloudinary pipeline.
+ */
 export async function uploadImageToCloudinary(
   fileOrBase64: File | Blob | string,
-  options: {
-    folder?: string;
-    tags?: string[];
-    previousImageUrl?: string;
-    previousPublicId?: string;
-  } = {}
+  options: UploadImageOptions = {}
 ): Promise<UploadResult> {
-  const folder = options.folder || 'puplume/pets';
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'puplume';
-  const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || '676714719837168';
-  const apiSecret = 'OdMstlADoBFXHObvTBGhUR091Lk';
+  // Convert string to Blob if necessary
+  let fileBlob: Blob;
+  let fileName = 'upload.jpg';
 
-  // Attempt direct signed upload to Cloudinary (fastest, supports large files, no serverless limits)
-  try {
-    const timestamp = Math.round(Date.now() / 1000);
-    const strToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
-    
-    // Compute SHA-1 signature using browser-native WebCrypto
-    const encoder = new TextEncoder();
-    const hashBuf = await crypto.subtle.digest('SHA-1', encoder.encode(strToSign));
-    const signature = Array.from(new Uint8Array(hashBuf))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-
-    const formData = new FormData();
-    if (fileOrBase64 instanceof Blob || fileOrBase64 instanceof File) {
-      formData.append('file', fileOrBase64);
-    } else {
-      formData.append('file', fileOrBase64);
-    }
-    formData.append('api_key', apiKey);
-    formData.append('timestamp', timestamp.toString());
-    formData.append('folder', folder);
-    formData.append('signature', signature);
-
-    const directRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (directRes.ok) {
-      const data = await directRes.json();
-      if (data?.secure_url || data?.url) {
-        // If there was a previous image, asynchronously trigger delete
-        const previousTarget = options.previousImageUrl || options.previousPublicId;
-        if (previousTarget) {
-          deleteImageFromCloudinary(previousTarget).catch(() => {});
-        }
-        return {
-          url: data.secure_url || data.url,
-          publicId: data.public_id,
-          width: data.width,
-          height: data.height,
-          format: data.format,
-        };
-      }
-    }
-  } catch (directErr) {
-    console.warn('[Cloudinary Direct Upload] Direct upload error, trying proxy fallback:', directErr);
-  }
-
-  // Fallback to server-side proxy endpoint
-  let base64Data: string;
   if (typeof fileOrBase64 === 'string') {
-    base64Data = fileOrBase64;
+    if (fileOrBase64.startsWith('data:')) {
+      fileBlob = dataURItoBlob(fileOrBase64);
+    } else {
+      // If it's already a remote HTTP URL, return as-is
+      return { url: fileOrBase64 };
+    }
   } else {
-    base64Data = await readFileAsDataUrl(fileOrBase64);
+    fileBlob = fileOrBase64;
+    if (fileOrBase64 instanceof File) {
+      fileName = fileOrBase64.name;
+    }
   }
 
+  // 1. Format validation: strictly JPG/JPEG, PNG, WebP
+  options.onProgress?.('validating');
+  const mimeType = (fileBlob.type || '').toLowerCase();
+  const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const ext = fileName.toLowerCase().split('.').pop() || '';
+  const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+
+  if (mimeType && !validMimes.includes(mimeType) && !validExts.includes(ext)) {
+    throw new Error('Only JPG, PNG, and WebP images are allowed. Please select a supported file format.');
+  }
+
+  // 2. Enforce 10 MB maximum original size
+  const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+  if (fileBlob.size > MAX_SIZE_BYTES) {
+    const sizeMb = (fileBlob.size / (1024 * 1024)).toFixed(1);
+    throw new Error(`Original image (${sizeMb} MB) exceeds the 10 MB limit. Please select an image under 10 MB.`);
+  }
+
+  // Resolve user ID
+  const effectiveUserId = options.userId || storage.getCurrentUserId() || 'anonymous_user';
+
+  // 3. Stage uncompressed original in Convex temporary File Storage
+  options.onProgress?.('uploading');
+  let uploadUrl: string;
   try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        file: base64Data,
-        folder,
-        tags: options.tags || ['puplume'],
-        previousImageUrl: options.previousImageUrl,
-        previousPublicId: options.previousPublicId,
-      }),
+    uploadUrl = await convex.mutation(api.imageMutations.generateUploadUrl, {
+      userId: effectiveUserId,
+    });
+  } catch (err: any) {
+    console.error('[Upload Pipeline] Could not generate Convex upload URL:', err);
+    throw new Error('Server connection error. Please verify your connection.');
+  }
+
+  const postRes = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': mimeType || 'image/jpeg',
+    },
+    body: fileBlob,
+  });
+
+  if (!postRes.ok) {
+    throw new Error(`Failed to upload to temporary storage (${postRes.status}).`);
+  }
+
+  const { storageId } = await postRes.json();
+  if (!storageId) {
+    throw new Error('No storage ID returned from temporary staging.');
+  }
+
+  // 4. Server-Side Sharp Processing + Cloudinary Upload via Node.js Action
+  options.onProgress?.('processing');
+  try {
+    const previousPublicId = options.previousPublicId || (
+      options.previousImageUrl ? extractPublicId(options.previousImageUrl) : undefined
+    );
+
+    const result = await convex.action(api.images.processAndStoreImage, {
+      storageId: storageId as Id<'_storage'>,
+      userId: effectiveUserId,
+      targetType: options.targetType || 'general',
+      targetId: options.targetId,
+      crop: options.crop,
+      folder: options.folder || (options.targetType === 'puppy_profile' ? 'puplume/pets' : 'puplume/uploads'),
+      previousPublicId,
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error || `Upload failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!data.url) {
-      throw new Error('No image URL returned from Cloudinary');
-    }
-
+    options.onProgress?.('saving');
     return {
-      url: data.url,
-      publicId: data.publicId,
-      width: data.width,
-      height: data.height,
-      format: data.format,
+      url: result.secureUrl,
+      publicId: result.publicId,
+      width: result.width,
+      height: result.height,
+      format: result.format,
+      size: result.size,
     };
-  } catch (error: any) {
-    console.error('[Cloudinary Client] Error uploading to Cloudinary:', error);
-    throw error;
+  } catch (procErr: any) {
+    console.error('[Upload Pipeline] Sharp / Cloudinary processing error:', procErr);
+    throw new Error(procErr.message || 'Image processing failed. Please ensure the file is a valid image.');
+  }
+}
+
+/**
+ * Helper to extract Cloudinary public ID from a standard Cloudinary URL
+ */
+function extractPublicId(url: string): string | undefined {
+  if (!url || !url.includes('cloudinary.com')) return undefined;
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length < 2) return undefined;
+    const afterUpload = parts[1];
+    // Remove version like v123456789/ if present
+    const withoutVersion = afterUpload.replace(/^v\d+\//, '');
+    // Remove file extension
+    const withoutExt = withoutVersion.replace(/\.[^/.]+$/, '');
+    return withoutExt;
+  } catch (_) {
+    return undefined;
   }
 }
 
@@ -153,20 +217,21 @@ export function getOptimizedCloudinaryUrl(
 }
 
 /**
- * Permanently deletes an image from Cloudinary (called when user removes or swaps photos)
+ * Permanently deletes an image from Cloudinary via authenticated server-side action
  */
 export async function deleteImageFromCloudinary(urlOrPublicId: string): Promise<boolean> {
   if (!urlOrPublicId) return false;
+  const publicId = urlOrPublicId.includes('http') ? extractPublicId(urlOrPublicId) : urlOrPublicId;
+  if (!publicId) return false;
+
+  const currentUserId = storage.getCurrentUserId() || 'anonymous_user';
+
   try {
-    const response = await fetch('/api/cloudinary/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ url: urlOrPublicId }),
+    const result = await convex.action(api.images.deleteImage, {
+      publicId,
+      userId: currentUserId,
     });
-    const data = await response.json().catch(() => ({}));
-    return Boolean(data.success);
+    return Boolean(result.success);
   } catch (err) {
     console.warn('[Cloudinary Client] Failed to delete image:', err);
     return false;
