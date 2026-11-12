@@ -11,8 +11,6 @@ import {
   RotateCcw, 
   Check, 
   AlertCircle,
-  HelpCircle,
-  ShieldCheck,
   BookOpen,
   Share2
 } from 'lucide-react';
@@ -67,7 +65,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
 
   // Screen Wake Lock & Timer tick
   React.useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isTimerRunning && timerSeconds > 0) {
       nativeBridge.wakeLock.request('academy-timer');
       interval = setInterval(() => {
@@ -84,7 +82,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
       nativeBridge.wakeLock.release('academy-timer');
     }
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       nativeBridge.wakeLock.release('academy-timer');
     };
   }, [isTimerRunning, timerSeconds]);

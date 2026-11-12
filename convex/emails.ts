@@ -388,7 +388,7 @@ export const getUsersWithUpcomingVaccines = internalQuery({
     const todayStr = now.toISOString().split("T")[0];
     const futureStr = threeDaysFromNow.toISOString().split("T")[0];
 
-    const allVaccines = await ctx.db.query("vaccinations").collect();
+    const allVaccines = await ctx.db.query("vaccinations").take(250);
 
     const dueSoon = allVaccines.filter((v) => {
       const dueDate = v.nextDueDate || v.dueDate;
@@ -439,7 +439,7 @@ export const getUsersWithUpcomingAppointments = internalQuery({
     const todayStr = now.toISOString().split("T")[0];
     const futureStr = twoDaysFromNow.toISOString().split("T")[0];
 
-    const allAppointments = await ctx.db.query("appointments").collect();
+    const allAppointments = await ctx.db.query("appointments").take(250);
 
     const upcoming = allAppointments.filter((a) => {
       return a.date >= todayStr && a.date <= futureStr && a.status === "scheduled";
@@ -475,7 +475,7 @@ export const getInactiveUsers = internalQuery({
   handler: async (ctx) => {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const allUsers = await ctx.db.query("users").collect();
+    const allUsers = await ctx.db.query("users").take(100);
     const results = [];
 
     for (const user of allUsers) {

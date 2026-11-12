@@ -6,6 +6,7 @@ import { NotificationItem } from '../types';
 
 class NotificationEngine {
   private timer: NodeJS.Timeout | null = null;
+  private initialTimer: NodeJS.Timeout | null = null;
   private notifiedTaskIds: Set<string> = new Set();
   private lastPottyAlertTimes: Map<string, number> = new Map();
   private notifiedMedicationKeys: Set<string> = new Set();
@@ -86,17 +87,20 @@ class NotificationEngine {
     this.timer = setInterval(() => this.check(), 60000);
     
     // Initial check 4 seconds after app load
-    setTimeout(() => {
+    this.initialTimer = setTimeout(() => {
       this.check();
       if (this.getPermissionStatus() === 'granted') {
         this.syncPushSubscriptionToCloud();
       }
+      this.initialTimer = null;
     }, 4000);
   }
 
   stop() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    if (this.initialTimer) clearTimeout(this.initialTimer);
+    this.initialTimer = null;
   }
 
   /**

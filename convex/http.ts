@@ -13,10 +13,11 @@ async function verifyPaddleWebhookSignature(
   signatureHeader: string | null,
   secretKey: string | undefined
 ): Promise<boolean> {
-  if (!secretKey) {
-    // If webhook secret isn't yet set in Convex env, allow in dev/sandbox
-    return true;
+  if (!secretKey || secretKey.trim().length === 0) {
+    console.warn("[Paddle Webhook] Insecure configuration: PADDLE_WEBHOOK_SECRET is not configured.");
+    return false;
   }
+
   if (!signatureHeader) {
     return false;
   }
@@ -31,6 +32,16 @@ async function verifyPaddleWebhookSignature(
       if (k === "h1") h1 = v;
     }
     if (!ts || !h1) return false;
+
+    // Replay attack protection: enforce 10-minute validity window
+    const tsNum = parseInt(ts, 10);
+    if (!isNaN(tsNum)) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (nowSec - tsNum > 600 || tsNum - nowSec > 60) {
+        console.warn("[Paddle Webhook] Timestamp outside validity window:", ts);
+        return false;
+      }
+    }
 
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
@@ -70,7 +81,7 @@ http.route({
       console.warn("[Paddle Webhook] Rejected unauthorized webhook with invalid HMAC signature");
       return new Response("Invalid signature", { status: 401 });
     }
-    
+
     try {
       const parsedEvent = JSON.parse(payloadText);
       const isSandbox = 
@@ -94,7 +105,7 @@ http.route({
             i.price?.id === "pri_01m4x67js5vkds3y6zcc18fntf" ||
             i.price_id === "pri_01m4x67js5vkds3y6zcc18fntf"
           );
-        
+
         if (isSmartTagPurchase) {
           await ctx.runMutation(internal.puppies.unlockSmartTagPassInternal, {
             puppyId: customData.puppyId,
@@ -115,13 +126,13 @@ http.route({
           console.error("[Paddle] No email or puppy found in custom_data!");
         }
       }
-      
+
       return new Response("OK", { status: 200 });
     } catch (e) {
       console.error("[Paddle] Webhook Error:", e);
       return new Response("Internal Error", { status: 500 });
     }
-  })
+  }),
 });
 
 export default http;

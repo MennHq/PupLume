@@ -10,16 +10,19 @@ import {
   Layers,
   ArrowRight,
   MoreHorizontal,
-  Edit2
+  Edit2,
+  Scissors,
+  Activity,
+  Droplet,
+  GraduationCap
 } from 'lucide-react';
-import { PuppyProfile, TaskItem } from '../types';
+import { PuppyProfile, TaskItem, TaskCategory, DayPeriod } from '../types';
 import { storage } from '../lib/storage';
 import { nativeBridge } from '../lib/nativeBridge';
 import { playNotificationChime } from '../lib/sound';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
-import { Scissors, Activity, Droplet, GraduationCap } from 'lucide-react';
 
 interface TasksViewProps {
   puppy: PuppyProfile;
@@ -27,18 +30,31 @@ interface TasksViewProps {
   onNavigate?: (view: string) => void;
 }
 
+const parseTimeToHoursAndMinutes = (timeStr: string): { hours: number; minutes: number } => {
+  if (!timeStr) return { hours: 9, minutes: 0 };
+  const parts = timeStr.trim().split(' ');
+  const [hStr, mStr] = (parts[0] || '9:00').split(':');
+  let hours = parseInt(hStr, 10) || 0;
+  const minutes = parseInt(mStr, 10) || 0;
+  const period = parts[1]?.toUpperCase();
+  if (period === 'PM' && hours < 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  return { hours, minutes };
+};
+
 const generateTaskGoogleCalendarUrl = (task: TaskItem) => {
   const startDate = (task.date || new Date().toISOString().split('T')[0]).replace(/-/g, '');
-  const startTime = task.time.replace(':', '') + '00';
+  const { hours, minutes } = parseTimeToHoursAndMinutes(task.time);
+  const startHourStr = String(hours).padStart(2, '0');
+  const startMinStr = String(minutes).padStart(2, '0');
+  const startTime = `${startHourStr}${startMinStr}00`;
   
-  const [hourStr, minStr] = task.time.split(':');
   const duration = task.durationMin || 30;
-  
   const tempDate = new Date();
-  tempDate.setHours(parseInt(hourStr, 10), parseInt(minStr, 10) + duration, 0);
+  tempDate.setHours(hours, minutes + duration, 0);
   const endHour = String(tempDate.getHours()).padStart(2, '0');
   const endMinute = String(tempDate.getMinutes()).padStart(2, '0');
-  const endTime = endHour + endMinute + '00';
+  const endTime = `${endHour}${endMinute}00`;
 
   const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
 
@@ -62,19 +78,25 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
   
   // Form states
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<any>('training');
+  const [category, setCategory] = useState<TaskCategory>('training');
   const [time, setTime] = useState('02:00 PM');
   const [durationMin, setDurationMin] = useState('15');
-  const [period, setPeriod] = useState<any>('afternoon');
+  const [period, setPeriod] = useState<DayPeriod>('afternoon');
   const [description, setDescription] = useState('');
 
   React.useEffect(() => {
-    const handleOpenAddTask = (e: any) => {
-      if (e.detail) {
-        setTitle(e.detail.title || '');
-        setCategory(e.detail.category || 'training');
-        if (e.detail.time) setTime(e.detail.time);
-        if (e.detail.durationMin) setDurationMin(e.detail.durationMin.toString());
+    const handleOpenAddTask = (e: Event) => {
+      const customEvt = e as CustomEvent<{
+        title?: string;
+        category?: TaskCategory;
+        time?: string;
+        durationMin?: number;
+      }>;
+      if (customEvt.detail) {
+        setTitle(customEvt.detail.title || '');
+        setCategory(customEvt.detail.category || 'training');
+        if (customEvt.detail.time) setTime(customEvt.detail.time);
+        if (customEvt.detail.durationMin) setDurationMin(customEvt.detail.durationMin.toString());
       }
       setIsAddOpen(true);
     };
@@ -739,7 +761,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value as TaskCategory)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               >
                 <option value="training">Training</option>
@@ -759,7 +781,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               </label>
               <select
                 value={period}
-                onChange={(e) => setPeriod(e.target.value)}
+                onChange={(e) => setPeriod(e.target.value as DayPeriod)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               >
                 <option value="morning">Morning</option>

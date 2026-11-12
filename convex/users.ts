@@ -15,7 +15,7 @@ async function checkUserHasPurchased(
 ): Promise<{ hasAccess: boolean; transactionId?: string; customerId?: string }> {
   const normEmail = email ? email.trim().toLowerCase() : null;
 
-  // 1. Check purchases ledger by email
+  // 1. Check purchases ledger by email using index
   if (normEmail) {
     const purchaseByEmail = await ctx.db
       .query("purchases")
@@ -31,7 +31,7 @@ async function checkUserHasPurchased(
     }
   }
 
-  // 2. Check purchases ledger by userId
+  // 2. Check purchases ledger by userId using index
   if (clerkId) {
     const purchaseByUserId = await ctx.db
       .query("purchases")
@@ -109,12 +109,13 @@ export const syncUser = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
       .first();
 
-    // 2. If not found by clerkId, search by email (case-insensitive) to prevent duplicate accounts
+    // 2. If not found by clerkId, search by email using index (no full table scan)
     if (!existing && normEmail) {
-      const allUsers = await ctx.db.query("users").collect();
-      existing = allUsers.find(
-        (u) => u.email && u.email.trim().toLowerCase() === normEmail
-      ) || null;
+      existing = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", normEmail))
+        .first();
+
       if (existing) {
         const oldClerkId = existing.clerkId;
         // Link this clerkId to the existing user profile
@@ -194,10 +195,10 @@ export const unlockDeveloperAccess = internalMutation({
         .first();
     }
     if (!user && normEmail) {
-      const allUsers = await ctx.db.query("users").collect();
-      user = allUsers.find(
-        (u) => u.email && u.email.trim().toLowerCase() === normEmail
-      ) || null;
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", normEmail))
+        .first();
     }
 
     if (user) {
@@ -256,11 +257,11 @@ export const unlockPro = internalMutation({
       }
     }
 
-    // 2. Find any matching users by case-insensitive email
-    const allUsers = await ctx.db.query("users").collect();
-    const matchingUsers = allUsers.filter(
-      (u) => u.email && u.email.trim().toLowerCase() === normEmail
-    );
+    // 2. Find any matching users by indexed email lookup
+    const matchingUsers = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normEmail))
+      .collect();
 
     if (matchingUsers.length > 0) {
       for (const user of matchingUsers) {
@@ -275,8 +276,7 @@ export const unlockPro = internalMutation({
       return true;
     }
 
-    // 3. User hasn't signed up in Clerk yet. Pre-provision the account so when they sign in,
-    // they get immediate premium access without ever seeing the paywall!
+    // 3. User hasn't signed up in Clerk yet. Pre-provision the account
     await ctx.db.insert("users", {
       clerkId: "pending_" + Date.now(),
       email: normEmail,
@@ -294,7 +294,7 @@ export const unlockPro = internalMutation({
 
 /**
  * Client-side confirmation after Paddle checkout completion.
- * Instantly records the purchase in the database and updates user access.
+ * Verifies caller authentication and registers the completed purchase.
  */
 export const confirmCheckoutSuccess = mutation({
   args: {
@@ -305,6 +305,11 @@ export const confirmCheckoutSuccess = mutation({
   handler: async (ctx, args) => {
     const clerkId = await requireAuthUser(ctx, args.userId);
     const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
+
+    // Validate transactionId format if provided
+    if (args.transactionId && !args.transactionId.startsWith("txn_") && !args.transactionId.startsWith("sim_")) {
+      throw new Error("Invalid transaction ID format.");
+    }
 
     // 1. Record in purchases ledger if transactionId is present
     if (args.transactionId && normEmail) {
@@ -325,17 +330,17 @@ export const confirmCheckoutSuccess = mutation({
       }
     }
 
-    // 2. Find user by clerkId or email
+    // 2. Find user by clerkId or indexed email
     let user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (!user && normEmail) {
-      const allUsers = await ctx.db.query("users").collect();
-      user = allUsers.find(
-        (u) => u.email && u.email.trim().toLowerCase() === normEmail
-      ) || null;
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", normEmail))
+        .first();
     }
 
     if (user) {
@@ -384,8 +389,10 @@ export const restoreUserAccess = mutation({
         .first();
 
       if (!user && normEmail) {
-        const allUsers = await ctx.db.query("users").collect();
-        user = allUsers.find((u) => u.email && u.email.trim().toLowerCase() === normEmail) || null;
+        user = await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", normEmail))
+          .first();
       }
 
       if (user) {
@@ -462,9 +469,12 @@ export const backfillPurchasesFromLogs = internalMutation({
         migrated++;
       }
 
-      // Also ensure matching users have hasAccess: true
-      const allUsers = await ctx.db.query("users").collect();
-      const matched = allUsers.filter((u) => u.email && u.email.trim().toLowerCase() === email);
+      // Also ensure matching users have hasAccess: true using index
+      const matched = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+
       for (const u of matched) {
         if (!u.hasAccess || !u.subscriptionId) {
           await ctx.db.patch(u._id, {

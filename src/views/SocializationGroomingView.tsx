@@ -7,10 +7,8 @@ import {
   Smile, 
   Meh, 
   Frown, 
-  Volume2, 
   Scissors, 
-  ShieldCheck, 
-  Heart 
+  ShieldCheck 
 } from 'lucide-react';
 import { PuppyProfile } from '../types';
 import { Button } from '../components/ui/Button';

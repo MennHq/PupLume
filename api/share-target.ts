@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import Busboy from 'busboy';
+import {
+  parseMultipartUpload,
+  safeJsonScriptEmbed,
+  sanitizeErrorMessage,
+} from './_utils';
 
 // Disable default Vercel body parser so busboy can stream the multipart/form-data
 export const config = {
@@ -8,61 +12,63 @@ export const config = {
   },
 };
 
+const REDIRECT_URL = '/journal?action=shared-media';
+const MAX_SHARE_FILE_BYTES = 10 * 1024 * 1024; // 10MB limit
+
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/heic',
+  'image/heif',
+  'image/avif',
+];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // If GET request, cleanly redirect to journal
+  // If GET or not POST request, cleanly redirect to journal
   if (req.method !== 'POST') {
-    res.writeHead(303, { Location: '/journal?action=shared-media' });
+    res.writeHead(303, { Location: REDIRECT_URL });
     return res.end();
   }
 
-  const contentType = req.headers['content-type'] || '';
+  const contentType = (req.headers['content-type'] as string) || '';
   if (!contentType.includes('multipart/form-data')) {
-    res.writeHead(303, { Location: '/journal?action=shared-media' });
+    res.writeHead(303, { Location: REDIRECT_URL });
     return res.end();
   }
 
   try {
-    let fileBuffer: Buffer | null = null;
-    let mimeType = 'image/jpeg';
-    let title = '';
-    let text = '';
-
-    await new Promise<void>((resolve, reject) => {
-      try {
-        const busboy = Busboy({ headers: req.headers });
-
-        busboy.on('file', (_name, file, info) => {
-          mimeType = info.mimeType || 'image/jpeg';
-          const chunks: Buffer[] = [];
-          file.on('data', (data) => chunks.push(data));
-          file.on('end', () => {
-            fileBuffer = Buffer.concat(chunks);
-          });
-        });
-
-        busboy.on('field', (name, val) => {
-          if (name === 'title') title = val;
-          if (name === 'text') text = val;
-        });
-
-        busboy.on('finish', () => resolve());
-        busboy.on('error', (err) => reject(err));
-
-        req.pipe(busboy);
-      } catch (bbErr) {
-        reject(bbErr);
-      }
+    const parsed = await parseMultipartUpload(req, {
+      maxFileSize: MAX_SHARE_FILE_BYTES,
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
+      maxFields: 10,
     });
 
+    const file = parsed.file;
+    const title = (parsed.fields.title || '').trim().slice(0, 200);
+    const text = (parsed.fields.text || '').trim().slice(0, 500);
     const photoTitle = title || text || 'Puppy Photo Memory';
 
-    if (fileBuffer) {
-      const base64Data = `data:${mimeType};base64,${(fileBuffer as Buffer).toString('base64')}`;
+    if (file && file.buffer && file.buffer.length > 0) {
+      const mimeType = file.mimeType || 'image/jpeg';
+      const base64Data = `data:${mimeType};base64,${file.buffer.toString('base64')}`;
 
-      // Return client-side script that populates the PWA cache and redirects to journal
+      // Free buffer memory immediately
+      (file as any).buffer = null;
+
+      // Safe JSON embeds for script tag to prevent reflected XSS
+      const safeBase64 = safeJsonScriptEmbed(base64Data);
+      const safeMime = safeJsonScriptEmbed(mimeType);
+      const safeTitle = safeJsonScriptEmbed(photoTitle);
+
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
       return res.end(`<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,34 +94,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <script>
     (async function() {
       try {
-        var base64 = ${JSON.stringify(base64Data)};
+        var base64 = ${safeBase64};
         var res = await fetch(base64);
         var blob = await res.blob();
         if ('caches' in window) {
           var cache = await caches.open('puplume-shared-media');
           await cache.put('/shared-media-latest', new Response(blob, {
             headers: {
-              'content-type': ${JSON.stringify(mimeType)},
-              'x-shared-title': encodeURIComponent(${JSON.stringify(photoTitle)})
+              'content-type': ${safeMime},
+              'x-shared-title': encodeURIComponent(${safeTitle})
             }
           }));
         }
       } catch(e) {
         console.warn('Cache write error:', e);
       }
-      window.location.replace('/journal?action=shared-media');
+      window.location.replace(${safeJsonScriptEmbed(REDIRECT_URL)});
     })();
   </script>
 </body>
 </html>`);
     }
 
-    // No file buffer received
-    res.writeHead(303, { Location: '/journal?action=shared-media' });
+    // No valid file buffer received
+    res.writeHead(303, { Location: REDIRECT_URL });
     return res.end();
   } catch (err: any) {
-    console.error('[ShareTarget API] Error processing share request:', err);
-    res.writeHead(303, { Location: '/journal?action=shared-media' });
+    console.error('[ShareTarget API] Error processing share request:', sanitizeErrorMessage(err));
+    res.writeHead(303, { Location: REDIRECT_URL });
     return res.end();
   }
 }

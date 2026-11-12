@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/react';
 import { 
   Sparkles, 
   Dog, 
   Clock, 
   Calendar, 
-  ShieldAlert, 
   CheckCircle2, 
   ArrowRight, 
   ArrowLeft,
@@ -17,8 +17,6 @@ import {
   Loader2,
   Phone,
   Globe,
-  ChevronDown,
-  ChevronUp,
   MessageSquare
 } from 'lucide-react';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
@@ -61,8 +59,6 @@ const COMMON_BREEDS = [
   'Rottweiler',
   'Mixed Breed / Mutt'
 ];
-
-import { useUser } from '@clerk/react';
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, onCancel, userId }) => {
   const { user } = useUser();

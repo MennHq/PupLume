@@ -8,8 +8,6 @@ import {
   Trash2, 
   Send, 
   ArrowLeft, 
-  ShieldCheck, 
-  AlertCircle, 
   ChevronDown, 
   ChevronRight,
   ExternalLink,
@@ -17,6 +15,7 @@ import {
   Zap,
   Globe
 } from 'lucide-react';
+import { copyToClipboard } from '../lib/clipboard';
 
 export const PaddleLogPage: React.FC = () => {
   const [copiedUrl, setCopiedUrl] = useState(false);
@@ -35,13 +34,13 @@ export const PaddleLogPage: React.FC = () => {
   const webhookUrl = 'https://energetic-partridge-407.convex.site/paddle-webhook';
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(webhookUrl);
+    copyToClipboard(webhookUrl);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
-  const handleCopyPayload = (logId: string, payload: any) => {
-    navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+  const handleCopyPayload = (logId: string, payload: unknown) => {
+    copyToClipboard(JSON.stringify(payload, null, 2));
     setCopiedLogId(logId);
     setTimeout(() => setCopiedLogId(null), 2000);
   };

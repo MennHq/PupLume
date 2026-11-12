@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Check, 
-  RotateCcw, 
   X, 
   Sparkles, 
-  Dog, 
-  CheckCircle2, 
   ChevronUp,
-  ChevronDown,
-  Trophy
+  ChevronDown
 } from 'lucide-react';
 import { PuppyProfile } from '../../types';
 import { storage } from '../../lib/storage';

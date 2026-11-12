@@ -17,10 +17,9 @@ export const getUserAppData = query({
 
     let user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).first();
 
-    // If not found by clerkId, search by email to match any existing account
+    // If not found by clerkId, search by email using index to match any existing account
     if (!user && normEmail) {
-      const allUsers = await ctx.db.query('users').collect();
-      user = allUsers.find(u => u.email && u.email.trim().toLowerCase() === normEmail) || null;
+      user = await ctx.db.query('users').withIndex('by_email', q => q.eq('email', normEmail)).first();
     }
 
     // Enterprise entitlement verification: check purchases ledger and webhook logs
@@ -99,6 +98,26 @@ export const getUserAppData = query({
       ctx.db.query('memories').withIndex('by_user', q => q.eq('userId', userId)).collect(),
       ctx.db.query('userSettings').withIndex('by_user', q => q.eq('userId', userId)).first(),
     ]);
+
+    // Also include puppies shared with this user via family membership
+    if (effectiveEmail) {
+      const familyInvites = await ctx.db
+        .query('familyMembers')
+        .withIndex('by_email', q => q.eq('email', effectiveEmail))
+        .collect();
+
+      for (const invite of familyInvites) {
+        if (invite.puppyId) {
+          const normPupId = ctx.db.normalizeId('puppies', invite.puppyId);
+          if (normPupId) {
+            const sharedPup = await ctx.db.get(normPupId);
+            if (sharedPup && !puppies.some((p: any) => p._id === sharedPup._id)) {
+              puppies.push(sharedPup);
+            }
+          }
+        }
+      }
+    }
 
     // Deduplicate puppies by trimmed lowercase name
     const seenNames = new Set<string>();
@@ -210,7 +229,7 @@ export const repairLegacyPuppyIds = mutation({
   }
 });
 
-// Dangerous mutation converted to internalMutation so it CANNOT be invoked by external clients/browsers
+// Dangerous mutation strictly internalMutation so it CANNOT be invoked by external clients/browsers
 export const wipeAllData = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -236,7 +255,13 @@ export const clearUserData = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
 
-    const tables = ['puppies', 'tasks', 'pottyLogs', 'feedingLogs', 'sleepLogs', 'walkLogs', 'vaccinations', 'medications', 'appointments', 'expenses', 'documents', 'behaviorLogs', 'socialization', 'journalEntries', 'trainingLessons', 'notifications', 'familyMembers', 'memories'];
+    const tables = [
+      'puppies', 'tasks', 'pottyLogs', 'feedingLogs', 'sleepLogs', 'walkLogs',
+      'vaccinations', 'medications', 'appointments', 'expenses', 'documents',
+      'behaviorLogs', 'groomingTasks', 'socialization', 'journalEntries',
+      'trainingLessons', 'notifications', 'familyMembers', 'memories',
+      'userSettings', 'pushSubscriptions', 'images', 'emailLogs'
+    ];
     
     for (const table of tables) {
       const records: any[] = await (ctx.db.query as any)(table).withIndex('by_user', (q: any) => q.eq('userId', userId)).collect();
@@ -315,21 +340,33 @@ export const completeAIOnboarding = mutation({
       });
     }
 
+    // Check existing tasks for this puppy today to avoid duplicate creation on retry
+    const existingTasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_puppy_date", (q) =>
+        q.eq("puppyId", puppyId as string).eq("date", todayDateStr)
+      )
+      .collect();
+
+    const existingTitles = new Set(existingTasks.map((t) => t.title.trim().toLowerCase()));
+
     for (const task of args.tasks) {
-      await ctx.db.insert("tasks", {
-        userId,
-        puppyId: puppyId as string,
-        title: task.title,
-        category: task.category,
-        time: task.time,
-        durationMin: task.durationMin,
-        completed: false,
-        skipped: false,
-        period: task.period || 'morning',
-        date: todayDateStr,
-        description: task.description,
-        notes: task.description,
-      });
+      if (!existingTitles.has(task.title.trim().toLowerCase())) {
+        await ctx.db.insert("tasks", {
+          userId,
+          puppyId: puppyId as string,
+          title: task.title,
+          category: task.category,
+          time: task.time,
+          durationMin: task.durationMin,
+          completed: false,
+          skipped: false,
+          period: task.period || 'morning',
+          date: todayDateStr,
+          description: task.description,
+          notes: task.description,
+        });
+      }
     }
 
     const existingSettings = await ctx.db
@@ -365,7 +402,36 @@ export const deleteUserAccount = mutation({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+
+    const tables = [
+      'puppies', 'tasks', 'pottyLogs', 'feedingLogs', 'sleepLogs', 'walkLogs',
+      'vaccinations', 'medications', 'appointments', 'expenses', 'documents',
+      'behaviorLogs', 'groomingTasks', 'socialization', 'journalEntries',
+      'trainingLessons', 'notifications', 'familyMembers', 'memories',
+      'userSettings', 'pushSubscriptions', 'images', 'emailLogs'
+    ];
+
+    for (const table of tables) {
+      const records: any[] = await (ctx.db.query as any)(table)
+        .withIndex('by_user', (q: any) => q.eq('userId', userId))
+        .collect();
+      for (const record of records) {
+        await ctx.db.delete(record._id);
+      }
+    }
+
     const user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).first();
+    if (user?.email) {
+      const externalFamilyInvites = await ctx.db
+        .query('familyMembers')
+        .withIndex('by_email', q => q.eq('email', user.email!.trim().toLowerCase()))
+        .collect();
+      for (const invite of externalFamilyInvites) {
+        await ctx.db.delete(invite._id);
+      }
+    }
     if (user) await ctx.db.delete(user._id);
+
+    return true;
   }
 });

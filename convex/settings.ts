@@ -56,14 +56,6 @@ export const saveSettings = mutation({
       return existing._id;
     }
 
-    const hasPuppy = await ctx.db
-      .query("puppies")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-    if (!hasPuppy) {
-      return null;
-    }
-
     return await ctx.db.insert("userSettings", {
       ...data,
       userId,

@@ -7,7 +7,6 @@ import {
   Users, 
   Heart, 
   Settings, 
-  Calendar, 
   ChevronRight, 
   Sparkles, 
   ShieldCheck, 
@@ -18,7 +17,6 @@ import {
 import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';
 import { PWAInstallButton } from '../components/pwa/PWAInstallButton';
-import { Download } from 'lucide-react';
 
 interface MoreMenuViewProps {
   puppy: PuppyProfile;

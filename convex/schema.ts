@@ -62,7 +62,7 @@ export default defineSchema({
     payload: v.any(),
     processedAt: v.optional(v.string()),
     environment: v.optional(v.string()),
-  }),
+  }).index("by_action", ["action"]),
 
 
   // Puppies belonging to authenticated users
@@ -112,7 +112,8 @@ export default defineSchema({
       label: v.optional(v.string()),
     }))),
   }).index("by_user", ["userId"])
-    .index("by_slug", ["slug"]),
+    .index("by_slug", ["slug"])
+    .index("by_user_name", ["userId", "name"]),
 
   // User Settings & Preferences
   userSettings: defineTable({
@@ -156,7 +157,8 @@ export default defineSchema({
   })
     .index("by_puppy", ["puppyId"])
     .index("by_user", ["userId"])
-    .index("by_puppy_date", ["puppyId", "date"]),
+    .index("by_puppy_date", ["puppyId", "date"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Potty and bathroom tracking
   pottyLogs: defineTable({
@@ -168,7 +170,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Feeding & meals tracking
   feedingLogs: defineTable({
@@ -181,7 +184,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Sleep and nap tracking
   sleepLogs: defineTable({
@@ -194,7 +198,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Walk & exercise logs
   walkLogs: defineTable({
@@ -212,7 +217,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Health: Vaccinations
   vaccinations: defineTable({
@@ -230,7 +236,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Health: Medications
   medications: defineTable({
@@ -246,7 +253,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Health: Veterinary Appointments
   appointments: defineTable({
@@ -262,7 +270,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Financial tracking / Expenses
   expenses: defineTable({
@@ -277,7 +286,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Memory book & Milestones Journal
   journalEntries: defineTable({
@@ -290,7 +300,8 @@ export default defineSchema({
     milestoneBadge: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Socialization checklist
   socialization: defineTable({
@@ -304,7 +315,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Training Lessons & Curriculum Progress
   trainingLessons: defineTable({
@@ -317,7 +329,8 @@ export default defineSchema({
   })
     .index("by_puppy", ["puppyId"])
     .index("by_user", ["userId"])
-    .index("by_puppy_lesson", ["puppyId", "lessonId"]),
+    .index("by_puppy_lesson", ["puppyId", "lessonId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Grooming Tasks
   groomingTasks: defineTable({
@@ -330,7 +343,8 @@ export default defineSchema({
     frequencyDays: v.number(),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Document Vault records
   documents: defineTable({
@@ -345,7 +359,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Behavior Incident logs
   behaviorLogs: defineTable({
@@ -359,7 +374,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_puppy", ["puppyId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Notifications
   notifications: defineTable({
@@ -398,7 +414,9 @@ export default defineSchema({
     role: v.string(),
     avatarUrl: v.optional(v.string()),
     dateAdded: v.string(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_email", ["email"]),
 
   // AI Personalized Memory
   memories: defineTable({
@@ -407,7 +425,9 @@ export default defineSchema({
     fact: v.string(),
     category: v.optional(v.string()), // e.g. behavior, medical, preference
     createdAt: v.string(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_puppy", ["userId", "puppyId"]),
 
   // Email delivery logs
   emailLogs: defineTable({

@@ -14,14 +14,13 @@ import {
   Moon, 
   Footprints, 
   GraduationCap, 
-  DollarSign, 
-  AlertCircle,
-  Bell,
-  Search,
-  ExternalLink,
-  Trash2
+  Bell, 
+  Search, 
+  Trash2,
+  Scissors, 
+  Activity
 } from 'lucide-react';
-import { PuppyProfile, TaskItem } from '../types';
+import { PuppyProfile, TaskItem, TaskCategory, DayPeriod } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -30,7 +29,6 @@ import { Modal } from '../components/ui/Modal';
 import { WeeklyRecapBanner } from '../components/recap/WeeklyRecapBanner';
 import { PupLumeSkeleton } from '../components/common/PupLumeSkeleton';
 import { CareMilestonesHub } from '../components/home/CareMilestonesHub';
-import { Scissors, Activity } from 'lucide-react';
 
 interface HomeScreenProps {
   puppy: PuppyProfile;
@@ -67,6 +65,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isInsightLoading, setIsInsightLoading] = useState(true);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     const fetchInsight = async () => {
       try {
         const payload = {
@@ -88,13 +88,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
         if (!res.ok) throw new Error('Insight fetch failed');
         const data = await res.json();
-        setAiInsight(data.text);
-        sessionStorage.setItem(`insight-${puppy.id}`, data.text);
+        if (!cancelled) {
+          setAiInsight(data.text);
+          sessionStorage.setItem(`insight-${puppy.id}`, data.text);
+        }
       } catch (err) {
         console.error("Failed to load insight", err);
-        setAiInsight(`${puppy.name} is growing fast! Keep training sessions under 10 minutes to maintain high motivation and reward positive associations.`);
+        if (!cancelled) {
+          setAiInsight(`${puppy.name} is growing fast! Keep training sessions under 10 minutes to maintain high motivation and reward positive associations.`);
+        }
       } finally {
-        setIsInsightLoading(false);
+        if (!cancelled) {
+          setIsInsightLoading(false);
+        }
       }
     };
     
@@ -105,15 +111,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     } else {
       fetchInsight();
     }
-  }, [puppy]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [puppy.id, puppy.name, puppy.birthDate, puppy.breed]);
 
 
   // New task form
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskCategory, setNewTaskCategory] = useState<any>('training');
+  const [newTaskCategory, setNewTaskCategory] = useState<TaskCategory>('training');
   const [newTaskTime, setNewTaskTime] = useState('02:00 PM');
   const [newTaskDuration, setNewTaskDuration] = useState('15');
-  const [newTaskPeriod, setNewTaskPeriod] = useState<any>('afternoon');
+  const [newTaskPeriod, setNewTaskPeriod] = useState<DayPeriod>('afternoon');
 
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
@@ -741,7 +751,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </label>
               <select
                 value={newTaskCategory}
-                onChange={(e) => setNewTaskCategory(e.target.value)}
+                onChange={(e) => setNewTaskCategory(e.target.value as TaskCategory)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               >
                 <option value="training">Training</option>
@@ -761,7 +771,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </label>
               <select
                 value={newTaskPeriod}
-                onChange={(e) => setNewTaskPeriod(e.target.value)}
+                onChange={(e) => setNewTaskPeriod(e.target.value as DayPeriod)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               >
                 <option value="morning">Morning</option>

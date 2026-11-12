@@ -5,16 +5,14 @@ import {
   ShieldCheck, 
   Copy, 
   Check, 
-  Share2, 
   Trash2, 
-  FileText, 
-  Phone, 
-  Sparkles 
+  FileText 
 } from 'lucide-react';
-import { PuppyProfile } from '../types';
+import { PuppyProfile, FamilyMember } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { storage } from '../lib/storage';
+import { copyToClipboard } from '../lib/clipboard';
 
 interface FamilySharingViewProps {
   puppy: PuppyProfile;
@@ -29,11 +27,11 @@ interface Member {
   status: 'active' | 'invited';
 }
 
-const mapFamilyToMember = (f: any): Member => ({
+const mapFamilyToMember = (f: FamilyMember): Member => ({
   id: f.id,
   name: f.name,
   email: f.email,
-  role: f.role === 'Owner' ? 'Admin' : f.role === 'Walker' ? 'Walker / Sitter' : 'Member',
+  role: f.role === 'Admin' ? 'Admin' : f.role === 'Caregiver' ? 'Walker / Sitter' : 'Member',
   avatar: f.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
   status: 'active',
 });
@@ -82,7 +80,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
 • Crate: Sleeps in crate with white noise machine. Frozen peanut butter Kong helps him settle.
 • Notes: DO NOT give rawhide. If biting fingers, swap with rubber chew toy.`;
 
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };

@@ -21,7 +21,8 @@ export const checkIsStandalone = (): boolean => {
 };
 
 // Global variable to capture prompt event even if hook mounts later
-let capturedPrompt: BeforeInstallPromptEvent | null = (window as any).__deferredInstallPrompt || null;
+let capturedPrompt: BeforeInstallPromptEvent | null = 
+  typeof window !== 'undefined' ? (window as unknown as { __deferredInstallPrompt?: BeforeInstallPromptEvent }).__deferredInstallPrompt || null : null;
 
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -33,13 +34,13 @@ if (typeof window !== 'undefined') {
     }
     e.preventDefault();
     capturedPrompt = e as BeforeInstallPromptEvent;
-    (window as any).__deferredInstallPrompt = capturedPrompt;
+    (window as unknown as { __deferredInstallPrompt?: BeforeInstallPromptEvent }).__deferredInstallPrompt = capturedPrompt;
     window.dispatchEvent(new CustomEvent('pwa-prompt-available'));
   });
 
   window.addEventListener('appinstalled', () => {
     capturedPrompt = null;
-    (window as any).__deferredInstallPrompt = null;
+    (window as unknown as { __deferredInstallPrompt?: BeforeInstallPromptEvent | null }).__deferredInstallPrompt = null;
     window.dispatchEvent(new CustomEvent('pwa-installed'));
   });
 }
@@ -52,6 +53,8 @@ export function usePWAInstall() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const isStandalone = checkIsStandalone();
     setIsInstalled(isStandalone);
     if (isStandalone) {
@@ -60,7 +63,7 @@ export function usePWAInstall() {
 
     // Detect iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as any).MSStream;
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
     setIsIOS(isIOSDevice);
 
     const onPromptAvailable = () => {
@@ -77,7 +80,7 @@ export function usePWAInstall() {
     window.addEventListener('pwa-prompt-available', onPromptAvailable);
     window.addEventListener('pwa-installed', onAppInstalled);
 
-    if (capturedPrompt && !deferredPrompt && !isStandalone) {
+    if (capturedPrompt && !isStandalone) {
       setDeferredPrompt(capturedPrompt);
     }
 
@@ -85,7 +88,7 @@ export function usePWAInstall() {
       window.removeEventListener('pwa-prompt-available', onPromptAvailable);
       window.removeEventListener('pwa-installed', onAppInstalled);
     };
-  }, [deferredPrompt]);
+  }, []);
 
   const install = async (): Promise<boolean> => {
     if (!deferredPrompt || checkIsStandalone()) {

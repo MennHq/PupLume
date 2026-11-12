@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { WifiOff, RotateCw, AlertTriangle, CheckCircle2, ChevronRight, CloudUpload } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { WifiOff, RotateCw, CheckCircle2, ChevronRight, CloudUpload } from 'lucide-react';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { OfflinePageModal } from './OfflinePageModal';
 import { offlineQueue } from '../../lib/offlineQueue';
@@ -10,6 +10,7 @@ export const OfflineAlert: React.FC = () => {
   const [showReconnectedToast, setShowReconnectedToast] = useState(false);
   const [flushedCount, setFlushedCount] = useState<number | null>(null);
   const [queuedCount, setQueuedCount] = useState<number>(() => offlineQueue.getCount());
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Listen to offline mutation queue changes
   useEffect(() => {
@@ -20,21 +21,26 @@ export const OfflineAlert: React.FC = () => {
 
   // Listen to queue flushed event
   useEffect(() => {
-    const handleFlushed = (e: any) => {
-      const count = e.detail?.count || 0;
+    const handleFlushed = (e: Event) => {
+      const customEvt = e as CustomEvent<{ count?: number }>;
+      const count = customEvt.detail?.count || 0;
       if (count > 0) {
         setFlushedCount(count);
         setShowReconnectedToast(true);
-        const timer = setTimeout(() => {
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => {
           setShowReconnectedToast(false);
           setFlushedCount(null);
+          toastTimerRef.current = null;
         }, 5000);
-        return () => clearTimeout(timer);
       }
     };
 
     window.addEventListener('offline-queue-flushed', handleFlushed);
-    return () => window.removeEventListener('offline-queue-flushed', handleFlushed);
+    return () => {
+      window.removeEventListener('offline-queue-flushed', handleFlushed);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
   }, []);
 
   // If reconnected after being offline, show brief reassuring toast

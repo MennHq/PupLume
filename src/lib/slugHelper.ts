@@ -206,7 +206,7 @@ export function getPuppyPublicUrl(slugOrName: string, options: { canonicalDomain
   if (!cleanSlug) return '';
 
   if (options.canonicalDomain) {
-    return `https://puplume.com/${cleanSlug}`;
+    return `https://puplumepet.vercel.app/${cleanSlug}`;
   }
 
   if (typeof window !== 'undefined') {
@@ -214,13 +214,16 @@ export function getPuppyPublicUrl(slugOrName: string, options: { canonicalDomain
     return `${window.location.origin}/${cleanSlug}`;
   }
 
-  return `https://puplume.com/${cleanSlug}`;
+  return `https://puplumepet.vercel.app/${cleanSlug}`;
 }
 
 /**
- * Returns the short display string (e.g. "puplume.com/leo").
+ * Returns the short display string (e.g. "puplumepet.vercel.app/leo" or current host).
  */
 export function getPuppyDisplayUrl(slugOrName: string): string {
   const cleanSlug = normalizeSlug(slugOrName);
-  return `puplume.com/${cleanSlug || 'your-puppy'}`;
+  const host = typeof window !== 'undefined' && window.location.host
+    ? window.location.host
+    : 'puplumepet.vercel.app';
+  return `${host}/${cleanSlug || 'your-puppy'}`;
 }

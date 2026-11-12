@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Droplet, 
-  Sparkles, 
   AlertCircle, 
   CheckCircle2, 
   Clock, 
   Plus, 
-  Trash2, 
-  MapPin, 
-  Calendar 
+  Trash2 
 } from 'lucide-react';
 import { PuppyProfile, PottyLog } from '../types';
 import { storage } from '../lib/storage';

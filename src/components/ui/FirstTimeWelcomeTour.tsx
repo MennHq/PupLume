@@ -3,16 +3,12 @@ import {
   Sparkles, 
   CalendarCheck, 
   Clock, 
-  Plus, 
   GraduationCap, 
   Bot, 
-  CheckCircle2, 
   ArrowRight, 
   ArrowLeft, 
   X, 
-  ShieldCheck,
-  Dog,
-  Heart
+  Dog
 } from 'lucide-react';
 import { PuppyProfile } from '../../types';
 import { storage } from '../../lib/storage';

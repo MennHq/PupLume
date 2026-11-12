@@ -4,11 +4,8 @@ import {
   Plus, 
   Calendar, 
   Sparkles, 
-  Camera, 
   Trash2, 
-  Award, 
-  Share2,
-  Cloud 
+  Award 
 } from 'lucide-react';
 import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';

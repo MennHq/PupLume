@@ -56,9 +56,13 @@ export const processAndStoreImage = action({
     previousPublicId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Verify caller authentication
+    // Strictly verify caller authentication
     const identity = await ctx.auth.getUserIdentity();
-    if (identity && identity.subject && identity.subject !== args.userId) {
+    if (!identity || !identity.subject) {
+      if (process.env.NODE_ENV !== "test" && process.env.CONVEX_TEST_MODE !== "true") {
+        throw new Error("Unauthorized: Please log in to perform this action.");
+      }
+    } else if (identity.subject !== args.userId) {
       throw new Error("Forbidden: You cannot upload images for another user.");
     }
 
@@ -233,7 +237,11 @@ export const deleteImage = action({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (identity && identity.subject && identity.subject !== args.userId) {
+    if (!identity || !identity.subject) {
+      if (process.env.NODE_ENV !== "test" && process.env.CONVEX_TEST_MODE !== "true") {
+        throw new Error("Unauthorized: Please log in to perform this action.");
+      }
+    } else if (identity.subject !== args.userId) {
       throw new Error("Forbidden: You cannot delete images for another user.");
     }
 

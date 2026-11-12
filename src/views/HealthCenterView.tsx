@@ -6,7 +6,6 @@ import {
   Calendar as CalendarIcon, 
   Scale, 
   Plus, 
-  FileText, 
   Clock, 
   CheckCircle2, 
   AlertCircle, 
@@ -31,13 +30,27 @@ interface HealthCenterViewProps {
   onUpdatePuppy?: (updated: PuppyProfile) => void;
 }
 
+const parseTimeToHoursAndMinutes = (timeStr: string): { hours: number; minutes: number } => {
+  if (!timeStr) return { hours: 9, minutes: 0 };
+  const parts = timeStr.trim().split(' ');
+  const [hStr, mStr] = (parts[0] || '9:00').split(':');
+  let hours = parseInt(hStr, 10) || 0;
+  const minutes = parseInt(mStr, 10) || 0;
+  const period = parts[1]?.toUpperCase();
+  if (period === 'PM' && hours < 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  return { hours, minutes };
+};
+
 const generateGoogleCalendarUrl = (apt: VetAppointment) => {
   const startDate = apt.date.replace(/-/g, '');
-  const startTime = apt.time.replace(':', '') + '00';
+  const { hours, minutes } = parseTimeToHoursAndMinutes(apt.time);
+  const startHourStr = String(hours).padStart(2, '0');
+  const startMinStr = String(minutes).padStart(2, '0');
+  const startTime = `${startHourStr}${startMinStr}00`;
   
-  const [hour, minute] = apt.time.split(':');
-  const endHour = String((parseInt(hour, 10) + 1) % 24).padStart(2, '0');
-  const endTime = endHour + minute + '00';
+  const endHour = String((hours + 1) % 24).padStart(2, '0');
+  const endTime = `${endHour}${startMinStr}00`;
 
   const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
   const details = `Reason: ${apt.reason}\nNotes: ${apt.notes || ''}`;

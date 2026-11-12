@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 // Vaccinations
 export const listVaccinations = query({
@@ -12,9 +12,18 @@ export const listVaccinations = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("vaccinations")
+        .withIndex("by_user_puppy", (idx) => idx.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("vaccinations")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -36,6 +45,7 @@ export const addVaccination = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const { userId: _, ...data } = args;
 
@@ -58,9 +68,18 @@ export const listMedications = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("medications")
+        .withIndex("by_user_puppy", (idx) => idx.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("medications")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -73,12 +92,14 @@ export const addMedication = mutation({
     dosage: v.string(),
     frequency: v.string(),
     startDate: v.string(),
+    endDate: v.optional(v.string()),
     reminderTime: v.optional(v.string()),
     active: v.boolean(),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const { userId: _, ...data } = args;
 
@@ -99,9 +120,18 @@ export const listAppointments = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("appointments")
+        .withIndex("by_user_puppy", (idx) => idx.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("appointments")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -121,6 +151,7 @@ export const addAppointment = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const { userId: _, ...data } = args;
 

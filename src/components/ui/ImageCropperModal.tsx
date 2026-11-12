@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Check, X, Move, Sparkles } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Check, X, Move } from 'lucide-react';
 
 export interface CropCoordinates {
   left: number;

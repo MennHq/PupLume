@@ -11,15 +11,14 @@ export function useNetworkStatus() {
   // Active ping function to verify real connectivity
   const checkConnection = useCallback(async (): Promise<boolean> => {
     setIsChecking(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
       const res = await fetch(`/favicon.png?_ping=${Date.now()}`, {
         method: 'HEAD',
         cache: 'no-store',
         signal: controller.signal,
       });
-      clearTimeout(timeoutId);
 
       const online = res.ok || res.status < 400;
       setIsOnline(online);
@@ -31,6 +30,8 @@ export function useNetworkStatus() {
       setLastChecked(new Date());
       setIsChecking(false);
       return false;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }, []);
 

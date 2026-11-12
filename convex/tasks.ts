@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listTasks = query({
   args: { 
@@ -12,15 +12,33 @@ export const listTasks = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
-    let q = ctx.db
-      .query("tasks")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId));
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
 
-    const tasks = await q.collect();
-    return tasks.filter((t) => {
-      if (args.date && t.date !== args.date) return false;
-      return true;
-    });
+    if (!isPersisted) {
+      const q = ctx.db
+        .query("tasks")
+        .withIndex("by_user_puppy", (idx) =>
+          idx.eq("userId", userId).eq("puppyId", args.puppyId)
+        );
+      if (args.date) {
+        return (await q.collect()).filter((t) => t.date === args.date);
+      }
+      return await q.collect();
+    }
+
+    if (args.date) {
+      return await ctx.db
+        .query("tasks")
+        .withIndex("by_puppy_date", (idx) =>
+          idx.eq("puppyId", args.puppyId).eq("date", args.date!)
+        )
+        .collect();
+    }
+
+    return await ctx.db
+      .query("tasks")
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
+      .collect();
   },
 });
 
@@ -39,28 +57,17 @@ export const createTask = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
-
-    const hasPuppy = await ctx.db
-      .query("puppies")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-    if (!hasPuppy) {
-      return null;
-    }
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const { userId: _, ...taskData } = args;
 
     // Prevent duplicate tasks with the exact same title, date, and puppy
     const existing = await ctx.db
       .query("tasks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("puppyId"), taskData.puppyId),
-          q.eq(q.field("title"), taskData.title),
-          q.eq(q.field("date"), taskData.date)
-        )
+      .withIndex("by_puppy_date", (q) =>
+        q.eq("puppyId", taskData.puppyId).eq("date", taskData.date)
       )
+      .filter((q) => q.eq(q.field("title"), taskData.title))
       .first();
 
     if (existing) {
@@ -253,10 +260,11 @@ export const saveTasksBatch = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const existing = await ctx.db
       .query("tasks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
       .collect();
 
     for (const item of args.tasks) {
@@ -298,15 +306,20 @@ export const resetDailyTasks = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
 
-    const tasks = await ctx.db
-      .query("tasks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
+    const tasks = args.puppyId
+      ? await ctx.db
+          .query("tasks")
+          .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId!))
+          .collect()
+      : await ctx.db
+          .query("tasks")
+          .withIndex("by_user", (q) => q.eq("userId", userId))
+          .collect();
 
     const todayDateStr = new Date().toISOString().split('T')[0];
     let resetCount = 0;
     for (const task of tasks) {
-      if (!args.puppyId || task.puppyId === args.puppyId || task.puppyId.startsWith('pup-')) {
+      if (task.userId === userId) {
         const isPastOrEmpty = !task.date || task.date < todayDateStr;
         if (args.force || isPastOrEmpty) {
           await ctx.db.patch(task._id, {

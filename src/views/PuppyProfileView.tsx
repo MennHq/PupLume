@@ -30,18 +30,15 @@ import {
   Check, 
   AlertTriangle, 
   Zap, 
-  Lock, 
   FileText, 
   Share2, 
   Globe, 
-  Link as LinkIcon,
   RefreshCw,
   Info,
   Stethoscope,
   Smile,
   CheckCircle2,
   XCircle,
-  HelpCircle,
   BadgeAlert
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';

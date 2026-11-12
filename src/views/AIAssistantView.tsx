@@ -8,15 +8,12 @@ import {
   Calendar, 
   Clock, 
   CheckCircle2, 
-  AlertTriangle, 
   Droplet, 
   Utensils, 
-  Moon, 
   DollarSign, 
   Activity,
   Trash2,
-  ShieldCheck,
-  HelpCircle
+  ShieldCheck
 } from 'lucide-react';
 import { useUser } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
@@ -41,7 +38,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
 
   const saveMemory = useMutation(api.ai.saveMemory);
   const cloudData = useQuery(api.app.getUserAppData, user?.id ? { userId: user.id } : 'skip');
-  const memoriesList = (cloudData?.memories || []).map((m: any) => m.fact);
+  const memoriesList = (cloudData?.memories || []).map((m: { fact: string }) => m.fact);
 
   const starterPrompts = [
     `Why is ${puppy.name} biting so much?`,

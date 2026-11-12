@@ -1,17 +1,66 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { processAIOnboardingChat } from '../src/server/geminiService';
+import {
+  applyCorsHeaders,
+  handlePreflight,
+  readStreamWithLimit,
+  sanitizeErrorMessage,
+} from './_utils';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+const MAX_PAYLOAD_BYTES = 1024 * 1024; // 1MB payload limit
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 1. CORS headers & preflight handling
+  applyCorsHeaders(res, 'POST, OPTIONS');
+  if (handlePreflight(req, res, 'POST, OPTIONS')) {
+    return;
+  }
+
+  // 2. HTTP Method validation
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', 'POST, OPTIONS');
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const payload = req.body || {};
+    // 3. Read body with size limits
+    let rawBuffer: Buffer;
+    try {
+      rawBuffer = await readStreamWithLimit(req, MAX_PAYLOAD_BYTES);
+    } catch {
+      return res.status(413).json({ error: 'Payload size exceeds 1MB limit' });
+    }
+
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return res.status(400).json({ error: 'Malformed JSON payload' });
+    }
+
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ error: 'Invalid JSON payload: expected object' });
+    }
+
+    // Sanitize message length if present
+    if (typeof payload.message === 'string' && payload.message.length > 8000) {
+      payload.message = payload.message.slice(0, 8000);
+    }
+
     const result = await processAIOnboardingChat(payload);
     return res.status(200).json(result);
   } catch (error: any) {
-    console.error('[API ai-onboarding] Error:', error);
-    return res.status(500).json({ error: error?.message || 'AI onboarding failed' });
+    console.error('[API ai-onboarding] Error:', sanitizeErrorMessage(error));
+    const safeMsg = sanitizeErrorMessage(
+      error,
+      'The AI onboarding service is temporarily unavailable. Please try again shortly.'
+    );
+    return res.status(500).json({ error: safeMsg });
   }
 }

@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listGroomingTasks = query({
   args: { 
@@ -11,9 +11,18 @@ export const listGroomingTasks = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("groomingTasks")
+        .withIndex("by_user_puppy", (q) => q.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("groomingTasks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -34,15 +43,16 @@ export const saveGroomingTasks = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
-    // Remove existing grooming tasks for this puppy belonging to this user
+    // Remove existing grooming tasks for this puppy using index
     const existing = await ctx.db
       .query("groomingTasks")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
       .collect();
 
     for (const item of existing) {
-      if (item.puppyId === args.puppyId) {
+      if (item.userId === userId) {
         await ctx.db.delete(item._id);
       }
     }

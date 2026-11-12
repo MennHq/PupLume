@@ -14,6 +14,7 @@ import {
   BehaviorIncident, 
   GroomingTask, 
   SocializationItem, 
+  SocializationStatus, 
   JournalEntry, 
   FamilyMember, 
   NotificationItem, 
@@ -1339,7 +1340,7 @@ class StorageManager {
     return this.socialization;
   }
 
-  updateSocializationStatus(id: string, status: any, notes?: string): SocializationItem[] {
+  updateSocializationStatus(id: string, status: SocializationStatus, notes?: string): SocializationItem[] {
     let updatedItem: SocializationItem | null = null;
     this.socialization = this.socialization.map((item) => {
       if (item.id === id) {

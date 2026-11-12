@@ -8,13 +8,7 @@ import {
   Search, 
   Bell, 
   Plus, 
-  X, 
   ChevronDown,
-  Dog,
-  Activity,
-  Droplet,
-  DollarSign,
-  Heart,
   Settings
 } from 'lucide-react';
 import { PupLumeLogo } from '../common/PupLumeLogo';
@@ -24,7 +18,6 @@ import { QuickActionSheet } from '../ui/QuickActionSheet';
 import { GlobalSearchModal } from '../ui/GlobalSearchModal';
 import { NotificationCenterModal } from '../ui/NotificationCenterModal';
 import { ClerkAuthControls } from '../auth/ClerkAuthControls';
-import { PWAInstallButton } from '../pwa/PWAInstallButton';
 import { OfflineIndicator } from '../pwa/OfflineIndicator';
 import { nativeBridge } from '../../lib/nativeBridge';
 
@@ -64,6 +57,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(() => 
     storage.getNotifications().filter(n => !n.read).length
   );
+
+  React.useEffect(() => {
+    const unsubscribe = storage.subscribe(() => {
+      setUnreadNotifsCount(storage.getNotifications().filter(n => !n.read).length);
+    });
+    return unsubscribe;
+  }, []);
 
   const isSearchOpen = propIsSearchOpen !== undefined ? propIsSearchOpen : internalSearchOpen;
   const isNotificationsOpen = propIsNotificationsOpen !== undefined ? propIsNotificationsOpen : internalNotifsOpen;
@@ -145,14 +145,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'more', label: 'More', icon: <Menu className="w-5 h-5" /> }
   ];
 
-  const rawPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
-  // Deduplicate puppies in header dropdown by unique name
-  const allPuppies = rawPuppies.filter((p, index, self) => {
-    const nameKey = (p.name || '').trim().toLowerCase();
-    return index === self.findIndex((o) => (
-      o.id === p.id || (nameKey && (o.name || '').trim().toLowerCase() === nameKey)
-    ));
-  });
+  const allPuppies = React.useMemo(() => {
+    const rawPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
+    // Deduplicate puppies in header dropdown by unique name
+    return rawPuppies.filter((p, index, self) => {
+      const nameKey = (p.name || '').trim().toLowerCase();
+      return index === self.findIndex((o) => (
+        o.id === p.id || (nameKey && (o.name || '').trim().toLowerCase() === nameKey)
+      ));
+    });
+  }, [puppy]);
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">

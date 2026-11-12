@@ -29,7 +29,6 @@
     <meta name="twitter:image:alt" content="PupLume — The Smart Dog Passport & AI Care Routine" />
     
     <!-- PWA Settings -->
-    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#8B5E3C" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -79,14 +78,6 @@
               for (let name of names) caches.delete(name);
             });
           }
-        } else if (window.location.protocol === 'https:') {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').then((reg) => {
-              reg.update();
-            }).catch((err) => {
-              console.log('SW registration note:', err);
-            });
-          });
         }
       }
     </script>

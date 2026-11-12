@@ -212,7 +212,9 @@ export type DocumentCategory =
   | 'insurance'
   | 'adoption'
   | 'microchip'
-  | 'receipt';
+  | 'receipt'
+  | 'vet_bill'
+  | 'other';
 
 export interface DocumentRecord {
   id: string;

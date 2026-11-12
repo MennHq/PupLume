@@ -4,15 +4,10 @@ import {
   Plus, 
   Upload, 
   Download, 
-  PieChart, 
-  TrendingUp, 
-  Receipt, 
   Sparkles,
-  Calendar,
-  Check,
   Trash2
 } from 'lucide-react';
-import { PuppyProfile, ExpenseRecord } from '../types';
+import { PuppyProfile, ExpenseRecord, ExpenseCategory } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -40,7 +35,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   // Form states
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<any>('vet');
+  const [category, setCategory] = useState<ExpenseCategory>('vet');
   const [vendor, setVendor] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -93,6 +88,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const categoryTotals = expenses.reduce((acc: Record<string, number>, curr) => {
@@ -268,7 +264,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               >
                 <option value="vet">Vet</option>

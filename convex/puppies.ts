@@ -1,6 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const getPuppies = query({
   args: { userId: v.optional(v.string()) },
@@ -10,10 +10,42 @@ export const getPuppies = query({
       return [];
     }
 
-    return await ctx.db
+    const ownedPuppies = await ctx.db
       .query("puppies")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+
+    // Check if user is a family member for any shared puppies
+    const identity = await ctx.auth.getUserIdentity();
+    let email = identity?.email?.trim().toLowerCase();
+    if (!email) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
+        .first();
+      email = user?.email?.trim().toLowerCase();
+    }
+
+    if (email) {
+      const familyInvites = await ctx.db
+        .query("familyMembers")
+        .withIndex("by_email", (q) => q.eq("email", email!))
+        .collect();
+
+      for (const invite of familyInvites) {
+        if (invite.puppyId) {
+          const normPupId = ctx.db.normalizeId("puppies", invite.puppyId);
+          if (normPupId) {
+            const sharedPup = await ctx.db.get(normPupId);
+            if (sharedPup && !ownedPuppies.some((p) => p._id === sharedPup._id)) {
+              ownedPuppies.push(sharedPup);
+            }
+          }
+        }
+      }
+    }
+
+    return ownedPuppies;
   },
 });
 
@@ -28,8 +60,13 @@ export const getPuppy = query({
 
     if (args.id) {
       const puppy = await ctx.db.get(args.id);
-      if (puppy && puppy.userId === userId) return puppy;
-      return null;
+      if (!puppy) return null;
+      try {
+        await verifyPuppyAccess(ctx, puppy._id, userId);
+        return puppy;
+      } catch {
+        return null;
+      }
     }
 
     return await ctx.db
@@ -114,13 +151,9 @@ export const updatePuppy = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.id, userId);
 
     const { id, userId: _, ...updates } = args;
-    const existing = await ctx.db.get(id);
-    if (!existing || existing.userId !== userId) {
-      throw new Error("Puppy not found or unauthorized");
-    }
-
     await ctx.db.patch(id, updates);
     return id;
   },
@@ -190,8 +223,7 @@ export const savePuppy = mutation({
     if (!existing) {
       existing = await ctx.db
         .query("puppies")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .filter((q) => q.eq(q.field("name"), args.name))
+        .withIndex("by_user_name", (q) => q.eq("userId", userId).eq("name", args.name))
         .first();
     }
 
@@ -257,6 +289,34 @@ export const deletePuppy = mutation({
     const existing = await ctx.db.get(args.id);
     if (!existing || existing.userId !== userId) {
       throw new Error("Puppy not found or unauthorized");
+    }
+
+    // Cascade delete child records for this puppy to prevent orphan records
+    const childTables = [
+      'tasks', 'pottyLogs', 'feedingLogs', 'sleepLogs', 'walkLogs',
+      'vaccinations', 'medications', 'appointments', 'expenses', 'documents',
+      'behaviorLogs', 'groomingTasks', 'socialization', 'journalEntries',
+      'trainingLessons'
+    ];
+
+    const puppyIdStr = args.id as string;
+    for (const table of childTables) {
+      const childRecords: any[] = await (ctx.db.query as any)(table)
+        .withIndex('by_puppy', (q: any) => q.eq('puppyId', puppyIdStr))
+        .collect();
+      for (const rec of childRecords) {
+        await ctx.db.delete(rec._id);
+      }
+    }
+
+    // Also delete any memories referencing this puppy
+    const pupMemories = await ctx.db
+      .query('memories')
+      .withIndex('by_user', q => q.eq('userId', userId))
+      .filter(q => q.eq(q.field('puppyId'), puppyIdStr))
+      .collect();
+    for (const mem of pupMemories) {
+      await ctx.db.delete(mem._id);
     }
 
     await ctx.db.delete(args.id);
@@ -416,14 +476,11 @@ export const getPublicPuppyByTag = query({
     }
 
     // 3. Fallback for uncustomized puppies (NO custom slug has been chosen yet)
-    // IMPORTANT: Once a puppy sets a custom slug (e.g. 'leox'), its old name or old URL
-    // MUST NO LONGER SERVE this puppy!
     if (!puppy) {
-      const allPups = await ctx.db.query("puppies").collect();
+      const candidates = await ctx.db.query("puppies").take(100);
       const cleanRaw = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      puppy = allPups.find((p) => {
-        // If the puppy already has an active custom slug and it doesn't match, DO NOT serve
+      puppy = candidates.find((p) => {
         if (p.slug && p.slug !== cleanSlug) {
           return false;
         }
@@ -473,7 +530,7 @@ export const getPublicPuppyByTag = query({
   },
 });
 
-// Mutation to toggle Lost Mode and emergency notes (Owner only)
+// Mutation to toggle Lost Mode and emergency notes (Owner or authorized family only)
 export const updateSmartTagLostMode = mutation({
   args: {
     puppyId: v.id("puppies"),
@@ -496,11 +553,7 @@ export const updateSmartTagLostMode = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
-
-    const puppy = await ctx.db.get(args.puppyId);
-    if (!puppy || puppy.userId !== userId) {
-      throw new Error("Puppy not found or unauthorized");
-    }
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     await ctx.db.patch(args.puppyId, {
       isLost: args.isLost,
@@ -584,8 +637,8 @@ export const unlockSmartTagPassInternal = internalMutation({
       }
     }
     if (!puppy && args.puppyName) {
-      const allPups = await ctx.db.query("puppies").collect();
-      puppy = allPups.find(
+      const candidates = await ctx.db.query("puppies").take(100);
+      puppy = candidates.find(
         (p) => p.name.trim().toLowerCase() === args.puppyName!.trim().toLowerCase()
       ) || null;
     }

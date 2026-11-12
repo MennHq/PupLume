@@ -25,12 +25,16 @@ export const Modal: React.FC<ModalProps> = ({
   const touchCurrentY = React.useRef(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-    touchCurrentY.current = e.touches[0].clientY;
+    if (e.touches && e.touches[0]) {
+      touchStartY.current = e.touches[0].clientY;
+      touchCurrentY.current = e.touches[0].clientY;
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchCurrentY.current = e.touches[0].clientY;
+    if (e.touches && e.touches[0]) {
+      touchCurrentY.current = e.touches[0].clientY;
+    }
   };
 
   const handleTouchEnd = () => {
@@ -49,13 +53,14 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
     if (isOpen) {
+      const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
   }, [isOpen, onClose]);
 
   const maxWidthClass = {

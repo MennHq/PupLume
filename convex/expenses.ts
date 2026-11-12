@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listExpenses = query({
   args: { 
@@ -11,9 +11,18 @@ export const listExpenses = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("expenses")
+        .withIndex("by_user_puppy", (idx) => idx.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("expenses")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -31,6 +40,11 @@ export const addExpense = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (args.amount < 0) {
+      throw new Error("Invalid expense amount: must be non-negative.");
+    }
 
     const { userId: _, ...data } = args;
 

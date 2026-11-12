@@ -11,12 +11,10 @@ import {
   Trash2, 
   ChevronDown, 
   Search, 
-  Globe, 
   Sparkles, 
   Check, 
-  ExternalLink,
-  MessageCircle,
-  AlertCircle
+  MessageCircle, 
+  AlertCircle 
 } from 'lucide-react';
 import { validateCommunicationLink } from '../../lib/validation';
 
@@ -38,9 +36,12 @@ export const CommunicationLinksInput: React.FC<CommunicationLinksInputProps> = (
   onChange,
   maxRecommended = 3,
 }) => {
+  const hasInitializedRef = useRef(false);
+
   // Ensure at least 1 field exists initially (WhatsApp by default)
   useEffect(() => {
-    if (!links || links.length === 0) {
+    if (!hasInitializedRef.current && (!links || links.length === 0)) {
+      hasInitializedRef.current = true;
       onChange([
         {
           id: `link-${Date.now()}`,

@@ -1,6 +1,6 @@
-import { query, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser } from "./authHelper";
+import { requireAuthUser, verifyPuppyAccess } from "./authHelper";
 
 // Ephemeral Chat: aiMessages table was removed for privacy.
 
@@ -13,6 +13,10 @@ export const saveMemory = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+
+    if (args.puppyId) {
+      await verifyPuppyAccess(ctx, args.puppyId, userId);
+    }
 
     return await ctx.db.insert("memories", {
       userId,

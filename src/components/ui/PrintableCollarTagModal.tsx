@@ -8,13 +8,10 @@ import {
   ShieldCheck, 
   Sparkles, 
   Heart, 
-  Flame, 
-  Compass, 
   Crown, 
   Check, 
   Palette,
-  Phone,
-  AlertCircle
+  Phone
 } from 'lucide-react';
 import { Button } from './Button';
 import { PuppyProfile } from '../../types';

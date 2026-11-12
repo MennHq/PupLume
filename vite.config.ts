@@ -135,7 +135,19 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'icon.svg', 'puplume-logo.svg', 'icon-color.png', 'offline.html', 'sw-custom.js'],
+        includeAssets: [
+          'favicon.ico',
+          'favicon.png',
+          'apple-touch-icon.png',
+          'icon.svg',
+          'puplume-logo.svg',
+          'icon-color.png',
+          'pwa-192x192.png',
+          'pwa-512x512.png',
+          'pwa-maskable-512x512.png',
+          'offline.html',
+          'sw-custom.js',
+        ],
         manifest: {
           id: '/',
           name: 'PupLume — AI Puppy Manager',
@@ -253,8 +265,7 @@ export default defineConfig(() => {
           cleanupOutdatedCaches: true,
           importScripts: ['/sw-custom.js'],
           navigateFallbackDenylist: [/^\/api\//, /^\/share-target/, /^\/assets\//, /\.[a-zA-Z0-9]+$/],
-          globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
-          globIgnores: ['**/index.html'],
+          globPatterns: ['assets/**/*.{js,css}', 'index.html'],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -307,20 +318,60 @@ export default defineConfig(() => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('react-dom') || id.includes('react/') || id.includes('react-router')) {
-                return 'vendor-react';
-              }
-              if (id.includes('@clerk')) {
-                return 'vendor-clerk';
-              }
-              if (id.includes('convex')) {
-                return 'vendor-convex';
-              }
+              // Icons
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
               }
-              if (id.includes('framer-motion')) {
+              // React core & DOM
+              if (
+                id.includes('react-dom') ||
+                id.includes('/react/') ||
+                id.includes('\\react\\') ||
+                id.includes('scheduler') ||
+                id.includes('react-router')
+              ) {
+                return 'vendor-react';
+              }
+              // Auth: Clerk
+              if (id.includes('@clerk')) {
+                return 'vendor-clerk';
+              }
+              // Backend & State: Convex
+              if (id.includes('convex') || id.includes('@tanstack/query-core')) {
+                return 'vendor-convex';
+              }
+              // Animations: Motion
+              if (id.includes('motion') || id.includes('framer-motion')) {
                 return 'vendor-motion';
+              }
+              // Markdown & Parser ecosystem
+              if (
+                id.includes('react-markdown') ||
+                id.includes('remark') ||
+                id.includes('micromark') ||
+                id.includes('mdast') ||
+                id.includes('unist') ||
+                id.includes('unified') ||
+                id.includes('vfile') ||
+                id.includes('hast')
+              ) {
+                return 'vendor-markdown';
+              }
+              // Analytics: PostHog
+              if (id.includes('posthog-js')) {
+                return 'vendor-posthog';
+              }
+              // Phone validation
+              if (id.includes('libphonenumber-js')) {
+                return 'vendor-phone';
+              }
+              // Billing: Paddle
+              if (id.includes('@paddle')) {
+                return 'vendor-paddle';
+              }
+              // QR code utilities
+              if (id.includes('qrcode') || id.includes('dijkstrajs')) {
+                return 'vendor-qrcode';
               }
               return 'vendor-libs';
             }

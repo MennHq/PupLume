@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, Sparkles, Check, X, Shield, MapPin, Phone, Printer, HeartHandshake, Zap, Loader2 } from 'lucide-react';
+import { Sparkles, Check, X, Shield, MapPin, Phone, Printer, HeartHandshake, Zap, Loader2 } from 'lucide-react';
 import { Button } from './Button';
 import { SmartCollarTagLogo } from '../common/SmartCollarTagLogo';
 import { initializePaddle, Paddle } from '@paddle/paddle-js';

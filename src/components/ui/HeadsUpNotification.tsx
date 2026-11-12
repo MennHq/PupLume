@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
-  Clock, 
   Check, 
   ArrowRight, 
-  Sparkles,
   Droplets,
   CheckCircle2
 } from 'lucide-react';
@@ -25,7 +23,7 @@ export interface HeadsUpAlertData {
 
 interface HeadsUpNotificationProps {
   puppy: PuppyProfile | null;
-  onNavigate: (view: any) => void;
+  onNavigate: (view: string) => void;
   onShowToast: (msg: string) => void;
 }
 
@@ -41,7 +39,14 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
 
   const durationMs = (storage.getSettings().headsUpDurationSec || 12) * 1000;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const progressStepMs = 100;
+
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleAlertEvent = (e: Event) => {
@@ -103,9 +108,11 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
     setSuccessActionMsg(`✓ ${label} recorded for ${puppyName}!`);
     onShowToast(`Recorded ${label} for ${puppyName}`);
 
-    setTimeout(() => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(() => {
       setAlert(null);
       setSuccessActionMsg(null);
+      dismissTimerRef.current = null;
     }, 1800);
   };
 
@@ -115,9 +122,11 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
     setSuccessActionMsg(`✓ Task marked completed!`);
     onShowToast(`Task marked complete!`);
 
-    setTimeout(() => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(() => {
       setAlert(null);
       setSuccessActionMsg(null);
+      dismissTimerRef.current = null;
     }, 1800);
   };
 

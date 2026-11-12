@@ -34,7 +34,7 @@ const RecapView = lazyWithRetry(() => import('./views/RecapView').then(m => ({ d
 const PrivacyPolicyView = lazyWithRetry(() => import('./views/PrivacyPolicyView').then(m => ({ default: m.PrivacyPolicyView })));
 const TermsOfServiceView = lazyWithRetry(() => import('./views/TermsOfServiceView').then(m => ({ default: m.TermsOfServiceView })));
 const ProPaywallModal = lazyWithRetry(() => import('./components/ui/ProPaywallModal').then(m => ({ default: m.ProPaywallModal })));
-import { Dog, Sparkles, ShieldCheck, Heart } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { clearUserDataInConvex } from './lib/convex';
 import { nativeBridge } from './lib/nativeBridge';
 import { OfflineAlert } from './components/pwa/OfflineAlert';
@@ -124,13 +124,20 @@ function SkeletonPlayground() {
   const [testingProgress, setTestingProgress] = useState(15);
   const [testingSeconds, setTestingSeconds] = useState(0.0);
   const [isLoading, setIsLoading] = useState(true);
+  const [replayCount, setReplayCount] = useState(0);
 
   const runAnimation = () => {
+    setReplayCount((c) => c + 1);
+  };
+
+  useEffect(() => {
+    let animId: number;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
     setIsLoading(true);
     setTestingProgress(15);
     setTestingSeconds(0.0);
     const startTime = performance.now();
-    let animId: number;
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
@@ -145,15 +152,16 @@ function SkeletonPlayground() {
       } else {
         setTestingProgress(100);
         setTestingSeconds(0.5);
-        setTimeout(() => setIsLoading(false), 50);
+        timerId = setTimeout(() => setIsLoading(false), 50);
       }
     };
     animId = requestAnimationFrame(tick);
-  };
 
-  useEffect(() => {
-    runAnimation();
-  }, [selectedVariant]);
+    return () => {
+      cancelAnimationFrame(animId);
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [selectedVariant, replayCount]);
 
   return (
     <div className="min-h-screen bg-[#FFF9F2] flex flex-col">
@@ -288,6 +296,7 @@ export default function App() {
 
     const startTime = performance.now();
     let animationFrameId: number;
+    let transitionTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const update = (now: number) => {
       const elapsedMs = now - startTime;
@@ -308,7 +317,7 @@ export default function App() {
         // Milestone 0.45s to 0.5s: Complete & reveal measured UI
         setTransitionProgress(100);
         setTransitionSeconds(0.5);
-        setTimeout(() => {
+        transitionTimeoutId = setTimeout(() => {
           setIsTransitioning(false);
           // Mark tab as 100% loaded so skeleton is never shown again
           loadedViewsRef.current.add(currentView);
@@ -320,6 +329,7 @@ export default function App() {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      if (transitionTimeoutId) clearTimeout(transitionTimeoutId);
     };
   }, [currentView]);
 
@@ -403,11 +413,10 @@ export default function App() {
 
   // Listen for custom navigate events (e.g., triggered by the AI assistant or notification click)
   useEffect(() => {
-    const handleCustomNavigate = (e: any) => {
-      if (e.detail && e.detail.view) {
-        let view = e.detail.view;
-        if (view === 'plan') view = 'tasks';
-        setCurrentView(view);
+    const handleCustomNavigate = (e: Event) => {
+      const customEvt = e as CustomEvent<{ view?: string }>;
+      if (customEvt.detail && customEvt.detail.view) {
+        setCurrentView(sanitizeView(customEvt.detail.view));
       }
     };
     window.addEventListener('navigate', handleCustomNavigate);
@@ -504,10 +513,26 @@ export default function App() {
     }
   }, [cloudData, user?.id]);
 
+  const toastTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const showToast = (msg: string) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+      toastTimeoutRef.current = null;
+    }, 3000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 1. Loading authentication state
   

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Sparkles, 
   CheckCircle2, 
-  Calendar, 
+
   GraduationCap, 
   Activity, 
   DollarSign, 
@@ -13,7 +13,7 @@ import {
   Star, 
   ShieldCheck, 
   Clock, 
-  Heart 
+
 } from 'lucide-react';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
 import { Button } from '../components/ui/Button';

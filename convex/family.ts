@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listFamilyMembers = query({
   args: { userId: v.optional(v.string()) },
@@ -28,10 +28,37 @@ export const addFamilyMember = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
 
+    if (args.puppyId) {
+      await verifyPuppyAccess(ctx, args.puppyId, userId);
+    }
+
+    const normEmail = args.email.trim().toLowerCase();
+    if (!normEmail || !normEmail.includes("@")) {
+      throw new Error("Invalid email address.");
+    }
+
+    // Check duplicate
+    const existing = await ctx.db
+      .query("familyMembers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("email"), normEmail))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        name: args.name,
+        role: args.role,
+        avatarUrl: args.avatarUrl || existing.avatarUrl,
+        puppyId: args.puppyId || existing.puppyId,
+      });
+      return existing._id;
+    }
+
     const { userId: _, ...data } = args;
 
     return await ctx.db.insert("familyMembers", {
       ...data,
+      email: normEmail,
       userId,
     });
   },
@@ -54,10 +81,11 @@ export const deleteFamilyMember = mutation({
       }
     }
 
+    const normEmail = args.id.trim().toLowerCase();
     const member = await ctx.db
       .query("familyMembers")
       .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("email"), args.id))
+      .filter((q) => q.eq(q.field("email"), normEmail))
       .first();
     if (member && member.userId === userId) {
       await ctx.db.delete(member._id);

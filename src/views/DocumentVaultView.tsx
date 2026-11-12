@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Plus, 
-  Upload, 
   Download, 
   Trash2, 
-  ShieldCheck, 
   Eye, 
-  Calendar,
-  Cloud,
   ExternalLink 
 } from 'lucide-react';
-import { PuppyProfile, DocumentRecord } from '../types';
+import { PuppyProfile, DocumentRecord, DocumentCategory } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -39,7 +35,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
 
   // Form states
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<any>('vaccination');
+  const [category, setCategory] = useState<DocumentCategory>('vaccination');
   const [notes, setNotes] = useState('');
   const [fileUrl, setFileUrl] = useState('');
 
@@ -259,7 +255,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => setCategory(e.target.value as DocumentCategory)}
               className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
             >
               <option value="vaccination">Vaccination Record</option>

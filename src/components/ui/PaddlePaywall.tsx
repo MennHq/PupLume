@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Shield, Lock, ArrowRight, Dog, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 import { useUser } from '@clerk/react';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { initializePaddle, Paddle } from '@paddle/paddle-js';
 

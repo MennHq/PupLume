@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Calendar, GraduationCap, DollarSign, Activity, FileText, ArrowRight, X } from 'lucide-react';
+import { Search, ArrowRight, X } from 'lucide-react';
 import { Modal } from './Modal';
-import { storage } from '../../lib/storage';
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
@@ -27,9 +26,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       { id: 'nav-academy', title: 'Training Academy', subtitle: 'Lessons & Drills', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'academy' },
       { id: 'nav-health', title: 'Health Center', subtitle: 'Vaccines & Appointments', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'health' },
       { id: 'nav-expenses', title: 'Expenses', subtitle: 'Budget & Cost tracking', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'expenses' },
-      { id: 'nav-docs', title: 'Document Vault', subtitle: 'Files & Records', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'documents' },
+      { id: 'nav-docs', title: 'Document Vault', subtitle: 'Files & Records', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'vault' },
       { id: 'nav-potty', title: 'Potty & Activity Log', subtitle: 'Track bathroom habits', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'potty' },
-      { id: 'nav-profile', title: 'Puppy Profile', subtitle: 'Edit dog details', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'profile' },
+      { id: 'nav-profile', title: 'Puppy Profile', subtitle: 'Edit dog details', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'puppy' },
       { id: 'nav-social', title: 'Socialization & Grooming', subtitle: 'Social checklists', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'socialization' },
       { id: 'nav-settings', title: 'Settings', subtitle: 'App preferences', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'settings' },
       { id: 'nav-more', title: 'More Menu', subtitle: 'All other features', type: 'Page', icon: <Search className="w-4 h-4 text-[#8B5E3C]" />, targetView: 'more' },

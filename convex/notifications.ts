@@ -55,13 +55,21 @@ export const markNotificationRead = mutation({
       }
     }
 
-    const item = await ctx.db
+    // If a non-Convex client ID (e.g. timestamp or action URL) was passed, match specifically
+    const match = await ctx.db
       .query("notifications")
       .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("read"), false))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("timestamp"), args.id),
+          q.eq(q.field("title"), args.id),
+          q.eq(q.field("actionUrl"), args.id)
+        )
+      )
       .first();
-    if (item && item.userId === userId) {
-      await ctx.db.patch(item._id, { read: true });
+
+    if (match) {
+      await ctx.db.patch(match._id, { read: true });
     }
   },
 });

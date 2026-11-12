@@ -1,6 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Shield, Mail, ExternalLink, Heart } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { ArrowLeft, Shield } from 'lucide-react';
 
 interface PrivacyPolicyViewProps {
   onBack: () => void;

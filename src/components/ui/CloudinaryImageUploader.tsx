@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle2, AlertCircle, Loader2, Sparkles, Crop as CropIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, Upload, AlertCircle, Loader2, Sparkles, Crop as CropIcon } from 'lucide-react';
 import { uploadImageToCloudinary, UploadResult } from '../../lib/cloudinary';
 import { ImageCropperModal, CropCoordinates } from './ImageCropperModal';
 
@@ -41,6 +41,14 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Determine whether this is a profile image (which requires the interactive cropper)
   const isProfile = 
@@ -86,6 +94,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
         previousImageUrl: previousTarget,
         crop,
         onProgress: (phase) => {
+          if (!isMountedRef.current) return;
           if (phase === 'validating') setUploadStep('Validating format...');
           if (phase === 'uploading') setUploadStep('Staging original in secure storage...');
           if (phase === 'processing') setUploadStep('Sharp server optimizing to WebP...');
@@ -93,14 +102,20 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
         },
       });
 
-      setPreviewUrl(result.url);
+      if (isMountedRef.current) {
+        setPreviewUrl(result.url);
+      }
       onUploadSuccess(result.url, result);
     } catch (err: any) {
       console.error('[CloudinaryImageUploader] Upload failed:', err);
-      setError(err.message || 'Failed to upload and process image. Please try again.');
+      if (isMountedRef.current) {
+        setError(err.message || 'Failed to upload and process image. Please try again.');
+      }
     } finally {
-      setIsUploading(false);
-      setUploadStep('');
+      if (isMountedRef.current) {
+        setIsUploading(false);
+        setUploadStep('');
+      }
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }

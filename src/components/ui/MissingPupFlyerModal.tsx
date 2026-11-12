@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { X, Printer, AlertTriangle, Phone, MapPin, QrCode, Download, Heart } from 'lucide-react';
+import { X, Printer, AlertTriangle, Phone } from 'lucide-react';
 import { Button } from './Button';
 import { PuppyProfile } from '../../types';
 import { generatePupLumeQRSvg } from '../../lib/qrCodeGenerator';

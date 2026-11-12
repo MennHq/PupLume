@@ -8,6 +8,8 @@ import {
   RESERVED_SLUGS 
 } from '../src/lib/slugHelper';
 import { generatePupLumeQRSvg } from '../src/lib/qrCodeGenerator';
+import { renderPassportCardPng } from '../api/_ogPassportCard';
+import pupMetaHandler from '../api/pup-meta';
 
 let failed = 0;
 let passed = 0;
@@ -22,82 +24,159 @@ function assert(condition: boolean, msg: string) {
   }
 }
 
-console.log('--- TEST SUITE 1: Custom Slug Validation ---');
+async function runAllTests() {
+  console.log('--- TEST SUITE 1: Custom Slug Validation ---');
 
-// 1. Valid slugs for puppy "Leo"
-const v1 = validatePuppySlug('leo', 'Leo');
-assert(v1.isValid === true, 'Slug "leo" is valid for puppy "Leo"');
-assert(v1.cleanedSlug === 'leo', 'Cleaned slug is "leo"');
+  // 1. Valid slugs for puppy "Leo"
+  const v1 = validatePuppySlug('leo', 'Leo');
+  assert(v1.isValid === true, 'Slug "leo" is valid for puppy "Leo"');
+  assert(v1.cleanedSlug === 'leo', 'Cleaned slug is "leo"');
 
-const v2 = validatePuppySlug('leox', 'Leo');
-assert(v2.isValid === true, 'Slug "leox" (4 chars, contains "leo") is valid');
+  const v2 = validatePuppySlug('leox', 'Leo');
+  assert(v2.isValid === true, 'Slug "leox" (4 chars, contains "leo") is valid');
 
-const v3 = validatePuppySlug('myleo', 'Leo');
-assert(v3.isValid === true, 'Slug "myleo" (5 chars, contains "leo") is valid');
+  const v3 = validatePuppySlug('myleo', 'Leo');
+  assert(v3.isValid === true, 'Slug "myleo" (5 chars, contains "leo") is valid');
 
-// 2. Length violations (must be 3 to 7 chars)
-const vShort = validatePuppySlug('le', 'Leo');
-assert(vShort.isValid === false, 'Slug "le" (< 3 chars) is rejected');
-assert(Boolean(vShort.errors.length), 'Reports length error for short slug');
+  // Graxo to Graxo2 shift validation
+  const vGraxo = validatePuppySlug('graxo', 'Graxo');
+  assert(vGraxo.isValid === true, 'Slug "graxo" is valid for puppy "Graxo"');
+  const vGraxo2 = validatePuppySlug('graxo2', 'Graxo');
+  assert(vGraxo2.isValid === true, 'Shifted slug "graxo2" (6 chars, contains "graxo") is valid for puppy "Graxo"');
 
-const vLong = validatePuppySlug('leopuppy1', 'Leo');
-assert(vLong.isValid === false, 'Slug "leopuppy1" (> 7 chars) is rejected');
-assert(Boolean(vLong.errors.length), 'Reports length error for long slug');
+  // Graxzo to Graxzo2 shift validation
+  const vGraxzo = validatePuppySlug('graxzo', 'Graxzo');
+  assert(vGraxzo.isValid === true, 'Slug "graxzo" is valid for puppy "Graxzo"');
+  const vGraxzo2 = validatePuppySlug('graxzo2', 'Graxzo');
+  assert(vGraxzo2.isValid === true, 'Shifted slug "graxzo2" (7 chars, contains "graxzo") is valid for puppy "Graxzo"');
 
-// 3. Name inclusion rule
-const vNoName = validatePuppySlug('max', 'Leo');
-assert(vNoName.isValid === false, 'Slug "max" does not contain puppy name "Leo"');
-assert(Boolean(vNoName.errors.containsName), 'Reports containsName error');
+  // 2. Length violations (must be 3 to 7 chars)
+  const vShort = validatePuppySlug('le', 'Leo');
+  assert(vShort.isValid === false, 'Slug "le" (< 3 chars) is rejected');
+  assert(Boolean(vShort.errors.length), 'Reports length error for short slug');
 
-// 4. URL-safe characters rule
-const vSpecial = validatePuppySlug('leo_1', 'Leo');
-assert(vSpecial.isValid === false || vSpecial.cleanedSlug === 'leo-1', 'Slug with underscore normalized or rejected');
+  const vLong = validatePuppySlug('leopuppy1', 'Leo');
+  assert(vLong.isValid === false, 'Slug "leopuppy1" (> 7 chars) is rejected');
+  assert(Boolean(vLong.errors.length), 'Reports length error for long slug');
 
-// 5. Reserved route collision
-const vReserved = validatePuppySlug('tasks', 'Tasks');
-assert(vReserved.isValid === false, 'Reserved route "tasks" is rejected');
-assert(Boolean(vReserved.errors.reserved), 'Reports reserved route error');
+  // 3. Name inclusion rule
+  const vNoName = validatePuppySlug('max', 'Leo');
+  assert(vNoName.isValid === false, 'Slug "max" does not contain puppy name "Leo"');
+  assert(Boolean(vNoName.errors.containsName), 'Reports containsName error');
 
-const vHome = validatePuppySlug('home', 'Home');
-assert(vHome.isValid === false, 'Reserved route "home" is rejected');
+  // 4. URL-safe characters rule
+  const vSpecial = validatePuppySlug('leo_1', 'Leo');
+  assert(vSpecial.isValid === false || vSpecial.cleanedSlug === 'leo-1', 'Slug with underscore normalized or rejected');
 
-// 6. Long puppy names (> 7 chars)
-const vLongName = validatePuppySlug('max123', 'Maximilian');
-assert(vLongName.isValid === true, 'Slug "max123" is accepted for long name "Maximilian"');
+  // 5. Reserved route collision
+  const vReserved = validatePuppySlug('tasks', 'Tasks');
+  assert(vReserved.isValid === false, 'Reserved route "tasks" is rejected');
+  assert(Boolean(vReserved.errors.reserved), 'Reports reserved route error');
 
-console.log('\n--- TEST SUITE 2: Default Slug Generation & URL Formats ---');
-assert(generateDefaultSlug('Leo') === 'leo', 'Default slug for Leo is "leo"');
-assert(generateDefaultSlug('Bella') === 'bella', 'Default slug for Bella is "bella"');
-assert(generateDefaultSlug('Maximilian') === 'maximil', 'Default slug for Maximilian capped at 7 chars');
-assert(generateDefaultSlug('Bo') === 'bopup', 'Short name "Bo" padded to 5 chars');
+  const vHome = validatePuppySlug('home', 'Home');
+  assert(vHome.isValid === false, 'Reserved route "home" is rejected');
 
-assert(getPuppyDisplayUrl('leo') === 'puplume.com/leo', 'Display URL is puplume.com/leo');
-assert(getPuppyPublicUrl('leo', { canonicalDomain: true }) === 'https://puplume.com/leo', 'Canonical URL is https://puplume.com/leo');
+  // 6. Long puppy names (> 7 chars)
+  const vLongName = validatePuppySlug('max123', 'Maximilian');
+  assert(vLongName.isValid === true, 'Slug "max123" is accepted for long name "Maximilian"');
 
-console.log('\n--- TEST SUITE 3: Application Routing Architecture ---');
-assert(isPublicPuppyPath('/leo') === true, 'Route /leo is recognized as public puppy page');
-assert(isPublicPuppyPath('/pup/leo') === true, 'Route /pup/leo is recognized as public puppy page');
-assert(isPublicPuppyPath('/safety/leo') === true, 'Route /safety/leo is recognized as public puppy page');
-assert(isPublicPuppyPath('/home') === false, 'Route /home is NOT a public puppy page');
-assert(isPublicPuppyPath('/tasks') === false, 'Route /tasks is NOT a public puppy page');
-assert(isPublicPuppyPath('/puppy') === false, 'Route /puppy is NOT a public puppy page');
-assert(isPublicPuppyPath('/academy') === false, 'Route /academy is NOT a public puppy page');
-assert(isPublicPuppyPath('/auth') === false, 'Route /auth is NOT a public puppy page');
-assert(isPublicPuppyPath('/api/upload') === false, 'Route /api/upload is NOT a public puppy page');
-assert(isPublicPuppyPath('/assets/vendor.js') === false, 'Route /assets/vendor.js is NOT a public puppy page');
-assert(isPublicPuppyPath('/') === false, 'Root / is NOT a public puppy page');
+  console.log('\n--- TEST SUITE 2: Default Slug Generation & URL Formats ---');
+  assert(generateDefaultSlug('Leo') === 'leo', 'Default slug for Leo is "leo"');
+  assert(generateDefaultSlug('Bella') === 'bella', 'Default slug for Bella is "bella"');
+  assert(generateDefaultSlug('Maximilian') === 'maximil', 'Default slug for Maximilian capped at 7 chars');
+  assert(generateDefaultSlug('Bo') === 'bopup', 'Short name "Bo" padded to 5 chars');
 
-console.log('\n--- TEST SUITE 4: QR Code Generation for Custom URL ---');
-const qrSvg = generatePupLumeQRSvg('https://puplume.com/leo', { size: 400 });
-assert(qrSvg.includes('<svg'), 'QR code SVG is generated');
-assert(qrSvg.includes('qr-modules'), 'QR code includes module elements');
-assert(qrSvg.includes('qr-finders'), 'QR code includes custom rounded finder eyes');
-assert(qrSvg.includes('pupQrLogoGrad'), 'QR code includes center logo emblem gradient');
+  const canonicalUrl = getPuppyPublicUrl('graxzo2', { canonicalDomain: true });
+  assert(canonicalUrl === 'https://puplumepet.vercel.app/graxzo2', 'Canonical URL is https://puplumepet.vercel.app/graxzo2');
+  assert(!canonicalUrl.includes('petttttttpuplume'), 'URL strictly excludes petttttttpuplume');
 
-console.log(`\n========================================`);
-console.log(`RESULTS: ${passed} passed, ${failed} failed`);
-console.log(`========================================`);
+  const displayUrl = getPuppyDisplayUrl('graxzo2');
+  assert(displayUrl.includes('/graxzo2'), 'Display URL includes /graxzo2');
+  assert(!displayUrl.includes('petttttttpuplume'), 'Display URL strictly excludes petttttttpuplume');
 
-if (failed > 0) {
-  process.exit(1);
+  console.log('\n--- TEST SUITE 3: Application Routing Architecture ---');
+  assert(isPublicPuppyPath('/leo') === true, 'Route /leo is recognized as public puppy page');
+  assert(isPublicPuppyPath('/graxzo2') === true, 'Route /graxzo2 is recognized as public puppy page');
+  assert(isPublicPuppyPath('/pup/graxzo2') === true, 'Route /pup/graxzo2 is recognized as public puppy page');
+  assert(isPublicPuppyPath('/safety/graxzo2') === true, 'Route /safety/graxzo2 is recognized as public puppy page');
+  assert(isPublicPuppyPath('/home') === false, 'Route /home is NOT a public puppy page');
+  assert(isPublicPuppyPath('/tasks') === false, 'Route /tasks is NOT a public puppy page');
+  assert(isPublicPuppyPath('/puppy') === false, 'Route /puppy is NOT a public puppy page');
+  assert(isPublicPuppyPath('/academy') === false, 'Route /academy is NOT a public puppy page');
+  assert(isPublicPuppyPath('/auth') === false, 'Route /auth is NOT a public puppy page');
+  assert(isPublicPuppyPath('/api/upload') === false, 'Route /api/upload is NOT a public puppy page');
+  assert(isPublicPuppyPath('/assets/vendor.js') === false, 'Route /assets/vendor.js is NOT a public puppy page');
+  assert(isPublicPuppyPath('/') === false, 'Root / is NOT a public puppy page');
+
+  console.log('\n--- TEST SUITE 4: QR Code Generation for Custom URL ---');
+  const qrSvg = generatePupLumeQRSvg('https://puplumepet.vercel.app/graxzo2', { size: 400 });
+  assert(qrSvg.includes('<svg'), 'QR code SVG is generated');
+  assert(qrSvg.includes('qr-modules'), 'QR code includes module elements');
+  assert(qrSvg.includes('qr-finders'), 'QR code includes custom rounded finder eyes');
+  assert(qrSvg.includes('pupQrLogoGrad'), 'QR code includes center logo emblem gradient');
+
+  console.log('\n--- TEST SUITE 5: Dynamic OpenGraph 1200x630 Card Rendering ---');
+  const pngCard = await renderPassportCardPng({
+    name: 'Graxzo2',
+    breed: 'German Shepherd',
+    weightLbs: 14,
+    ageWeeks: 24,
+    slug: 'graxzo2',
+    host: 'puplumepet.vercel.app',
+    microchipNumber: '985-GRAXZO2-2026',
+    temperament: 'Playful, affectionate & loyal',
+  });
+  assert(Buffer.isBuffer(pngCard), 'Generated card is a valid Buffer');
+  assert(pngCard.length > 50000, `Card PNG buffer is high-resolution (${Math.round(pngCard.length / 1024)} KB)`);
+
+  // PNG magic number check: 89 50 4E 47 0D 0A 1A 0A
+  const isPng = pngCard[0] === 0x89 && pngCard[1] === 0x50 && pngCard[2] === 0x4E && pngCard[3] === 0x47;
+  assert(isPng, 'Card buffer has valid PNG signature');
+
+  console.log('\n--- TEST SUITE 6: Twitter Crawler OpenGraph SSR Meta Tags ---');
+  let mockHeaders: Record<string, string> = {};
+  let mockStatusCode = 200;
+  let mockBody = '';
+
+  const mockReq: any = {
+    headers: {
+      'user-agent': 'Twitterbot/1.0',
+      host: 'puplumepet.vercel.app',
+    },
+    query: { slug: 'graxzo2' },
+    url: '/graxzo2',
+  };
+
+  const mockRes: any = {
+    setHeader: (k: string, v: string) => { mockHeaders[k.toLowerCase()] = v; },
+    status: (code: number) => {
+      mockStatusCode = code;
+      return {
+        send: (body: string) => { mockBody = body; },
+      };
+    },
+  };
+
+  await pupMetaHandler(mockReq, mockRes);
+
+  assert(mockStatusCode === 200, 'Crawler request returns 200 OK');
+  assert(mockHeaders['content-type']?.includes('text/html'), 'Content-Type is text/html');
+  assert(mockBody.includes('<meta name="twitter:card" content="summary_large_image" />'), 'Includes twitter:card summary_large_image');
+  assert(mockBody.includes('content="https://puplumepet.vercel.app/api/og/pup?slug=graxzo2&amp;v=4"'), 'twitter:image points to dynamic card endpoint');
+  assert(mockBody.includes('<meta property="og:image"'), 'Includes og:image meta tag');
+  assert(mockBody.includes('Graxzo'), 'Includes puppy name Graxzo in rendered HTML');
+  assert(mockBody.includes('graxzo2'), 'Includes custom slug graxzo2 in rendered HTML and image URL');
+
+  console.log(`\n========================================`);
+  console.log(`RESULTS: ${passed} passed, ${failed} failed`);
+  console.log(`========================================`);
+
+  if (failed > 0) {
+    process.exit(1);
+  }
 }
+
+runAllTests().catch((err) => {
+  console.error('Fatal test error:', err);
+  process.exit(1);
+});

@@ -1,16 +1,18 @@
 import { mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { requireAuthUser } from "./authHelper";
 
 /**
  * Client calls this mutation to obtain a secure temporary
- * Convex File Storage upload URL.
+ * Convex File Storage upload URL. Requires user authentication.
  */
 export const generateUploadUrl = mutation({
   args: {
     userId: v.optional(v.string()),
   },
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
+    await requireAuthUser(ctx, args.userId);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -48,16 +50,19 @@ export const saveImageRecord = internalMutation({
     // 2. If target is puppy_profile, update puppy record
     if (args.targetType === "puppy_profile" && args.targetId) {
       try {
-        const puppy = await ctx.db.get(args.targetId as Id<"puppies">);
-        if (puppy && (puppy.userId === args.userId || puppy._id === args.targetId)) {
-          await ctx.db.patch(puppy._id, {
-            photoUrl: args.url,
-            photoPublicId: args.publicId,
-            photoFormat: args.format,
-            photoSize: args.size,
-            photoWidth: args.width,
-            photoHeight: args.height,
-          });
+        const normId = ctx.db.normalizeId("puppies", args.targetId);
+        if (normId) {
+          const puppy = await ctx.db.get(normId);
+          if (puppy && puppy.userId === args.userId) {
+            await ctx.db.patch(puppy._id, {
+              photoUrl: args.url,
+              photoPublicId: args.publicId,
+              photoFormat: args.format,
+              photoSize: args.size,
+              photoWidth: args.width,
+              photoHeight: args.height,
+            });
+          }
         }
       } catch (err) {
         console.warn("[saveImageRecord] Could not patch puppy profile:", err);

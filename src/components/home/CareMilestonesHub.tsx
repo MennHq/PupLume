@@ -7,13 +7,8 @@ import {
   ChevronRight, 
   Camera, 
   Sparkles, 
-  Calendar,
-  ShieldCheck,
-  CheckCircle2,
-  Plus,
-  Compass,
-  FileCheck2,
-  HelpCircle
+  Calendar, 
+  ShieldCheck
 } from 'lucide-react';
 import { PuppyProfile } from '../../types';
 import { storage } from '../../lib/storage';

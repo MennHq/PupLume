@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listPottyLogs = query({
   args: { 
@@ -11,9 +11,19 @@ export const listPottyLogs = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("pottyLogs")
+        .withIndex("by_user_puppy", (idx) => idx.eq("userId", userId).eq("puppyId", args.puppyId))
+        .order("desc")
+        .collect();
+    }
+
     return await ctx.db
       .query("pottyLogs")
-      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .withIndex("by_puppy", (idx) => idx.eq("puppyId", args.puppyId))
       .order("desc")
       .collect();
   },
@@ -30,6 +40,7 @@ export const addPottyLog = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const { userId: _, ...data } = args;
 

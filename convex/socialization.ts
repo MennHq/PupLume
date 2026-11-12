@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuthUser, getAuthUser } from "./authHelper";
+import { requireAuthUser, getAuthUser, verifyPuppyAccess } from "./authHelper";
 
 export const listSocialization = query({
   args: { 
@@ -11,9 +11,18 @@ export const listSocialization = query({
     const userId = await getAuthUser(ctx, args.userId);
     if (!userId) return [];
 
+    const { isPersisted } = await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    if (!isPersisted) {
+      return await ctx.db
+        .query("socialization")
+        .withIndex("by_user_puppy", (q) => q.eq("userId", userId).eq("puppyId", args.puppyId))
+        .collect();
+    }
+
     return await ctx.db
       .query("socialization")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
       .collect();
   },
 });
@@ -31,15 +40,12 @@ export const updateSocializationStatus = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
 
     const existing = await ctx.db
       .query("socialization")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter(
-        (q) =>
-          q.eq(q.field("puppyId"), args.puppyId) &&
-          q.eq(q.field("title"), args.title)
-      )
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
+      .filter((q) => q.eq(q.field("title"), args.title))
       .first();
 
     if (existing) {

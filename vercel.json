@@ -1,4 +1,15 @@
 {
+  "functions": {
+    "api/pup-meta.ts": {
+      "includeFiles": "{dist/**,index.html}"
+    },
+    "api/og/pup.ts": {
+      "includeFiles": "{fonts/**,public/**}"
+    },
+    "api/og.ts": {
+      "includeFiles": "{fonts/**,public/**}"
+    }
+  },
   "headers": [
     {
       "source": "/assets/(.*)",
@@ -30,6 +41,18 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
           "key": "X-Robots-Tag",
           "value": "all"
         },
@@ -42,8 +65,28 @@
   ],
   "rewrites": [
     {
+      "source": "/api/og/pup",
+      "destination": "/api/og/pup.ts"
+    },
+    {
+      "source": "/api/og",
+      "destination": "/api/og/pup.ts"
+    },
+    {
       "source": "/share-target",
       "destination": "/api/share-target"
+    },
+    {
+      "source": "/pup/:slug",
+      "destination": "/api/pup-meta.ts?slug=:slug"
+    },
+    {
+      "source": "/safety/:slug",
+      "destination": "/api/pup-meta.ts?slug=:slug"
+    },
+    {
+      "source": "/:slug((?!assets/|api/|home|tasks|ai|academy|more|potty|health|expenses|vault|socialization|journal|recap|puppy|profile|sharing|settings|onboarding|privacy|terms|auth|signin|signup|login|paddlelog|share-target|favicon|icon|manifest|sw|registerSW|.*\\..*)[^/]+)",
+      "destination": "/api/pup-meta.ts?slug=$1"
     },
     {
       "source": "/((?!assets/|.*\\..*).*)",
