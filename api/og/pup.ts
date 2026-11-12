@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderPassportCardPng } from '../_ogPassportCard';
+import { renderPassportCardPng, renderNotFoundCardPng } from '../_ogPassportCard';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let puppyData: any = null;
 
-  // 1. Query Convex for live puppy details
+  // 1. Query Convex for live puppy details from the database
   try {
     const convexUrl = process.env.VITE_CONVEX_URL || 'https://energetic-partridge-407.convex.cloud';
     const controller = new AbortController();
@@ -50,54 +50,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.warn('[api/og/pup] Convex query error:', err);
   }
 
-  // 2. Fallbacks for demo or local setups if Convex doesn't have the record
+  // 2. If puppy does not exist in Convex database, render clean "Puppy Passport Not Found" graphic
   if (!puppyData) {
-    const isGraxzo = cleanSlug.includes('graxzo') || cleanSlug.includes('graxo');
-    const isLeo = cleanSlug.includes('leo');
-    const isBella = cleanSlug.includes('bella');
-
-    if (isGraxzo) {
-      const displayName = cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
-      puppyData = {
-        name: displayName,
-        breed: 'German Shepherd',
-        weightLbs: 14,
-        birthDate: '2026-05-15',
-        microchipNumber: `985-${cleanSlug.toUpperCase()}-2026`,
-        temperament: 'Playful, affectionate & loyal',
-        photoUrl: 'https://res.cloudinary.com/puplume/image/upload/v1792845578/puplume/pets/j76lqhakqxgczyplknen.jpg',
-      };
-    } else if (isLeo) {
-      puppyData = {
-        name: 'Leo',
-        breed: 'Golden Retriever',
-        weightLbs: 22,
-        birthDate: '2026-04-10',
-        microchipNumber: '985-LEO-2026-PUP',
-        temperament: 'Friendly, energetic and loving',
-      };
-    } else if (isBella) {
-      puppyData = {
-        name: 'Bella',
-        breed: 'French Bulldog',
-        weightLbs: 16,
-        birthDate: '2026-06-01',
-        microchipNumber: '985-BELLA-2026-PUP',
-        temperament: 'Curious, calm and affectionate',
-      };
-    } else {
-      // General title-cased slug as pet name
-      const formattedName = cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
-      puppyData = {
-        name: formattedName,
-        breed: 'Canine Companion',
-        weightLbs: 15,
-        microchipNumber: `985-${cleanSlug.toUpperCase()}-2026`,
-        temperament: 'Loving, playful & curious',
-      };
+    try {
+      const notFoundPng = await renderNotFoundCardPng(cleanSlug, host);
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      return res.status(200).send(notFoundPng);
+    } catch (err: any) {
+      console.error('[api/og/pup] Error rendering not-found PNG:', err);
+      return res.status(404).json({ error: 'Puppy not found' });
     }
   }
 
+  // 3. Render dynamic passport card for the found puppy
   try {
     const pngBuffer = await renderPassportCardPng({
       name: puppyData.name,

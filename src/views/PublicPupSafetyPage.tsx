@@ -143,17 +143,19 @@ const PublicPupSafetyContent: React.FC = () => {
   React.useEffect(() => {
     if (activePup) {
       document.title = `${activePup.name} — PupLume Digital Pet Passport`;
-      const ogImage = activePup.photoUrl || '/og-pup-preview.png';
+      const targetSlug = activePup.slug || identifier || '';
+      const ogImage = `/api/og/pup?slug=${encodeURIComponent(targetSlug)}&v=4`;
       updateMetaTag('property', 'og:title', `${activePup.name}'s PupLume Pet Passport 🐾`);
       updateMetaTag('property', 'og:description', `${activePup.name} (${activePup.breed}) — Verified Digital Pet Passport & Smart Collar Tag on PupLume.`);
       updateMetaTag('property', 'og:image', ogImage);
       updateMetaTag('name', 'twitter:image', ogImage);
     } else if (identifier) {
       document.title = 'Puppy Profile Not Found — PupLume';
+      const notFoundImage = `/api/og/pup?slug=${encodeURIComponent(identifier)}&v=4`;
       updateMetaTag('property', 'og:title', 'Puppy Passport Not Found — PupLume');
       updateMetaTag('property', 'og:description', 'This puppy collar tag or passport link is inactive, mistyped, or not yet registered.');
-      updateMetaTag('property', 'og:image', '/og-pup-not-found.png');
-      updateMetaTag('name', 'twitter:image', '/og-pup-not-found.png');
+      updateMetaTag('property', 'og:image', notFoundImage);
+      updateMetaTag('name', 'twitter:image', notFoundImage);
     }
   }, [activePup, identifier]);
 

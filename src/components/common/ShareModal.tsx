@@ -282,13 +282,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://puplumepet.vercel.app';
       // Fetch dynamic high-res passport card with real scannable QR code from marketing/passport engine
       const dynamicCardUrl = `${origin}/api/og/pup?slug=${encodeURIComponent(slug)}&v=${Date.now()}`;
-      const fallbackLocalUrl = puppy.name?.toLowerCase().includes('grax') ? '/og-graxzo.png?v=4' : '/og-pup-preview.png?v=4';
       const filename = `${puppy.name.toLowerCase().replace(/\s+/g, '-')}-passport-card.png`;
 
-      let response = await fetch(dynamicCardUrl).catch(() => null);
-      if (!response || !response.ok) {
-        response = await fetch(fallbackLocalUrl).catch(() => null);
-      }
+      const response = await fetch(dynamicCardUrl).catch(() => null);
       if (response && response.ok) {
         const blob = await response.blob();
         triggerDownload(blob, filename);

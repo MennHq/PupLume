@@ -69,41 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.warn('[pup-meta] Error querying Convex for puppy:', err);
   }
 
-  // 2. Demo fallback if puppy isn't in Convex yet
-  if (!pup) {
-    const isGraxzo = cleanSlug.includes('graxzo') || cleanSlug.includes('graxo');
-    const isLeo = cleanSlug.includes('leo');
-    const isBella = cleanSlug.includes('bella');
-
-    if (isGraxzo) {
-      const displayName = cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
-      pup = {
-        name: displayName,
-        breed: 'German Shepherd',
-        isLost: false,
-      };
-    } else if (isLeo) {
-      pup = {
-        name: 'Leo',
-        breed: 'Golden Retriever',
-        isLost: false,
-      };
-    } else if (isBella) {
-      pup = {
-        name: 'Bella',
-        breed: 'French Bulldog',
-        isLost: false,
-      };
-    } else if (cleanSlug && cleanSlug !== 'puppy') {
-      const displayName = cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
-      pup = {
-        name: displayName,
-        breed: 'Canine Companion',
-        isLost: false,
-      };
-    }
-  }
-
+  // 2. Format title and description based on Convex database puppy data
   if (pup) {
     if (pup.isLost) {
       title = `🚨 MISSING PUPPY ALERT: ${pup.name}`;
@@ -114,6 +80,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const breedText = pup.breed ? ` (${pup.breed})` : '';
       description = `Meet ${pup.name}!${breedText}. Verified digital pet passport & safety collar tag on PupLume.`;
     }
+  } else {
+    title = 'Puppy Passport Not Found | PupLume';
+    description = `No active puppy collar tag found for "${cleanSlug}". Check the URL or scan the collar tag directly.`;
   }
 
   // 3. Crawler detection

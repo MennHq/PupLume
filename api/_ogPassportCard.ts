@@ -79,11 +79,9 @@ function calculateAgeText(birthDate?: string, ageWeeks?: number): string {
 }
 
 /**
- * Resolves pet image to base64 Data URI with local fallbacks
+ * Resolves pet image to base64 Data URI with clean SVG fallback
  */
 async function resolvePhotoDataUri(photoUrl?: string, petName?: string): Promise<string> {
-  const cwd = process.cwd();
-
   // 1. Try remote fetch if valid URL provided
   if (photoUrl && photoUrl.startsWith('http')) {
     try {
@@ -99,40 +97,26 @@ async function resolvePhotoDataUri(photoUrl?: string, petName?: string): Promise
         return `data:${contentType};base64,${b64}`;
       }
     } catch (err) {
-      console.warn('[ogPassportCard] Failed to fetch remote photo, using local fallback:', err);
+      console.warn('[ogPassportCard] Failed to fetch remote photo, using clean SVG fallback:', err);
     }
   }
 
-  // 2. Check local fallback images in public/
-  const possibleLocalFiles = [
-    path.join(cwd, 'public', 'warm-dog-test.png'),
-    path.join(cwd, 'public', 'og-graxzo.png'),
-    path.join(cwd, 'public', 'og-pup-preview.png'),
-  ];
-
-  for (const file of possibleLocalFiles) {
-    if (fs.existsSync(file)) {
-      try {
-        const buf = fs.readFileSync(file);
-        return `data:image/png;base64,${buf.toString('base64')}`;
-      } catch {}
-    }
-  }
-
-  // 3. Fallback placeholder puppy portrait SVG
+  // 2. Clean fallback placeholder puppy portrait SVG (personalized with pet name initial)
   const nameInitial = (petName || 'P').charAt(0).toUpperCase();
   const fallbackSvg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="390" height="434" viewBox="0 0 390 434">
       <defs>
         <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#EAD9C9"/>
+          <stop offset="0%" stop-color="#FFF5EB"/>
+          <stop offset="50%" stop-color="#EAD9C9"/>
           <stop offset="100%" stop-color="#CBB5A1"/>
         </linearGradient>
       </defs>
       <rect width="390" height="434" fill="url(#avatarGrad)"/>
-      <circle cx="195" cy="180" r="80" fill="#8B5E3C" opacity="0.3"/>
-      <text x="195" y="210" font-family="Outfit" font-size="80" font-weight="900" fill="#FFFFFF" text-anchor="middle">${nameInitial}</text>
-      <text x="195" y="300" font-family="Outfit" font-size="20" font-weight="700" fill="#5F3E29" text-anchor="middle">PupLume Pet</text>
+      <circle cx="195" cy="180" r="80" fill="#8B5E3C" opacity="0.25"/>
+      <text x="195" y="212" font-family="Outfit" font-size="80" font-weight="900" fill="#FFFFFF" text-anchor="middle">${nameInitial}</text>
+      <text x="195" y="300" font-family="Grandstander" font-size="22" font-weight="800" fill="#5F3E29" text-anchor="middle">${escapeXml(petName || 'PupLume Pet')}</text>
+      <text x="195" y="326" font-family="Outfit" font-size="13" font-weight="700" fill="#8C7A6D" letter-spacing="1.5" text-anchor="middle">VERIFIED CANINE</text>
     </svg>
   `;
   return `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
@@ -411,6 +395,121 @@ export async function generatePassportCardSvg(options: PassportCardOptions): Pro
       </text>
     </g>
   </svg>`;
+}
+
+/**
+ * Generates clean 1200x630 SVG document when a puppy passport tag is not found
+ */
+export function generateNotFoundCardSvg(slug?: string, host = 'puplumepet.vercel.app'): string {
+  const cleanSlug = (slug || 'puppy').toLowerCase().trim();
+  const displayHost = host.replace(/^https?:\/\//, '');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+    <defs>
+      <linearGradient id="notFoundCanvasGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FFFDF9"/>
+        <stop offset="40%" stop-color="#FFF9F2"/>
+        <stop offset="85%" stop-color="#FAF2E6"/>
+        <stop offset="100%" stop-color="#F5E8D8"/>
+      </linearGradient>
+      <radialGradient id="notFoundGlow" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="nfCardShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#3A2818" flood-opacity="0.08"/>
+      </filter>
+    </defs>
+
+    <!-- Canvas -->
+    <rect width="1200" height="630" fill="url(#notFoundCanvasGrad)"/>
+    <rect width="1200" height="630" fill="url(#notFoundGlow)"/>
+
+    <!-- Header Brand -->
+    <g transform="translate(64, 40)">
+      ${renderMascot(0.12)}
+      <text x="54" y="27" font-family="Grandstander" font-size="28" font-weight="900" fill="#241912">
+        Pup<tspan fill="#8B5E3C">Lume</tspan>
+      </text>
+      <text x="176" y="24" font-family="Outfit" font-size="11" font-weight="700" fill="#8C7A6D" letter-spacing="2">
+        DIGITAL PET PASSPORT
+      </text>
+    </g>
+
+    <!-- Center Card -->
+    <g transform="translate(160, 110)" filter="url(#nfCardShadow)">
+      <rect width="880" height="420" rx="32" fill="#FFFFFF" stroke="#EDE5DC" stroke-width="1.5"/>
+
+      <!-- Mascot Squircle -->
+      <g transform="translate(390, 48)">
+        <rect width="100" height="100" rx="28" fill="#FDF6EA" stroke="#EDE0D2" stroke-width="1.5"/>
+        <g transform="translate(14, 14)">
+          ${renderMascot(0.18)}
+        </g>
+      </g>
+
+      <!-- Text Content -->
+      <g transform="translate(440, 195)" text-anchor="middle">
+        <text x="0" y="0" font-family="Grandstander" font-size="42" font-weight="900" fill="#2C211B" letter-spacing="-1">
+          Puppy Passport Not Found
+        </text>
+        <text x="0" y="44" font-family="Outfit" font-size="20" font-weight="600" fill="#6A5A4D">
+          No active puppy collar tag registered for &quot;${escapeXml(cleanSlug)}&quot;.
+        </text>
+        <text x="0" y="78" font-family="Outfit" font-size="15" font-weight="500" fill="#998778">
+          The link may be mistyped, or the tag was recently assigned a new custom URL.
+        </text>
+
+        <!-- Brand Button Pill -->
+        <g transform="translate(-160, 115)">
+          <rect width="320" height="52" rx="26" fill="#8B5E3C"/>
+          <text x="160" y="32" font-family="Outfit" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+            puplume.pet · Digital Pet Passport 🐾
+          </text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Bottom Footer -->
+    <g transform="translate(64, 595)">
+      <text x="0" y="0" font-family="Outfit" font-size="13" font-weight="700" fill="#8C7A6D">
+        ${escapeXml(displayHost)}
+      </text>
+    </g>
+  </svg>`;
+}
+
+/**
+ * Renders the Not-Found OpenGraph card into a high-res PNG Buffer
+ */
+export async function renderNotFoundCardPng(slug?: string, host = 'puplumepet.vercel.app'): Promise<Buffer> {
+  const svg = generateNotFoundCardSvg(slug, host);
+  const cwd = process.cwd();
+
+  const fontFiles = [
+    path.join(cwd, 'fonts', 'Grandstander-Black.ttf'),
+    path.join(cwd, 'fonts', 'Grandstander-Bold.ttf'),
+    path.join(cwd, 'fonts', 'Outfit-900.ttf'),
+    path.join(cwd, 'fonts', 'Outfit-800.ttf'),
+    path.join(cwd, 'fonts', 'Outfit-700.ttf'),
+    path.join(cwd, 'fonts', 'Outfit-600.ttf'),
+    path.join(cwd, 'fonts', 'Outfit-400.ttf'),
+  ].filter((f) => fs.existsSync(f));
+
+  try {
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: 'width', value: 1200 },
+      font: {
+        fontFiles,
+        loadSystemFonts: false,
+        defaultFontFamily: 'Outfit',
+      },
+    });
+    return resvg.render().asPng();
+  } catch (err) {
+    console.warn('[ogPassportCard] Resvg failed for not found, falling back to Sharp:', err);
+    return await sharp(Buffer.from(svg)).png().toBuffer();
+  }
 }
 
 /**

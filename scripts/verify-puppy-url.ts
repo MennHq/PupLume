@@ -8,8 +8,9 @@ import {
   RESERVED_SLUGS 
 } from '../src/lib/slugHelper';
 import { generatePupLumeQRSvg } from '../src/lib/qrCodeGenerator';
-import { renderPassportCardPng } from '../api/_ogPassportCard';
+import { renderPassportCardPng, renderNotFoundCardPng } from '../api/_ogPassportCard';
 import pupMetaHandler from '../api/pup-meta';
+import ogPupHandler from '../api/og/pup';
 
 let failed = 0;
 let passed = 0;
@@ -166,6 +167,84 @@ async function runAllTests() {
   assert(mockBody.includes('<meta property="og:image"'), 'Includes og:image meta tag');
   assert(mockBody.includes('Graxzo'), 'Includes puppy name Graxzo in rendered HTML');
   assert(mockBody.includes('graxzo2'), 'Includes custom slug graxzo2 in rendered HTML and image URL');
+
+  console.log('\n--- TEST SUITE 7: Dynamic Backend & Zero Hardcoded Fallbacks ---');
+  // 1. Check Not-Found Puppy handling via pupMetaHandler (no hardcoded puppy names or mock dogs)
+  let nfHeaders: Record<string, string> = {};
+  let nfStatusCode = 200;
+  let nfBody = '';
+  const mockNfReq: any = {
+    headers: { 'user-agent': 'Twitterbot/1.0', host: 'puplumepet.vercel.app' },
+    query: { slug: 'totally-nonexistent-pup' },
+    url: '/totally-nonexistent-pup',
+  };
+  const mockNfRes: any = {
+    setHeader: (k: string, v: string) => { nfHeaders[k.toLowerCase()] = v; },
+    status: (code: number) => {
+      nfStatusCode = code;
+      return { send: (b: string) => { nfBody = b; } };
+    },
+  };
+  await pupMetaHandler(mockNfReq, mockNfRes);
+  assert(nfBody.includes('Puppy Passport Not Found'), 'Unregistered puppy returns "Puppy Passport Not Found"');
+  assert(!nfBody.includes('German Shepherd'), 'Does NOT invent German Shepherd for unknown dog');
+  assert(!nfBody.includes('Golden Retriever'), 'Does NOT invent Golden Retriever for unknown dog');
+  assert(!nfBody.includes('French Bulldog'), 'Does NOT invent French Bulldog for unknown dog');
+
+  // 2. Check Not-Found Card rendering
+  const nfPng = await renderNotFoundCardPng('totally-nonexistent-pup');
+  assert(Buffer.isBuffer(nfPng), 'renderNotFoundCardPng returns valid Buffer');
+  assert(nfPng.length > 30000, `Not-found card is high-res PNG (${Math.round(nfPng.length / 1024)} KB)`);
+
+  // 3. Test dynamic API endpoint /api/og/pup handler directly
+  let ogHeaders: Record<string, string> = {};
+  let ogStatusCode = 200;
+  let ogBody: any = null;
+  const mockOgReq: any = {
+    method: 'GET',
+    headers: { host: 'puplumepet.vercel.app' },
+    query: { slug: 'graxzo2' },
+  };
+  const mockOgRes: any = {
+    setHeader: (k: string, v: string) => { ogHeaders[k.toLowerCase()] = v; },
+    status: (code: number) => {
+      ogStatusCode = code;
+      return {
+        send: (b: any) => { ogBody = b; },
+        json: (j: any) => { ogBody = j; },
+        end: () => {},
+      };
+    },
+  };
+  await ogPupHandler(mockOgReq, mockOgRes);
+  assert(ogStatusCode === 200, '/api/og/pup returns 200 OK for live slug graxzo2');
+  assert(ogHeaders['content-type'] === 'image/png', 'Returns image/png');
+  assert(Buffer.isBuffer(ogBody), 'Returns dynamic passport card PNG buffer');
+
+  // 4. Test /api/og/pup for unregistered slug returns not-found card
+  let ogNfHeaders: Record<string, string> = {};
+  let ogNfStatusCode = 200;
+  let ogNfBody: any = null;
+  const mockOgNfReq: any = {
+    method: 'GET',
+    headers: { host: 'puplumepet.vercel.app' },
+    query: { slug: 'unknown-pup-xyz' },
+  };
+  const mockOgNfRes: any = {
+    setHeader: (k: string, v: string) => { ogNfHeaders[k.toLowerCase()] = v; },
+    status: (code: number) => {
+      ogNfStatusCode = code;
+      return {
+        send: (b: any) => { ogNfBody = b; },
+        json: (j: any) => { ogNfBody = j; },
+        end: () => {},
+      };
+    },
+  };
+  await ogPupHandler(mockOgNfReq, mockOgNfRes);
+  assert(ogNfStatusCode === 200, '/api/og/pup returns not-found card with 200 for crawlers');
+  assert(ogNfHeaders['content-type'] === 'image/png', 'Returns image/png');
+  assert(Buffer.isBuffer(ogNfBody), 'Returns not-found PNG buffer');
 
   console.log(`\n========================================`);
   console.log(`RESULTS: ${passed} passed, ${failed} failed`);
