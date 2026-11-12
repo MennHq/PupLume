@@ -1,152 +1,219 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <!-- Warm Skin / Cream Tone Background (Zero Dark Brown) -->
-    <linearGradient id="skinBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFDF9"/>
-      <stop offset="40%" stop-color="#FFF9F2"/>
-      <stop offset="85%" stop-color="#FAF2E6"/>
-      <stop offset="100%" stop-color="#F5E8D8"/>
+    <!-- Deep Warm Espresso & Luxury Amber Lighting (High Contrast against White & Dark Social Backgrounds) -->
+    <linearGradient id="darkCanvas" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#241710"/>
+      <stop offset="45%" stop-color="#1B110B"/>
+      <stop offset="100%" stop-color="#120A06"/>
     </linearGradient>
-    <radialGradient id="peachSkinGlow" cx="18%" cy="25%" r="70%">
-      <stop offset="0%" stop-color="#FCDDC7" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+
+    <!-- Warm Amber Radiant Glows -->
+    <radialGradient id="amberGlowTop" cx="80%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.32"/>
+      <stop offset="50%" stop-color="#D97706" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#120A06" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="amberSkinGlow" cx="82%" cy="50%" r="65%">
-      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.45"/>
-      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
+    <radialGradient id="peachGlowLeft" cx="15%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#E07A5F" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#120A06" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="haloCenterGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75"/>
-      <stop offset="65%" stop-color="#FFF9F2" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#FFF9F2" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="logoPupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#A27046"/>
-      <stop offset="100%" stop-color="#734927"/>
-    </linearGradient>
-    <linearGradient id="logoLumeStar" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <!-- Metallic Gold Gradient for Badges & Accents -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FDE68A"/>
       <stop offset="50%" stop-color="#F59E0B"/>
       <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
-    <filter id="softEmblemShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#2C211B" flood-opacity="0.10"/>
-      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#2C211B" flood-opacity="0.04"/>
+
+    <!-- Puppy Fur Gradients (Direct Mascot - ZERO Box Behind It) -->
+    <linearGradient id="mascotHead" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B27D52"/>
+      <stop offset="100%" stop-color="#84532D"/>
+    </linearGradient>
+    <linearGradient id="mascotEars" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#734725"/>
+      <stop offset="100%" stop-color="#543118"/>
+    </linearGradient>
+
+    <!-- Medallion Rim Gradient -->
+    <linearGradient id="medallionRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="35%" stop-color="#F59E0B"/>
+      <stop offset="70%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#92400E"/>
+    </linearGradient>
+
+    <!-- Subtle Drop Shadows -->
+    <filter id="lumeGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F59E0B" flood-opacity="0.35"/>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.45"/>
     </filter>
   </defs>
 
-  <!-- Clean Warm Skin Background (Seamless Canvas, Zero Dark Brown) -->
-  <rect width="1200" height="630" fill="url(#skinBg)"/>
-  <rect width="1200" height="630" fill="url(#peachSkinGlow)"/>
-  <rect width="1200" height="630" fill="url(#amberSkinGlow)"/>
+  <!-- Deep Espresso Background (Unmistakable Contrast on WhatsApp & Twitter) -->
+  <rect width="1200" height="630" fill="url(#darkCanvas)"/>
+  <rect width="1200" height="630" fill="url(#amberGlowTop)"/>
+  <rect width="1200" height="630" fill="url(#peachGlowLeft)"/>
 
-  <!-- Left Editorial Column (Seamless, No Separate Boxes) -->
+  <!-- Subtle Inset Luxury Border -->
+  <rect x="20" y="20" width="1160" height="590" rx="20" fill="none" stroke="#4A3425" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- ============================================== -->
+  <!-- LEFT EDITORIAL COLUMN                          -->
+  <!-- ============================================== -->
   <g transform="translate(85, 75)">
-    <!-- Official PupLume Logo + Textual Wordmark -->
+
+    <!-- Official PupLume Logo (MASCOT SITS DIRECTLY ON CANVAS - ZERO BACKGROUND BOX!) -->
     <g transform="translate(0, 0)">
-      <!-- Official Squircle Icon (70x70) -->
-      <rect width="70" height="70" rx="22" fill="url(#logoPupGrad)" filter="url(#softEmblemShadow)"/>
-      <g transform="translate(1, -2) scale(0.15)">
-        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
-        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
-        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
-        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
-        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
-        <circle cx="165" cy="205" r="14" fill="#2C211B" />
-        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
-        <circle cx="275" cy="205" r="14" fill="#2C211B" />
-        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+      <!-- Pure Vector Mascot (No square or squircle box behind it) -->
+      <g transform="translate(0, -6) scale(0.18)">
+        <!-- Head -->
+        <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#mascotHead)"/>
+        <!-- Floppy Ears -->
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="url(#mascotEars)"/>
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="url(#mascotEars)"/>
+        <!-- Snout -->
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2"/>
+        <!-- Nose -->
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B"/>
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6"/>
+        <!-- Eyes -->
+        <circle cx="165" cy="205" r="14" fill="#2C211B"/>
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF"/>
+        <circle cx="275" cy="205" r="14" fill="#2C211B"/>
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF"/>
+        <!-- Lume Star -->
         <g transform="translate(295, 45)">
-          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
-          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#goldGrad)"/>
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2"/>
         </g>
       </g>
 
-      <!-- Official Wordmark in Grandstander font -->
-      <text x="90" y="46" font-family="Grandstander" font-size="48" font-weight="900" fill="#2C211B" letter-spacing="-0.5">
-        Pup<tspan fill="#8B5E3C">Lume</tspan>
+      <!-- Wordmark in Grandstander font -->
+      <text x="82" y="44" font-family="Grandstander" font-size="46" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">
+        Pup<tspan fill="#F59E0B">Lume</tspan>
       </text>
-      <text x="92" y="68" font-family="Grandstander" font-size="13" font-weight="700" fill="#766A63" letter-spacing="3">
+      <text x="84" y="66" font-family="Grandstander" font-size="12" font-weight="700" fill="#C4B0A2" letter-spacing="3">
         THE SMART DOG PASSPORT &amp; AI CARE ROUTINE
       </text>
     </g>
 
-    <!-- Headline (Clean, Bold Grandstander - Pure Editorial) -->
-    <text x="0" y="174" font-family="Grandstander" font-size="64" font-weight="900" fill="#2C211B" letter-spacing="-1.5">
+    <!-- Main Headline in Grandstander font -->
+    <text x="0" y="174" font-family="Grandstander" font-size="64" font-weight="900" fill="#FFFFFF" letter-spacing="-1.5">
       The Smart Dog Passport
     </text>
-    <text x="0" y="246" font-family="Grandstander" font-size="64" font-weight="900" fill="#8B5E3C" letter-spacing="-1.5">
+    <text x="0" y="246" font-family="Grandstander" font-size="64" font-weight="900" fill="#F59E0B" letter-spacing="-1.5">
       &amp; AI Care Routine
     </text>
 
-    <!-- Subtitle (Directly on skin canvas, zero boxes) -->
-    <text x="0" y="306" font-family="Grandstander" font-size="24" font-weight="600" fill="#5F3E29">
+    <!-- Subtitle -->
+    <text x="0" y="306" font-family="Grandstander" font-size="24" font-weight="600" fill="#D5C4B7">
       Smart QR collar tags, AI daily routines &amp; vaccine records.
     </text>
 
-    <!-- Feature Highlights (Directly on skin canvas, real brand font) -->
-    <g transform="translate(0, 366)">
-      <circle cx="8" cy="-6" r="5" fill="#8B5E3C" />
-      <text x="24" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
-        Smart QR Tag
-      </text>
+    <!-- Feature Highlight Pills -->
+    <g transform="translate(0, 362)">
+      <!-- Pill 1: Smart QR Tag -->
+      <g transform="translate(0, 0)">
+        <rect width="180" height="42" rx="21" fill="#2D1F17" stroke="#4A3425" stroke-width="1.2"/>
+        <circle cx="24" cy="21" r="5" fill="#F59E0B"/>
+        <text x="38" y="27" font-family="Grandstander" font-size="17" font-weight="700" fill="#FDE68A">
+          Smart QR Tag
+        </text>
+      </g>
 
-      <circle cx="205" cy="-6" r="5" fill="#8B5E3C" />
-      <text x="221" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
-        Vaccine Vault
-      </text>
+      <!-- Pill 2: Vaccine Vault -->
+      <g transform="translate(196, 0)">
+        <rect width="185" height="42" rx="21" fill="#1C2E24" stroke="#2D5A43" stroke-width="1.2"/>
+        <circle cx="24" cy="21" r="5" fill="#10B981"/>
+        <text x="38" y="27" font-family="Grandstander" font-size="17" font-weight="700" fill="#A7F3D0">
+          Vaccine Vault
+        </text>
+      </g>
 
-      <circle cx="410" cy="-6" r="5" fill="#8B5E3C" />
-      <text x="426" y="0" font-family="Grandstander" font-size="21" font-weight="700" fill="#8B5E3C">
-        AI Care Coach
-      </text>
+      <!-- Pill 3: AI Care Coach -->
+      <g transform="translate(397, 0)">
+        <rect width="190" height="42" rx="21" fill="#2D1F17" stroke="#4A3425" stroke-width="1.2"/>
+        <circle cx="24" cy="21" r="5" fill="#F59E0B"/>
+        <text x="38" y="27" font-family="Grandstander" font-size="17" font-weight="700" fill="#FDE68A">
+          AI Care Coach
+        </text>
+      </g>
     </g>
 
-    <!-- Official URL Tag -->
-    <g transform="translate(0, 440)">
-      <text x="0" y="0" font-family="Grandstander" font-size="30" font-weight="900" fill="#2C211B">
+    <!-- Domain Footer -->
+    <g transform="translate(0, 442)">
+      <text x="0" y="0" font-family="Grandstander" font-size="30" font-weight="900" fill="#FFFFFF">
         puplume.pet
       </text>
-      <text x="210" y="-3" font-family="Grandstander" font-size="18" font-weight="600" fill="#766A63">
+      <text x="210" y="-3" font-family="Grandstander" font-size="18" font-weight="600" fill="#A89485">
         • Everything your puppy needs to thrive
       </text>
     </g>
   </g>
 
-  <!-- Right Visual Feature: Majestic Lume Crest (Seamless, Breathing, Zero Boxes) -->
-  <g transform="translate(945, 315)">
-    <!-- Soft Radiant Halo Rings -->
-    <circle r="235" fill="url(#haloCenterGlow)"/>
-    <circle r="210" fill="none" stroke="#EAD8CA" stroke-width="2" stroke-dasharray="8 8" opacity="0.75"/>
-    <circle r="160" fill="none" stroke="#F0E3D6" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
-    <circle r="115" fill="#FFF9F2" opacity="0.6"/>
+  <!-- ============================================== -->
+  <!-- RIGHT VISUAL: CIRCULAR SMART COLLAR TAG MEDALLION -->
+  <!-- (ZERO SQUIRCLE BOX! Pure circular tactile collar tag + halo) -->
+  <!-- ============================================== -->
+  <g transform="translate(950, 315)">
+    <!-- Radiant Halo Rings -->
+    <circle r="235" fill="none" stroke="#F59E0B" stroke-width="1" stroke-dasharray="6 6" opacity="0.25"/>
+    <circle r="190" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.35"/>
+    <circle r="145" fill="none" stroke="#FDE68A" stroke-width="1" opacity="0.4"/>
 
-    <!-- Large PupLume Hero Squircle Emblem (180x180) -->
-    <g transform="translate(-90, -90)" filter="url(#softEmblemShadow)">
-      <rect width="180" height="180" rx="54" fill="url(#logoPupGrad)"/>
-      <g transform="translate(8, 4) scale(0.37)">
-        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
-        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
-        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
-        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
-        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6" />
-        <circle cx="165" cy="205" r="14" fill="#2C211B" />
-        <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
-        <circle cx="275" cy="205" r="14" fill="#2C211B" />
-        <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+    <!-- The Circular Smart Collar Tag (Tactile Brass & Enamel - NOT A BOX!) -->
+    <g filter="url(#softShadow)">
+      <!-- Outer Brass Collar Tag Ring -->
+      <circle r="126" fill="url(#medallionRim)"/>
+      <circle r="121" fill="#241710"/>
+      <!-- Inner Gold Inset Bead -->
+      <circle r="114" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" opacity="0.8"/>
+      <!-- Deep Warm Core Disk -->
+      <circle r="110" fill="#1B110B"/>
+
+      <!-- Large PupLume Mascot Inside the Tag -->
+      <g transform="translate(-82, -80) scale(0.40)">
+        <!-- Head -->
+        <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="url(#mascotHead)"/>
+        <!-- Floppy Ears -->
+        <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="url(#mascotEars)"/>
+        <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="url(#mascotEars)"/>
+        <!-- Snout -->
+        <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2"/>
+        <!-- Nose -->
+        <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B"/>
+        <ellipse cx="212" cy="238" rx="6" ry="3" fill="#FFFFFF" opacity="0.6"/>
+        <!-- Mouth -->
+        <path d="M 220 272 L 220 286" stroke="#2C211B" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 200 286 C 210 294 220 294 220 286 C 220 294 230 294 240 286" fill="none" stroke="#2C211B" stroke-width="4" stroke-linecap="round"/>
+        <!-- Eyes -->
+        <circle cx="165" cy="205" r="14" fill="#2C211B"/>
+        <circle cx="161" cy="201" r="5" fill="#FFFFFF"/>
+        <circle cx="275" cy="205" r="14" fill="#2C211B"/>
+        <circle cx="271" cy="201" r="5" fill="#FFFFFF"/>
+        <!-- Lume Star -->
         <g transform="translate(295, 45)">
-          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#logoLumeStar)" />
-          <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+          <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="url(#goldGrad)"/>
+          <circle cx="40" cy="40" r="10" fill="#FFF9F2"/>
         </g>
       </g>
     </g>
 
-    <!-- Floating Lume Sparkle Accents directly on halo -->
-    <g transform="translate(-135, -125)">
-      <path d="M 18 0 C 18 10 26 18 36 18 C 26 18 18 26 18 36 C 18 26 10 18 0 18 C 10 18 18 10 18 0 Z" fill="url(#logoLumeStar)" />
+    <!-- Collar Tag Loop / Eyelet at Top of Ring -->
+    <g transform="translate(0, -126)">
+      <circle cy="-12" r="14" fill="none" stroke="url(#medallionRim)" stroke-width="5"/>
+      <circle cy="-12" r="8" fill="#120A06"/>
     </g>
-    <g transform="translate(130, 105)">
-      <path d="M 14 0 C 14 8 20 14 28 14 C 20 14 14 20 14 28 C 14 20 8 14 0 14 C 8 14 14 8 14 0 Z" fill="url(#logoLumeStar)" />
+
+    <!-- Floating Lume Sparkles with Soft Glow -->
+    <g transform="translate(-130, -120)" filter="url(#lumeGlow)">
+      <path d="M 20 0 C 20 11 29 20 40 20 C 29 20 20 29 20 40 C 20 29 11 20 0 20 C 11 20 20 11 20 0 Z" fill="url(#goldGrad)"/>
+    </g>
+    <g transform="translate(115, 110)" filter="url(#lumeGlow)">
+      <path d="M 14 0 C 14 8 20 14 28 14 C 20 14 14 20 14 28 C 14 20 8 14 0 14 C 8 14 14 8 14 0 Z" fill="url(#goldGrad)"/>
     </g>
   </g>
 </svg>

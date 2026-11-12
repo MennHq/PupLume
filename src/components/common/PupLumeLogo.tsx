@@ -13,7 +13,7 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
   size = 'md',
   className = '',
   onClick,
-  showBackground = true
+  showBackground = false
 }) => {
   const iconDimensions = {
     sm: { w: 32, h: 32 },
@@ -62,12 +62,7 @@ export const PupLumeLogo: React.FC<PupLumeLogoProps> = ({
             </linearGradient>
           </defs>
 
-          {/* Squircle base */}
-          {showBackground && (
-            <rect width="100" height="100" rx="28" fill="#FFF9F2" stroke="#E8DDD3" strokeWidth="2.5" />
-          )}
-
-          {/* Puppy Head & Floppy Ears */}
+          {/* Puppy Head & Floppy Ears (Direct Vector Mascot - No Background Box) */}
           <g transform="translate(6, 4) scale(0.19)">
             <path
               d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z"

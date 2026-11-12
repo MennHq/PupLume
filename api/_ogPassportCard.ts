@@ -440,12 +440,9 @@ export function generateNotFoundCardSvg(slug?: string, host = 'puplumepet.vercel
     <g transform="translate(160, 110)" filter="url(#nfCardShadow)">
       <rect width="880" height="420" rx="32" fill="#FFFFFF" stroke="#EDE5DC" stroke-width="1.5"/>
 
-      <!-- Mascot Squircle -->
-      <g transform="translate(390, 48)">
-        <rect width="100" height="100" rx="28" fill="#FDF6EA" stroke="#EDE0D2" stroke-width="1.5"/>
-        <g transform="translate(14, 14)">
-          ${renderMascot(0.18)}
-        </g>
+      <!-- Mascot (Direct Vector Mascot - No Background Box) -->
+      <g transform="translate(404, 52)">
+        ${renderMascot(0.20)}
       </g>
 
       <!-- Text Content -->
