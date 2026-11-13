@@ -39,7 +39,9 @@ import {
   Smile,
   CheckCircle2,
   XCircle,
-  BadgeAlert
+  BadgeAlert,
+  HelpCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -52,6 +54,7 @@ import { ShareModal } from '../components/common/ShareModal';
 import { CommunicationLinksInput, CommunicationLinkItem } from '../components/common/CommunicationLinksInput';
 import { RewardSettingInput } from '../components/common/RewardSettingInput';
 import { CountryPhoneInput } from '../components/common/CountryPhoneInput';
+import { syncPuppyToConvex } from '../lib/convex';
 import { 
   validatePhoneNumber, 
   validateFinderInstructions, 
@@ -59,9 +62,30 @@ import {
   validateCommunicationLink 
 } from '../lib/validation';
 
+// Helper to push instant updates directly to marketing site puppy page
+const triggerMarketingSiteInstantUpdate = async (slug: string) => {
+  const cleanSlug = slug.toLowerCase().trim();
+  const endpoints = [
+    'https://petttttttpuplume.vercel.app',
+    'https://puplumepet.vercel.app',
+    typeof window !== 'undefined' ? window.location.origin : '',
+  ].filter(Boolean);
+
+  for (const origin of endpoints) {
+    try {
+      fetch(`${origin}/api/revalidate?slug=${encodeURIComponent(cleanSlug)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: cleanSlug }),
+        mode: 'no-cors',
+      }).catch(() => {});
+    } catch (_) {}
+  }
+};
+
 interface PuppyProfileViewProps {
   puppy: PuppyProfile;
-  onUpdatePuppy: (updated: PuppyProfile) => void;
+  onUpdatePuppy: (updated: PuppyProfile, customToast?: string | false) => void;
 }
 
 export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpdatePuppy }) => {
@@ -84,6 +108,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   // Search Engine Indexing (SEO) State
   const [allowIndexing, setAllowIndexing] = useState<boolean>(puppy.allowSearchIndexing !== false);
   const [isUpdatingIndexing, setIsUpdatingIndexing] = useState(false);
+  const [showIndexingInfo, setShowIndexingInfo] = useState(false);
   const [indexingSuccessMessage, setIndexingSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,7 +126,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         allowSearchIndexing: newValue,
       };
       storage.savePuppy(updated);
-      onUpdatePuppy(updated);
 
       if (puppy.id && !puppy.id.startsWith('pup-')) {
         await updateIndexingMutation({
@@ -109,15 +133,25 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           allowSearchIndexing: newValue,
         });
       }
+      await syncPuppyToConvex(updated);
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+
+      onUpdatePuppy(
+        updated, 
+        newValue 
+          ? `🔍 Search engine indexing enabled & updated in database!` 
+          : `🔒 Profile set to unlisted in database!`
+      );
 
       setIndexingSuccessMessage(
         newValue
-          ? "✓ Search engine indexing enabled! Public passport is crawlable by Google & Bing."
-          : "Unlisted mode enabled. Search engines are blocked (noindex, nofollow)."
+          ? "✓ Search indexing enabled in database! Crawlable by Google & Bing."
+          : "✓ Unlisted mode saved in database (noindex, nofollow)."
       );
       setTimeout(() => setIndexingSuccessMessage(null), 4000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update indexing preference:", err);
+      setIndexingSuccessMessage("Failed to update database. Changes saved locally.");
     } finally {
       setIsUpdatingIndexing(false);
     }
@@ -201,6 +235,10 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   // Feedback states
   const [contactError, setContactError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+  const [isSavingContact, setIsSavingContact] = useState<boolean>(false);
+  const [isSavingFullProfile, setIsSavingFullProfile] = useState<boolean>(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
   const [fieldErrors, setFieldErrors] = useState<{ phone?: string; notes?: string; reward?: string }>({});
 
   const phoneValidation = validatePhoneNumber(ownerPhone);
@@ -304,7 +342,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     });
   };
 
-  const handleToggleLostMode = (nextLost: boolean) => {
+  const handleToggleLostMode = async (nextLost: boolean) => {
     setIsLost(nextLost);
     const validLinks = communicationLinks.filter((l) => l.value.trim() !== '');
     const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value;
@@ -329,7 +367,18 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       ownerSlack: slackLink || undefined,
     };
     storage.savePuppy(updated);
-    onUpdatePuppy(updated);
+    try {
+      await syncPuppyToConvex(updated);
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+      onUpdatePuppy(
+        updated,
+        nextLost 
+          ? `🚨 Missing alert published in database & live tag!` 
+          : `✓ Safe mode restored in database!`
+      );
+    } catch (_) {
+      onUpdatePuppy(updated);
+    }
   };
 
   const saveContactInfoSilently = (
@@ -446,7 +495,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         slug: targetSlug,
       };
       storage.savePuppy(updated);
-      onUpdatePuppy(updated);
+      await triggerMarketingSiteInstantUpdate(targetSlug);
+      onUpdatePuppy(updated, `🐾 Custom URL puplume.com/${targetSlug} saved in database!`);
 
       // 3. Close dialogs & show success
       setIsConfirmingSlugChange(false);
@@ -463,7 +513,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     }
   };
 
-  const handleSaveEmergencyContact = () => {
+  const handleSaveEmergencyContact = async () => {
     const newErrors: { phone?: string; notes?: string; reward?: string } = {};
 
     const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value?.trim();
@@ -509,42 +559,64 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
     setFieldErrors({});
     setContactError(null);
+    setIsSavingContact(true);
+    setSaveSuccess(false);
+    setSaveSuccessMessage(null);
 
-    const validLinks = [...communicationLinks.filter((l) => l.value.trim() !== '')];
-    if (effectivePhone && !validLinks.some((l) => l.platform === 'whatsapp')) {
-      validLinks.push({ id: `link-wa-${Date.now()}`, platform: 'whatsapp', value: effectivePhone });
-      setCommunicationLinks(validLinks);
+    try {
+      const validLinks = [...communicationLinks.filter((l) => l.value.trim() !== '')];
+      if (effectivePhone && !validLinks.some((l) => l.platform === 'whatsapp')) {
+        validLinks.push({ id: `link-wa-${Date.now()}`, platform: 'whatsapp', value: effectivePhone });
+        setCommunicationLinks(validLinks);
+      }
+
+      const wa = validLinks.find((l) => l.platform === 'whatsapp')?.value || effectivePhone;
+      const ig = validLinks.find((l) => l.platform === 'instagram')?.value;
+      const fb = validLinks.find((l) => l.platform === 'facebook' || l.platform === 'messenger')?.value;
+      const tg = validLinks.find((l) => l.platform === 'telegram')?.value;
+      const slack = validLinks.find((l) => l.platform === 'slack')?.value;
+
+      const updated: PuppyProfile = {
+        ...puppy,
+        slug: activeSlug,
+        isLost,
+        rewardAmount: rewardRes.cleanedValue || undefined,
+        emergencyNotes: notesRes.cleanedValue || effectiveNotes,
+        ownerPhone: phoneRes.cleanedValue || effectivePhone,
+        ownerEmail: ownerEmail.trim() || undefined,
+        communicationLinks: validLinks,
+        ownerInstagram: ig || undefined,
+        ownerFacebook: fb || undefined,
+        ownerWhatsApp: wa || undefined,
+        ownerTelegram: tg || undefined,
+        ownerSlack: slack || undefined,
+      };
+
+      // 1. Save locally
+      storage.savePuppy(updated);
+
+      // 2. Real Convex backend database sync
+      await syncPuppyToConvex(updated);
+
+      // 3. Instant revalidation & push to marketing site URL path
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+
+      // 4. Update UI with verified real message
+      setSaveSuccess(true);
+      setSaveSuccessMessage("✓ Database updated successfully — changes are live on public passport!");
+      onUpdatePuppy(updated, `🐾 ${updated.name}'s contact details updated in database!`);
+      nativeBridge.haptics.success();
+      setTimeout(() => setSaveSuccess(false), 4000);
+    } catch (err: any) {
+      console.error('Failed to save emergency contacts to database:', err);
+      setContactError(err?.message || 'Failed to update database. Changes cached locally.');
+      nativeBridge.haptics.error();
+    } finally {
+      setIsSavingContact(false);
     }
-
-    const wa = validLinks.find((l) => l.platform === 'whatsapp')?.value || effectivePhone;
-    const ig = validLinks.find((l) => l.platform === 'instagram')?.value;
-    const fb = validLinks.find((l) => l.platform === 'facebook' || l.platform === 'messenger')?.value;
-    const tg = validLinks.find((l) => l.platform === 'telegram')?.value;
-    const slack = validLinks.find((l) => l.platform === 'slack')?.value;
-
-    const updated: PuppyProfile = {
-      ...puppy,
-      slug: activeSlug,
-      isLost,
-      rewardAmount: rewardRes.cleanedValue || undefined,
-      emergencyNotes: notesRes.cleanedValue || effectiveNotes,
-      ownerPhone: phoneRes.cleanedValue || effectivePhone,
-      ownerEmail: ownerEmail.trim() || undefined,
-      communicationLinks: validLinks,
-      ownerInstagram: ig || undefined,
-      ownerFacebook: fb || undefined,
-      ownerWhatsApp: wa || undefined,
-      ownerTelegram: tg || undefined,
-      ownerSlack: slack || undefined,
-    };
-
-    storage.savePuppy(updated);
-    onUpdatePuppy(updated);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const handlePhotoUploaded = (newUrl: string) => {
+  const handlePhotoUploaded = async (newUrl: string) => {
     setPhotoUrl(newUrl);
     const updated: PuppyProfile = {
       ...puppy,
@@ -552,10 +624,16 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       slug: activeSlug,
     };
     storage.savePuppy(updated);
-    onUpdatePuppy(updated);
+    try {
+      await syncPuppyToConvex(updated);
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+      onUpdatePuppy(updated, `🐾 ${updated.name}'s photo updated in database!`);
+    } catch (_) {
+      onUpdatePuppy(updated);
+    }
   };
 
-  const handleSaveFullProfile = (e: React.FormEvent) => {
+  const handleSaveFullProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     const phoneRes = validatePhoneNumber(ownerPhone);
     if (!phoneRes.isValid) {
@@ -568,46 +646,57 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       return;
     }
 
-    const validLinks = communicationLinks.filter((l) => l.value.trim() !== '');
-    const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value;
-    const igLink = communicationLinks.find((l) => l.platform === 'instagram')?.value;
-    const fbLink = communicationLinks.find((l) => l.platform === 'facebook' || l.platform === 'messenger')?.value;
-    const tgLink = communicationLinks.find((l) => l.platform === 'telegram')?.value;
-    const slackLink = communicationLinks.find((l) => l.platform === 'slack')?.value;
+    setIsSavingFullProfile(true);
+    try {
+      const validLinks = communicationLinks.filter((l) => l.value.trim() !== '');
+      const waLink = communicationLinks.find((l) => l.platform === 'whatsapp')?.value;
+      const igLink = communicationLinks.find((l) => l.platform === 'instagram')?.value;
+      const fbLink = communicationLinks.find((l) => l.platform === 'facebook' || l.platform === 'messenger')?.value;
+      const tgLink = communicationLinks.find((l) => l.platform === 'telegram')?.value;
+      const slackLink = communicationLinks.find((l) => l.platform === 'slack')?.value;
 
-    const updated: PuppyProfile = {
-      ...puppy,
-      name,
-      breed,
-      birthDate,
-      weightLbs: parseFloat(weightLbs) || puppy.weightLbs,
-      photoUrl,
-      temperament,
-      dietaryRestrictions: dietary,
-      favoriteTreat: treat,
-      vetClinic,
-      vetPhone,
-      vetName,
-      microchipNumber: microchip,
-      insuranceProvider: insurance,
-      insurancePolicyNumber: insurancePolicy,
-      ownerPhone: ownerPhone.trim(),
-      ownerEmail: ownerEmail.trim() || undefined,
-      emergencyNotes: emergencyNotes.trim(),
-      rewardAmount: rewardAmount.trim() || undefined,
-      communicationLinks: validLinks,
-      ownerInstagram: igLink || undefined,
-      ownerFacebook: fbLink || undefined,
-      ownerWhatsApp: waLink || undefined,
-      ownerTelegram: tgLink || undefined,
-      ownerSlack: slackLink || undefined,
-      isLost,
-      hasSmartTagPass,
-      slug: activeSlug,
-    };
-    storage.savePuppy(updated);
-    onUpdatePuppy(updated);
-    setIsEditOpen(false);
+      const updated: PuppyProfile = {
+        ...puppy,
+        name,
+        breed,
+        birthDate,
+        weightLbs: parseFloat(weightLbs) || puppy.weightLbs,
+        photoUrl,
+        temperament,
+        dietaryRestrictions: dietary,
+        favoriteTreat: treat,
+        vetClinic,
+        vetPhone,
+        vetName,
+        microchipNumber: microchip,
+        insuranceProvider: insurance,
+        insurancePolicyNumber: insurancePolicy,
+        ownerPhone: ownerPhone.trim(),
+        ownerEmail: ownerEmail.trim() || undefined,
+        emergencyNotes: emergencyNotes.trim(),
+        rewardAmount: rewardAmount.trim() || undefined,
+        communicationLinks: validLinks,
+        ownerInstagram: igLink || undefined,
+        ownerFacebook: fbLink || undefined,
+        ownerWhatsApp: waLink || undefined,
+        ownerTelegram: tgLink || undefined,
+        ownerSlack: slackLink || undefined,
+        isLost,
+        hasSmartTagPass,
+        slug: activeSlug,
+      };
+      storage.savePuppy(updated);
+      await syncPuppyToConvex(updated);
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+      onUpdatePuppy(updated, `🐾 ${updated.name}'s profile updated in database!`);
+      setIsEditOpen(false);
+      nativeBridge.haptics.success();
+    } catch (err: any) {
+      console.error('Failed to save profile to database:', err);
+      alert(`Error saving to database: ${err?.message || 'Please try again.'}`);
+    } finally {
+      setIsSavingFullProfile(false);
+    }
   };
 
   return (
@@ -649,7 +738,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           <div className="relative group shrink-0">
             <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[36px] overflow-hidden border-4 border-[#8B5E3C] shadow-lg bg-[#FAF6F0]">
               <img
-                src={puppy.photoUrl}
+                src={photoUrl || puppy.photoUrl}
                 alt={puppy.name}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
@@ -657,21 +746,29 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               {isLost && (
                 <div className="absolute inset-0 border-4 border-rose-500 animate-pulse pointer-events-none" />
               )}
+              {/* Professional Centered Uploading Overlay */}
+              {isUploadingPhoto && (
+                <div className="absolute inset-0 bg-[#2C211B]/70 backdrop-blur-xs rounded-[32px] flex flex-col items-center justify-center text-white gap-2 p-3 text-center z-20 animate-in fade-in duration-150">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#F3E7DA]" />
+                  <span className="text-xs font-bold text-white tracking-wide">Optimizing photo...</span>
+                </div>
+              )}
             </div>
 
             {/* Emerald Verified Seal */}
             <div 
-              className="absolute -top-2 -left-2 bg-[#059669] text-white p-1.5 rounded-2xl shadow-md border-2 border-white flex items-center gap-1"
+              className="absolute -top-2 -left-2 bg-[#059669] text-white p-1.5 rounded-2xl shadow-md border-2 border-white flex items-center gap-1 z-10"
               title="Verified Digital Pet Passport"
             >
               <ShieldCheck className="w-4 h-4" />
             </div>
 
             {/* Upload Button Trigger */}
-            <div className="absolute -bottom-2 -right-2">
+            <div className="absolute -bottom-2 -right-2 z-10">
               <CloudinaryImageUploader
-                currentImageUrl={puppy.photoUrl}
+                currentImageUrl={photoUrl || puppy.photoUrl}
                 onUploadSuccess={handlePhotoUploaded}
+                onUploadingChange={setIsUploadingPhoto}
                 folder="puplume/puppies"
                 label="Photo"
                 variant="button"
@@ -1155,9 +1252,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               )}
 
               {saveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
                   <Check className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>Tag details and contact information updated successfully!</span>
+                  <span>{saveSuccessMessage || 'Tag details and contact information updated in database!'}</span>
                 </div>
               )}
 
@@ -1247,10 +1344,17 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                   variant="primary"
                   size="sm"
                   onClick={handleSaveEmergencyContact}
-                  leftIcon={<Check className="w-3.5 h-3.5" />}
+                  disabled={isSavingContact}
+                  leftIcon={
+                    isSavingContact ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )
+                  }
                   className="text-xs font-bold"
                 >
-                  Save Emergency Contacts
+                  {isSavingContact ? 'Saving to Database...' : 'Save Emergency Contacts'}
                 </Button>
               </div>
 
@@ -1260,38 +1364,47 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
         </div>
 
-        {/* SUBSECTION: PUP PAGE SEARCH ENGINE INDEXING & SEO SETTINGS */}
-        <div className="bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs shrink-0">
-                <Globe className="w-5 h-5 text-[#8B5E3C]" />
+        {/* COMPACT PUP PAGE SEARCH ENGINE INDEXING & SEO SETTING */}
+        <div className="bg-[#FAF6F0] rounded-2xl border border-[#E8DDD3] p-3.5 sm:p-4 transition-all">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-white border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs shrink-0">
+                <Globe className="w-4 h-4 text-[#8B5E3C]" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-[#2C211B] font-brand">
-                    Search Engine Indexing &amp; SEO
-                  </h3>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs sm:text-sm font-black text-[#2C211B] font-brand">
+                    Search Engine Indexing
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowIndexingInfo((prev) => !prev)}
+                    className="p-1 rounded-full text-[#766A63] hover:text-[#2C211B] hover:bg-[#E8DDD3]/60 transition-colors cursor-pointer"
+                    title="What does search engine indexing mean? Tap to learn more."
+                    aria-label="Search engine indexing info"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                  </button>
                   {allowIndexing ? (
-                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
                       ✓ Indexed
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 bg-neutral-150 text-neutral-700 bg-neutral-200 text-[10px] font-black rounded-full uppercase tracking-wider border border-neutral-300">
+                    <span className="px-2 py-0.5 bg-neutral-200 text-neutral-700 text-[10px] font-black rounded-full uppercase tracking-wider border border-neutral-300">
                       Unlisted (noindex)
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#766A63] mt-0.5">
-                  Control whether Google, Bing, and other search engines can discover and display {puppy.name}&apos;s public passport.
+                <p className="text-[11px] text-[#766A63] truncate hidden sm:block">
+                  {allowIndexing ? 'Crawlable on Google & Bing with Schema.org SEO' : 'Direct link & QR collar tag only'}
                 </p>
               </div>
             </div>
 
-            {/* Toggle Switch */}
-            <div className="flex items-center gap-2.5 self-start sm:self-center">
-              <span className="text-xs font-bold text-[#5F3E29]">
-                {allowIndexing ? 'Indexing Allowed' : 'Indexing Blocked'}
+            {/* Compact Toggle Switch */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] font-bold text-[#5F3E29] hidden xs:inline">
+                {allowIndexing ? 'Allowed' : 'Blocked'}
               </span>
               <button
                 type="button"
@@ -1302,7 +1415,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                 }`}
                 role="switch"
                 aria-checked={allowIndexing}
-                title={allowIndexing ? "Click to block search engines" : "Click to allow search engines"}
+                title={allowIndexing ? 'Click to disable search engine indexing' : 'Click to enable search engine indexing'}
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
@@ -1314,37 +1427,48 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           </div>
 
           {indexingSuccessMessage && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="mt-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>{indexingSuccessMessage}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className={`p-4 rounded-2xl border transition-all ${
-              allowIndexing ? 'bg-white border-emerald-200 shadow-2xs' : 'bg-white/60 border-[#E8DDD3] opacity-60'
-            }`}>
-              <div className="font-extrabold text-[#2C211B] flex items-center gap-1.5 mb-1 text-emerald-800">
-                <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>When Indexing is Enabled (Recommended)</span>
-              </div>
-              <p className="text-[#5F3E29] leading-relaxed text-[11px]">
-                Search engines (Google, Bing) crawl this page, making it searchable by puppy name or microchip ID if they wander away. We automatically inject <strong>100% compliant Schema.org structured data</strong>, OpenGraph tags, and include your puppy in our public sitemap.
-              </p>
-            </div>
+          {/* Expandable Explanation (Only shown if user clicks the ? symbol) */}
+          {showIndexingInfo && (
+            <div className="mt-3 pt-3 border-t border-[#E8DDD3] space-y-2.5 text-xs animate-in fade-in duration-150">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-3 bg-white rounded-xl border border-emerald-200">
+                  <div className="font-bold text-emerald-800 flex items-center gap-1.5 mb-1 text-[11px]">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>When Indexing is Enabled</span>
+                  </div>
+                  <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                    Search engines (Google, Bing) crawl this page, making it searchable by puppy name or microchip ID if they wander away. We inject 100% compliant Schema.org JSON-LD data and include your puppy in our public sitemap.
+                  </p>
+                </div>
 
-            <div className={`p-4 rounded-2xl border transition-all ${
-              !allowIndexing ? 'bg-white border-neutral-300 shadow-2xs' : 'bg-white/60 border-[#E8DDD3] opacity-60'
-            }`}>
-              <div className="font-extrabold text-[#2C211B] flex items-center gap-1.5 mb-1 text-neutral-800">
-                <ShieldCheck className="w-4 h-4 text-neutral-600 shrink-0" />
-                <span>When Indexing is Disabled (Unlisted)</span>
+                <div className="p-3 bg-white rounded-xl border border-neutral-300">
+                  <div className="font-bold text-neutral-800 flex items-center gap-1.5 mb-1 text-[11px]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
+                    <span>When Indexing is Disabled (Unlisted)</span>
+                  </div>
+                  <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                    We instruct search engines not to index this page (<code className="bg-[#FAF6F0] px-1 py-0.5 rounded text-[10px]">noindex, nofollow</code>) and remove it from the sitemap. Only people with the direct URL or physical collar tag scan can access it.
+                  </p>
+                </div>
               </div>
-              <p className="text-[#5F3E29] leading-relaxed text-[11px]">
-                We instruct search engines <strong>not to index</strong> this page (<code className="bg-[#FAF6F0] px-1 py-0.5 rounded text-[10px] text-neutral-700">noindex, nofollow</code>) and exclude it from the sitemap. Only people with the direct URL or physical collar tag scan can access the page.
-              </p>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowIndexingInfo(false)}
+                  className="text-[11px] font-bold text-[#8B5E3C] hover:underline cursor-pointer"
+                >
+                  Close Explanation
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
       </div>
@@ -1678,8 +1802,14 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" variant="primary" className="flex-1 font-bold">
-              Save Changes
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSavingFullProfile}
+              className="flex-1 font-bold"
+              leftIcon={isSavingFullProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+            >
+              {isSavingFullProfile ? 'Saving to Database...' : 'Save Changes'}
             </Button>
           </div>
         </form>

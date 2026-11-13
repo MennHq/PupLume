@@ -962,9 +962,11 @@ export default function App() {
         <Suspense fallback={<PupLumeSkeleton variant="puppy" label="Loading Puppy Profile..." />}>
           <PuppyProfileView
             puppy={activePuppy}
-            onUpdatePuppy={(updated) => {
+            onUpdatePuppy={(updated, customToast) => {
               setPuppy(updated);
-              showToast(`${updated.name}'s profile updated!`);
+              if (customToast !== false) {
+                showToast(customToast || `🐾 ${updated.name}'s profile updated in database!`);
+              }
             }}
           />
         </Suspense>

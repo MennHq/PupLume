@@ -285,7 +285,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
 
           <div className="flex items-center justify-between text-[11px] text-[#766A63]">
             <span>Original: {naturalDimensions ? `${naturalDimensions.width} × ${naturalDimensions.height}px` : 'Loading...'}</span>
-            <span className="font-semibold text-[#8B5E3C]">Sharp Server Optimization: WebP 800×800</span>
+            <span className="font-semibold text-[#8B5E3C]">HD Passport Quality: 800×800</span>
           </div>
         </div>
 

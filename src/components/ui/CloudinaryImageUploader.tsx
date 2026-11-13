@@ -6,6 +6,7 @@ import { ImageCropperModal, CropCoordinates } from './ImageCropperModal';
 interface CloudinaryImageUploaderProps {
   currentImageUrl?: string;
   onUploadSuccess: (secureUrl: string, metadata?: UploadResult) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   folder?: string;
   label?: string;
   sublabel?: string;
@@ -20,6 +21,7 @@ interface CloudinaryImageUploaderProps {
 export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = ({
   currentImageUrl,
   onUploadSuccess,
+  onUploadingChange,
   folder,
   label = 'Upload Photo',
   sublabel = 'JPG, PNG, or WebP (Max 10MB)',
@@ -82,7 +84,8 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
   const executeUpload = async (file: File, crop?: CropCoordinates) => {
     setError(null);
     setIsUploading(true);
-    setUploadStep('Staging original...');
+    onUploadingChange?.(true);
+    setUploadStep('Uploading photo...');
 
     try {
       const previousTarget = currentImageUrl || (previewUrl && previewUrl.startsWith('http') ? previewUrl : undefined);
@@ -95,10 +98,10 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
         crop,
         onProgress: (phase) => {
           if (!isMountedRef.current) return;
-          if (phase === 'validating') setUploadStep('Validating format...');
-          if (phase === 'uploading') setUploadStep('Staging original in secure storage...');
-          if (phase === 'processing') setUploadStep('Sharp server optimizing to WebP...');
-          if (phase === 'saving') setUploadStep('Saving to permanent Cloudinary...');
+          if (phase === 'validating') setUploadStep('Checking image...');
+          if (phase === 'uploading') setUploadStep('Uploading photo...');
+          if (phase === 'processing') setUploadStep('Optimizing photo...');
+          if (phase === 'saving') setUploadStep('Saving...');
         },
       });
 
@@ -116,6 +119,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
         setIsUploading(false);
         setUploadStep('');
       }
+      onUploadingChange?.(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -202,16 +206,16 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B5E3C] hover:bg-[#6D492F] text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-75 cursor-pointer whitespace-nowrap"
         >
           {isUploading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>{uploadStep || 'Optimizing...'}</span>
+              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-[#F3E7DA]" />
+              <span className="text-[11px] font-bold">Uploading...</span>
             </>
           ) : (
             <>
-              <Camera className="w-4 h-4" />
+              <Camera className="w-3.5 h-3.5 shrink-0" />
               <span>{label}</span>
             </>
           )}
@@ -353,7 +357,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-2xs opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2 p-4">
               <Camera className="w-7 h-7" />
               <p className="text-xs font-bold">Click or drag to change image</p>
-              <p className="text-[10px] opacity-80">Server-optimized with Sharp to WebP</p>
+              <p className="text-[10px] opacity-80">Auto-optimized for ultra-fast loading</p>
             </div>
           </>
         ) : (
@@ -367,7 +371,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8B5E3C]/10 text-[#8B5E3C] text-[11px] font-bold">
               <Sparkles className="w-3 h-3" />
-              <span>Sharp Auto-WebP Compression</span>
+              <span>Smart HD Photo Compression</span>
             </div>
           </div>
         )}
@@ -378,10 +382,10 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
             <Loader2 className="w-8 h-8 animate-spin text-[#F3E7DA]" />
             <div className="text-center">
               <p className="text-xs font-bold text-[#F3E7DA]">
-                {uploadStep || 'Processing Image...'}
+                {uploadStep || 'Optimizing photo...'}
               </p>
               <p className="text-[10px] text-[#D8C7B8] mt-1">
-                Sharp server-side encoding & Cloudinary delivery
+                Secure high-resolution pet passport storage
               </p>
             </div>
           </div>
