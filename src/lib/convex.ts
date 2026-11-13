@@ -84,6 +84,7 @@ export async function syncPuppyToConvex(
     rewardAmount: puppy.rewardAmount,
     slug: puppy.slug,
     hasSmartTagPass: puppy.hasSmartTagPass,
+    allowSearchIndexing: puppy.allowSearchIndexing,
     ownerInstagram: puppy.ownerInstagram,
     ownerFacebook: puppy.ownerFacebook,
     ownerWhatsApp: puppy.ownerWhatsApp,

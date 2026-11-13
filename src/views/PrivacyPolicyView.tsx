@@ -130,10 +130,25 @@ export const PrivacyPolicyView: React.FC<PrivacyPolicyViewProps> = ({ onBack }) 
           </div>
         </section>
 
-        {/* 4. Veterinary Disclaimer */}
+        {/* 4. Public Pet Passports & Search Visibility Controls */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            4. Special Veterinary &amp; Medical Disclaimer
+            4. Public Pet Passports &amp; Search Visibility Controls
+          </h2>
+          <p>
+            When you activate a digital pet passport or smart collar tag for your puppy, a public profile webpage is created to assist in lost-pet recovery and care sharing.
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
+            <li><strong>Publicly Visible Information:</strong> Only the specific pet details you choose to publish (such as pet name, breed, emergency contacts, temperament notes, and vaccination badges) are viewable on the public pet passport page. Private daily journals, logs, and account credentials are never shared.</li>
+            <li><strong>Owner-Controlled Search Engine Indexing:</strong> Within your Pup Page Settings, you can choose whether major search engines (such as Google and Bing) are permitted to index your puppy&apos;s passport page.</li>
+            <li><strong>Unlisted / No-Index Mode:</strong> If you toggle indexing off, PupLume immediately emits <code className="bg-stone-100 px-1 py-0.5 rounded text-stone-800">noindex, nofollow</code> robot instructions and HTTP headers, and excludes your puppy from our search engine sitemaps. In this mode, the passport is unlisted and accessible only by scanning the physical collar tag or sharing the direct link.</li>
+          </ul>
+        </section>
+
+        {/* 5. Veterinary Disclaimer */}
+        <section className="space-y-3">
+          <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
+            5. Special Veterinary &amp; Medical Disclaimer
           </h2>
           <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-amber-950 text-xs sm:text-sm leading-relaxed">
             <p>
@@ -142,10 +157,10 @@ export const PrivacyPolicyView: React.FC<PrivacyPolicyViewProps> = ({ onBack }) 
           </div>
         </section>
 
-        {/* 5. Children's Privacy */}
+        {/* 6. Children's Privacy */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            5. Children&apos;s Privacy (COPPA &amp; Family Use)
+            6. Children&apos;s Privacy (COPPA &amp; Family Use)
           </h2>
           <p>
             PupLume is designed as a family-friendly puppy care assistant with wholesome content suitable for all ages (3+). However, to comply with the Children&apos;s Online Privacy Protection Act (COPPA) and international digital privacy standards:
@@ -155,24 +170,25 @@ export const PrivacyPolicyView: React.FC<PrivacyPolicyViewProps> = ({ onBack }) 
           </p>
         </section>
 
-        {/* 6. User Rights */}
+        {/* 7. User Rights */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            6. Your Privacy Rights (US State Laws &amp; GDPR)
+            7. Your Privacy Rights (US State Laws &amp; GDPR)
           </h2>
           <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
             <li><strong>Right to Access &amp; Know:</strong> You may request a copy of all personal information we have recorded about you.</li>
             <li><strong>Right to Rectification:</strong> You can edit or correct puppy details and records directly within your profile settings at any time.</li>
             <li><strong>Right to Deletion:</strong> You can request permanent erasure of your account, puppy profiles, and health records.</li>
+            <li><strong>Right to Search Privacy Control:</strong> You can disable public search engine indexing at any time with immediate effect on robots crawler directives.</li>
             <li><strong>Right to Opt-Out:</strong> You may opt out of non-essential analytics tracking or marketing emails.</li>
           </ul>
           <p>To exercise any of these rights, email us at <a href="mailto:support@puplume.pet" className="text-[#8B5E3C] underline font-bold">support@puplume.pet</a>. We respond to verified requests within 30 days without charge.</p>
         </section>
 
-        {/* 7. Contact */}
+        {/* 8. Contact */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            7. Contact Us
+            8. Contact Us
           </h2>
           <p>If you have any questions or concerns regarding this Privacy Policy or data handling practices, please contact us:</p>
           <div className="bg-[#FFF9F2] p-4 rounded-2xl border border-[#E8DDD3] inline-block">

@@ -68,6 +68,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   // Convex mutations & queries
   const unlockSmartTagPassMutation = useMutation(api.puppies.unlockSmartTagPass);
   const updatePuppySlugMutation = useMutation(api.puppies.updatePuppySlug);
+  const updateIndexingMutation = useMutation(api.puppies.updateSearchEngineIndexing);
 
   // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -79,6 +80,48 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     isEmergency: false, 
     title: '' 
   });
+
+  // Search Engine Indexing (SEO) State
+  const [allowIndexing, setAllowIndexing] = useState<boolean>(puppy.allowSearchIndexing !== false);
+  const [isUpdatingIndexing, setIsUpdatingIndexing] = useState(false);
+  const [indexingSuccessMessage, setIndexingSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAllowIndexing(puppy.allowSearchIndexing !== false);
+  }, [puppy.allowSearchIndexing]);
+
+  const handleToggleIndexing = async (newValue: boolean) => {
+    nativeBridge.haptics.light();
+    setAllowIndexing(newValue);
+    setIsUpdatingIndexing(true);
+    setIndexingSuccessMessage(null);
+    try {
+      const updated: PuppyProfile = {
+        ...puppy,
+        allowSearchIndexing: newValue,
+      };
+      storage.savePuppy(updated);
+      onUpdatePuppy(updated);
+
+      if (puppy.id && !puppy.id.startsWith('pup-')) {
+        await updateIndexingMutation({
+          puppyId: puppy.id as any,
+          allowSearchIndexing: newValue,
+        });
+      }
+
+      setIndexingSuccessMessage(
+        newValue
+          ? "✓ Search engine indexing enabled! Public passport is crawlable by Google & Bing."
+          : "Unlisted mode enabled. Search engines are blocked (noindex, nofollow)."
+      );
+      setTimeout(() => setIndexingSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error("Failed to update indexing preference:", err);
+    } finally {
+      setIsUpdatingIndexing(false);
+    }
+  };
 
   // URL Slug Editing & Migration State
   const initialSlug = puppy.slug || generateDefaultSlug(puppy.name);
@@ -1215,6 +1258,93 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
           </div>
 
+        </div>
+
+        {/* SUBSECTION: PUP PAGE SEARCH ENGINE INDEXING & SEO SETTINGS */}
+        <div className="bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs shrink-0">
+                <Globe className="w-5 h-5 text-[#8B5E3C]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-[#2C211B] font-brand">
+                    Search Engine Indexing &amp; SEO
+                  </h3>
+                  {allowIndexing ? (
+                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
+                      ✓ Indexed
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 bg-neutral-150 text-neutral-700 bg-neutral-200 text-[10px] font-black rounded-full uppercase tracking-wider border border-neutral-300">
+                      Unlisted (noindex)
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#766A63] mt-0.5">
+                  Control whether Google, Bing, and other search engines can discover and display {puppy.name}&apos;s public passport.
+                </p>
+              </div>
+            </div>
+
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-2.5 self-start sm:self-center">
+              <span className="text-xs font-bold text-[#5F3E29]">
+                {allowIndexing ? 'Indexing Allowed' : 'Indexing Blocked'}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleToggleIndexing(!allowIndexing)}
+                disabled={isUpdatingIndexing}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  allowIndexing ? 'bg-emerald-600' : 'bg-neutral-300'
+                }`}
+                role="switch"
+                aria-checked={allowIndexing}
+                title={allowIndexing ? "Click to block search engines" : "Click to allow search engines"}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    allowIndexing ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {indexingSuccessMessage && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{indexingSuccessMessage}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className={`p-4 rounded-2xl border transition-all ${
+              allowIndexing ? 'bg-white border-emerald-200 shadow-2xs' : 'bg-white/60 border-[#E8DDD3] opacity-60'
+            }`}>
+              <div className="font-extrabold text-[#2C211B] flex items-center gap-1.5 mb-1 text-emerald-800">
+                <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>When Indexing is Enabled (Recommended)</span>
+              </div>
+              <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                Search engines (Google, Bing) crawl this page, making it searchable by puppy name or microchip ID if they wander away. We automatically inject <strong>100% compliant Schema.org structured data</strong>, OpenGraph tags, and include your puppy in our public sitemap.
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-2xl border transition-all ${
+              !allowIndexing ? 'bg-white border-neutral-300 shadow-2xs' : 'bg-white/60 border-[#E8DDD3] opacity-60'
+            }`}>
+              <div className="font-extrabold text-[#2C211B] flex items-center gap-1.5 mb-1 text-neutral-800">
+                <ShieldCheck className="w-4 h-4 text-neutral-600 shrink-0" />
+                <span>When Indexing is Disabled (Unlisted)</span>
+              </div>
+              <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                We instruct search engines <strong>not to index</strong> this page (<code className="bg-[#FAF6F0] px-1 py-0.5 rounded text-[10px] text-neutral-700">noindex, nofollow</code>) and exclude it from the sitemap. Only people with the direct URL or physical collar tag scan can access the page.
+              </p>
+            </div>
+          </div>
         </div>
 
       </div>

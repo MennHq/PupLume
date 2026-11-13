@@ -85,19 +85,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     description = `No active puppy collar tag found for "${cleanSlug}". Check the URL or scan the collar tag directly.`;
   }
 
+  // Check owner's search engine indexing preference (defaults to true for registered pups, false for 404s)
+  const isAllowedToRank = pup ? pup.allowSearchIndexing !== false : false;
+  const robotsMeta = isAllowedToRank
+    ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+    : 'noindex, nofollow';
+
   // 3. Crawler detection
   const userAgent = String(req.headers['user-agent'] || '');
   const isCrawler = /facebookexternalhit|Facebot|Meta-External|Instagram|WhatsApp|Twitterbot|Xbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|Applebot|Googlebot|bingbot|Baiduspider|YandexBot/i.test(userAgent);
 
   // If request is from a social crawler, return rich SEO meta tags immediately
   if (isCrawler) {
+    if (!isAllowedToRank) {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    const jsonLdData = isAllowedToRank && pup ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "name": `${pup.name}'s Verified Digital Pet Passport`,
+      "description": description,
+      "url": pageUrl,
+      "mainEntity": {
+        "@type": "Thing",
+        "name": pup.name,
+        "image": pup.photoUrl,
+        "description": `${pup.name} (${pup.breed || 'Dog'}). Verified Pet Passport on PupLume.`,
+        "identifier": pup.microchipNumber || `PL-${cleanSlug.toUpperCase()}-PUP`
+      }
+    }) : null;
+
     const crawlerHtml = `<!doctype html>
 <html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content="${robotsMeta}" />
+    ${jsonLdData ? `<script type="application/ld+json">${jsonLdData}</script>` : ''}
 
     <!-- OpenGraph Meta Tags -->
     <meta property="og:site_name" content="PupLume" />
@@ -147,8 +173,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (fs.existsSync(targetFile)) {
       let indexHtml = fs.readFileSync(targetFile, 'utf8');
 
-      // Replace or inject title and meta tags
+      if (!isAllowedToRank) {
+        res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      }
+
+      // Replace or inject title, robots and meta tags
       indexHtml = indexHtml.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+      if (indexHtml.includes('<meta name="robots"')) {
+        indexHtml = indexHtml.replace(/<meta\s+name="robots"\s+content=".*?"\s*\/?>/i, `<meta name="robots" content="${robotsMeta}" />`);
+      } else {
+        indexHtml = indexHtml.replace('</head>', `  <meta name="robots" content="${robotsMeta}" />\n</head>`);
+      }
       indexHtml = indexHtml.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/i, `<meta property="og:title" content="${escapeHtml(title)}" />`);
       indexHtml = indexHtml.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/i, `<meta property="og:description" content="${escapeHtml(description)}" />`);
       indexHtml = indexHtml.replace(/<meta\s+property="og:url"\s+content=".*?"\s*\/?>/i, `<meta property="og:url" content="${escapeHtml(pageUrl)}" />`);

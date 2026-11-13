@@ -100,6 +100,7 @@ export default defineSchema({
     rewardAmount: v.optional(v.string()),
     slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
+    allowSearchIndexing: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
     ownerWhatsApp: v.optional(v.string()),

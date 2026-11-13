@@ -137,6 +137,7 @@ export const updatePuppy = mutation({
     rewardAmount: v.optional(v.string()),
     slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
+    allowSearchIndexing: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
     ownerWhatsApp: v.optional(v.string()),
@@ -190,6 +191,7 @@ export const savePuppy = mutation({
     rewardAmount: v.optional(v.string()),
     slug: v.optional(v.string()),
     hasSmartTagPass: v.optional(v.boolean()),
+    allowSearchIndexing: v.optional(v.boolean()),
     ownerInstagram: v.optional(v.string()),
     ownerFacebook: v.optional(v.string()),
     ownerWhatsApp: v.optional(v.string()),
@@ -255,6 +257,7 @@ export const savePuppy = mutation({
       rewardAmount: args.rewardAmount,
       slug: args.slug !== undefined ? args.slug : existing?.slug,
       hasSmartTagPass: (args.hasSmartTagPass || existing?.hasSmartTagPass) ?? false,
+      allowSearchIndexing: args.allowSearchIndexing !== undefined ? args.allowSearchIndexing : (existing?.allowSearchIndexing ?? true),
       ownerInstagram: args.ownerInstagram,
       ownerFacebook: args.ownerFacebook,
       ownerWhatsApp: args.ownerWhatsApp,
@@ -520,6 +523,7 @@ export const getPublicPuppyByTag = query({
       rewardAmount: puppy.rewardAmount,
       slug: puppy.slug,
       hasSmartTagPass: puppy.hasSmartTagPass ?? false,
+      allowSearchIndexing: puppy.allowSearchIndexing ?? true,
       ownerInstagram: puppy.ownerInstagram,
       ownerFacebook: puppy.ownerFacebook,
       ownerWhatsApp: puppy.ownerWhatsApp,
@@ -648,5 +652,47 @@ export const unlockSmartTagPassInternal = internalMutation({
       return true;
     }
     return false;
+  },
+});
+
+// Mutation to toggle Search Engine Indexing (Google, Bing, SEO) for the public puppy page
+export const updateSearchEngineIndexing = mutation({
+  args: {
+    puppyId: v.id("puppies"),
+    allowSearchIndexing: v.boolean(),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+    const existing = await ctx.db.get(args.puppyId);
+    if (!existing || existing.userId !== userId) {
+      throw new Error("Puppy not found or unauthorized");
+    }
+
+    await ctx.db.patch(args.puppyId, {
+      allowSearchIndexing: args.allowSearchIndexing,
+    });
+
+    return {
+      success: true,
+      allowSearchIndexing: args.allowSearchIndexing,
+    };
+  },
+});
+
+// Public query to fetch indexable public puppy slugs for dynamic XML sitemaps
+export const getPublicIndexablePuppySlugs = query({
+  args: {},
+  handler: async (ctx) => {
+    const puppies = await ctx.db.query("puppies").collect();
+    return puppies
+      .filter((p) => Boolean(p.slug) && p.allowSearchIndexing !== false)
+      .map((p) => ({
+        slug: p.slug as string,
+        name: p.name,
+        breed: p.breed,
+        photoUrl: p.photoUrl,
+        updatedAt: p.createdAt,
+      }));
   },
 });

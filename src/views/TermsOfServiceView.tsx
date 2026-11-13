@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, FileText, Mail, ShieldAlert, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, FileText, Mail, ShieldAlert, CheckCircle2, AlertTriangle, ShieldCheck, Globe } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 interface TermsOfServiceViewProps {
@@ -86,17 +86,35 @@ export const TermsOfServiceView: React.FC<TermsOfServiceViewProps> = ({ onBack }
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
             <ShieldCheck className="w-4 h-4 text-[#8B5E3C]" />
-            4. DMCA Copyright & Photo Notice
+            4. DMCA Copyright &amp; Photo Notice
           </h2>
           <p>
             We respect copyright laws. If you believe any photo or content uploaded to PupLume infringes your copyright, email our designated agent at <a href="mailto:support@puplume.pet" className="text-[#8B5E3C] underline font-semibold">support@puplume.pet</a> with details. We will expeditiously review and remove the infringing content. Users who upload unauthorized copyrighted material may be terminated.
           </p>
         </section>
 
-        {/* 5. Billing & Merchant of Record */}
+        {/* 5. Public Pet Passports & Search Engine Indexing */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            5. Payments & Merchant of Record (Paddle)
+            <Globe className="w-4 h-4 text-[#8B5E3C]" />
+            5. Public Pet Passports &amp; Search Engine Indexing
+          </h2>
+          <p>
+            PupLume allows pet owners to generate a public pet passport webpage associated with their puppy&apos;s smart QR collar tag or unique link. By enabling a public passport page, you acknowledge that anyone possessing the URL or scanning the pet collar QR tag can view the pet details you choose to share (such as puppy name, breed, emergency contacts, and lost-pet alerts).
+          </p>
+          <p>
+            <strong>Search Engine Indexing Control:</strong> Pet owners maintain granular control over whether their public pet passport is indexed by search engines (e.g., Google, Bing, Yahoo). Through your pup page settings:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
+            <li><strong>Indexing Allowed (Default):</strong> When search engine indexing is active, your public page publishes standard OpenGraph tags, search keywords, and Schema.org structured data, and is submitted via our public sitemap to help find lost pets across search engines.</li>
+            <li><strong>Indexing Disabled (Unlisted):</strong> When you toggle off search engine indexing, PupLume immediately enforces HTTP <code className="bg-stone-100 px-1 py-0.5 rounded text-stone-800">X-Robots-Tag: noindex, nofollow</code> headers, removes the URL from the search sitemap, and injects <code className="bg-stone-100 px-1 py-0.5 rounded text-stone-800">&lt;meta name=&quot;robots&quot; content=&quot;noindex, nofollow&quot; /&gt;</code> crawler directives. The page remains accessible solely via direct link or physical QR scan.</li>
+          </ul>
+        </section>
+
+        {/* 6. Billing & Merchant of Record */}
+        <section className="space-y-3">
+          <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
+            6. Payments &amp; Merchant of Record (Paddle)
           </h2>
           <p>
             All premium purchases and subscriptions are processed by our authorized Merchant of Record, <strong>Paddle</strong> (Paddle.com Market Ltd). Paddle manages payment execution, checkout security (PCI-DSS Level 1), billing receipts, and local sales tax/VAT collection.
@@ -106,10 +124,10 @@ export const TermsOfServiceView: React.FC<TermsOfServiceViewProps> = ({ onBack }
           </p>
         </section>
 
-        {/* 6. Refund Policy */}
+        {/* 7. Refund Policy */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            6. Refund Policy & 14-Day Exceptions
+            7. Refund Policy &amp; 14-Day Exceptions
           </h2>
           <p>
             Because digital software and AI capabilities are delivered immediately upon checkout, purchases are generally non-refundable. However, we provide <strong>14-day compassionate exceptions</strong>:
@@ -124,31 +142,31 @@ export const TermsOfServiceView: React.FC<TermsOfServiceViewProps> = ({ onBack }
           </p>
         </section>
 
-        {/* 7. Warranty Disclaimer */}
+        {/* 8. Warranty Disclaimer */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            7. Warranty Disclaimer (&quot;AS-IS&quot;)
+            8. Warranty Disclaimer (&quot;AS-IS&quot;)
           </h2>
           <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl text-xs sm:text-sm text-zinc-700 uppercase leading-relaxed">
             THE SERVICE IS PROVIDED ON AN &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR ACCURACY OF AI GENERATED RESPONSES.
           </div>
         </section>
 
-        {/* 8. Limitation of Liability */}
+        {/* 9. Limitation of Liability */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            8. Limitation of Liability (Money Cap)
+            9. Limitation of Liability (Money Cap)
           </h2>
           <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl text-xs sm:text-sm text-zinc-700 uppercase leading-relaxed">
             TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL PUPLUME OR ITS FOUNDERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES. OUR TOTAL AGGREGATE LIABILITY FOR ANY CLAIM ARISING OUT OF OR RELATING TO THE SERVICE SHALL BE STRICTLY LIMITED TO THE AMOUNT PAID BY YOU TO PUPLUME IN THE PRECEDING TWELVE (12) MONTHS, OR $50.00 USD, WHICHEVER IS GREATER.
           </div>
         </section>
 
-        {/* 9. Dispute Resolution & Class Action Waiver */}
+        {/* 10. Dispute Resolution & Class Action Waiver */}
         <section className="space-y-3">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2 text-[#8B5E3C]">
             <AlertTriangle className="w-4 h-4" />
-            9. Binding Arbitration & Class Action Waiver
+            10. Binding Arbitration &amp; Class Action Waiver
           </h2>
           <div className="bg-[#FFF9F2] border border-[#E8DDD3] p-4 rounded-2xl text-xs sm:text-sm text-zinc-800 space-y-2">
             <p>
@@ -160,10 +178,10 @@ export const TermsOfServiceView: React.FC<TermsOfServiceViewProps> = ({ onBack }
           </div>
         </section>
 
-        {/* 10. Contact */}
+        {/* 11. Contact */}
         <section className="space-y-3 pt-2">
           <h2 className="text-base font-bold text-[#2C211B] flex items-center gap-2 border-b border-[#F3E7DA] pb-2">
-            10. Contact Us
+            11. Contact Us
           </h2>
           <p>
             If you have questions regarding these Terms or need assistance with your account, please reach out to:

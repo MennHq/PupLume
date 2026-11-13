@@ -246,6 +246,50 @@ async function runAllTests() {
   assert(ogNfHeaders['content-type'] === 'image/png', 'Returns image/png');
   assert(Buffer.isBuffer(ogNfBody), 'Returns not-found PNG buffer');
 
+  console.log('\n--- TEST SUITE 8: Search Engine Indexing & Robots Directives ---');
+  // Test SSR response for live puppy with search indexing enabled
+  let crawlerLiveHeaders: Record<string, string> = {};
+  let crawlerLiveHtml = '';
+  const mockCrawlerReq: any = {
+    method: 'GET',
+    headers: {
+      host: 'puplumepet.vercel.app',
+      'user-agent': 'Googlebot/2.1 (+http://www.google.com/bot.html)',
+    },
+    query: { slug: 'graxzo2' },
+  };
+  const mockCrawlerRes: any = {
+    setHeader: (k: string, v: string) => { crawlerLiveHeaders[k.toLowerCase()] = v; },
+    status: () => mockCrawlerRes,
+    send: (html: string) => { crawlerLiveHtml = html; },
+    end: () => {},
+  };
+  await pupMetaHandler(mockCrawlerReq, mockCrawlerRes);
+  assert(crawlerLiveHtml.includes('name="robots" content="index, follow'), 'Live puppy serves index, follow robot directive');
+  assert(crawlerLiveHtml.includes('schema.org') && crawlerLiveHtml.includes('ProfilePage'), 'Live puppy injects Schema.org JSON-LD ProfilePage markup');
+  assert(!crawlerLiveHeaders['x-robots-tag'] || crawlerLiveHeaders['x-robots-tag'] !== 'noindex, nofollow', 'Live indexed puppy does not serve noindex header');
+
+  // Test SSR response for unregistered/missing puppy
+  let crawlerNfHeaders: Record<string, string> = {};
+  let crawlerNfHtml = '';
+  const mockCrawlerNfReq: any = {
+    method: 'GET',
+    headers: {
+      host: 'puplumepet.vercel.app',
+      'user-agent': 'Googlebot/2.1 (+http://www.google.com/bot.html)',
+    },
+    query: { slug: 'unknown-pup-never-existed' },
+  };
+  const mockCrawlerNfRes: any = {
+    setHeader: (k: string, v: string) => { crawlerNfHeaders[k.toLowerCase()] = v; },
+    status: () => mockCrawlerNfRes,
+    send: (html: string) => { crawlerNfHtml = html; },
+    end: () => {},
+  };
+  await pupMetaHandler(mockCrawlerNfReq, mockCrawlerNfRes);
+  assert(crawlerNfHtml.includes('name="robots" content="noindex, nofollow"'), 'Unregistered puppy strictly enforces noindex, nofollow meta tag');
+  assert(crawlerNfHeaders['x-robots-tag'] === 'noindex, nofollow', 'Unregistered puppy returns X-Robots-Tag: noindex, nofollow HTTP header');
+
   console.log(`\n========================================`);
   console.log(`RESULTS: ${passed} passed, ${failed} failed`);
   console.log(`========================================`);

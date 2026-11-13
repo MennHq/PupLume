@@ -29,6 +29,7 @@ export interface PuppyProfile {
   rewardAmount?: string;
   slug?: string;
   hasSmartTagPass?: boolean;
+  allowSearchIndexing?: boolean;
   ownerInstagram?: string;
   ownerFacebook?: string;
   ownerWhatsApp?: string;
