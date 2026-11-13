@@ -130,12 +130,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
       };
       storage.savePuppy(updated);
 
-      if (puppy.id && !puppy.id.startsWith('pup-')) {
-        await updateIndexingMutation({
-          puppyId: puppy.id as any,
-          allowSearchIndexing: newValue,
-        });
-      }
+      // syncPuppyToConvex calls savePuppy mutation which includes allowSearchIndexing
       await syncPuppyToConvex(updated);
       await triggerMarketingSiteInstantUpdate(activeSlug);
 
