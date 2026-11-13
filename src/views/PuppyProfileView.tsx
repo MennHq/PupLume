@@ -1052,65 +1052,67 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         <div className="space-y-5">
           {/* Custom URL Management Bar */}
           <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
+              <div className="flex items-center gap-3 min-w-0">
                 <SmartCollarTagLogo variant="icon" size="sm" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-black text-[#2C211B] font-brand">
-                      Custom Puppy URL
-                    </h3>
-                    {hasSmartTagPass ? (
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
-                        Live Verified
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-amber-200">
-                        $1.99 Pass
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[#766A63] mt-0.5">
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-black text-[#2C211B] font-brand leading-tight">
+                    Custom Puppy URL
+                  </h3>
+                  <p className="text-xs text-[#766A63] mt-0.5 truncate">
                     Customize {puppy.name}&apos;s public webpage link.
                   </p>
                 </div>
               </div>
 
-              {!hasSmartTagPass && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setIsPaywallOpen(true)}
-                  leftIcon={<Zap className="w-3.5 h-3.5 text-amber-300" />}
-                  className="shadow-2xs font-bold text-xs self-start sm:self-auto"
-                >
-                  Unlock Collar Tag ($1.99)
-                </Button>
-              )}
+              <div className="shrink-0 flex items-center gap-2">
+                {hasSmartTagPass ? (
+                  <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200 shadow-2xs whitespace-nowrap">
+                    ✓ Live Verified
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-amber-200 shadow-2xs whitespace-nowrap">
+                    $1.99 Pass
+                  </span>
+                )}
+                {!hasSmartTagPass && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setIsPaywallOpen(true)}
+                    leftIcon={<Zap className="w-3.5 h-3.5 text-amber-300" />}
+                    className="shadow-2xs font-bold text-xs"
+                  >
+                    Unlock Tag
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* URL Display and Action Bar */}
-            <div className="bg-[#FFF9F2] rounded-2xl border border-[#E8DDD3] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="space-y-1">
+            <div className="bg-[#FFF9F2] rounded-2xl border border-[#E8DDD3] p-3.5 sm:p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1">
                   <Globe className="w-3.5 h-3.5" /> Primary Puppy Page URL
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm sm:text-base font-black font-mono text-[#2C211B] bg-white px-3 py-1 rounded-xl border border-[#E8DDD3] shadow-2xs">
-                    {displayUrl}
-                  </span>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">
-                    Active
-                  </span>
-                </div>
+                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md shrink-0">
+                  Active
+                </span>
+              </div>
+
+              {/* Responsive URL Pill (Contained, never overflows out of box) */}
+              <div className="bg-white px-3 py-2 rounded-xl border border-[#E8DDD3] shadow-2xs flex items-center min-w-0 overflow-hidden">
+                <span className="text-xs sm:text-sm font-black font-mono text-[#2C211B] truncate select-all">
+                  {displayUrl}
+                </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 pt-0.5">
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="px-3 py-1.5 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="flex-1 sm:flex-none px-3 py-1.5 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
                   {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-[#8B5E3C]" />}
                   <span>{copiedUrl ? 'Copied!' : 'Copy Link'}</span>
@@ -1120,7 +1122,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                   href={publicUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3 py-1.5 bg-white hover:bg-[#FAF6F0] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="flex-1 sm:flex-none px-3 py-1.5 bg-white hover:bg-[#FAF6F0] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Visit Page</span>
@@ -1135,7 +1137,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     setIsSlugEditorOpen(!isSlugEditorOpen);
                   }}
                   leftIcon={<Edit3 className="w-3.5 h-3.5" />}
-                  className="text-xs font-bold"
+                  className="w-full sm:w-auto text-xs font-bold"
                 >
                   {isSlugEditorOpen ? 'Close Editor' : 'Customize URL'}
                 </Button>

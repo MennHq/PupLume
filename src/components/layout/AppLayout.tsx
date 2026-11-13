@@ -355,8 +355,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
       </nav>
 
-      {/* Central Quick Logging FAB and Modal (Hidden on Ask AI view to prevent send button collision) */}
-      {currentView !== 'ai' && (
+      {/* Central Quick Logging FAB and Modal (Hidden on Ask AI, Puppy Profile and Settings/Legal views to prevent UI collisions) */}
+      {!['ai', 'puppy', 'privacy', 'terms', 'settings'].includes(currentView) && (
         <QuickActionSheet
           onActionComplete={(msg) => {
             // Log complete notification
