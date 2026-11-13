@@ -94,6 +94,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   const updatePuppySlugMutation = useMutation(api.puppies.updatePuppySlug);
   const updateIndexingMutation = useMutation(api.puppies.updateSearchEngineIndexing);
 
+  // Active view tab state
+  const [activeTab, setActiveTab] = useState<'passport' | 'collar' | 'safety'>('passport');
+
   // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
@@ -826,39 +829,42 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               </div>
             </div>
 
-            {/* Quick Passport Attributes Chips */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2 text-xs">
-              <span className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#8B5E3C]" />
-                Born: {puppy.birthDate || 'Not set'}
-              </span>
+            {/* Quick Pet Dossier Highlights */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 w-full text-xs">
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Born</span>
+                  <span className="text-xs font-bold text-[#2C211B] truncate block">{puppy.birthDate || 'Not set'}</span>
+                </div>
+              </div>
 
-              {puppy.favoriteTreat && (
-                <span className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#5F3E29] font-medium flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-[#8B5E3C]" />
-                  Treat: {puppy.favoriteTreat}
-                </span>
-              )}
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
+                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Treat</span>
+                  <span className="text-xs font-bold text-[#2C211B] truncate block">{puppy.favoriteTreat || 'None set'}</span>
+                </div>
+              </div>
 
-              {puppy.microchipNumber ? (
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5 font-mono">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  RFID: {puppy.microchipNumber}
-                </span>
-              ) : (
-                <span className="px-3 py-1.5 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] text-[#766A63] font-medium">
-                  Microchip pending
-                </span>
-              )}
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Microchip</span>
+                  <span className="text-xs font-bold text-[#2C211B] font-mono truncate block">{puppy.microchipNumber || 'Pending'}</span>
+                </div>
+              </div>
 
-              <span className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 ${
-                hasSmartTagPass 
-                  ? 'bg-amber-50 border-amber-200 text-amber-900' 
-                  : 'bg-zinc-100 border-zinc-200 text-zinc-600'
-              }`}>
-                <QrCode className="w-3.5 h-3.5 text-[#8B5E3C]" />
-                {hasSmartTagPass ? 'Smart Collar Tag Active' : 'Smart Tag: Standard'}
-              </span>
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
+                <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Smart Tag</span>
+                  <span className="text-xs font-bold text-[#2C211B] flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${hasSmartTagPass ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                    {hasSmartTagPass ? 'Active' : 'Standard'}
+                  </span>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -866,107 +872,279 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         </div>
       </div>
 
-      {/* SECTION 2: SMART QR COLLAR TAG & CUSTOM URL HUB */}
-      <div className="bg-[#FFFDF9] rounded-3xl border-2 border-[#8B5E3C]/30 p-6 sm:p-8 shadow-[0_8px_30px_rgba(44,33,27,0.06)] space-y-6">
-        
-        {/* Hub Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8DDD3] pb-5">
-          <div className="flex items-center gap-3">
-            <SmartCollarTagLogo variant="icon" size="md" />
+      {/* SECTION NAV: SLEEK SEGMENTED CONTROL TABS */}
+      <div className="bg-[#F5EDE4] p-1.5 rounded-2xl border border-[#E8DDD3] shadow-2xs flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => {
+            nativeBridge.haptics.light();
+            setActiveTab('passport');
+          }}
+          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'passport'
+              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
+              : 'text-[#766A63] hover:text-[#2C211B]'
+          }`}
+        >
+          <Dog className="w-4 h-4 text-[#8B5E3C]" />
+          <span>Passport &amp; Care</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            nativeBridge.haptics.light();
+            setActiveTab('collar');
+          }}
+          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'collar'
+              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
+              : 'text-[#766A63] hover:text-[#2C211B]'
+          }`}
+        >
+          <QrCode className="w-4 h-4 text-[#8B5E3C]" />
+          <span>Smart Tag &amp; QR</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            nativeBridge.haptics.light();
+            setActiveTab('safety');
+          }}
+          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'safety'
+              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
+              : 'text-[#766A63] hover:text-[#2C211B]'
+          }`}
+        >
+          <AlertTriangle className={`w-4 h-4 ${isLost ? 'text-rose-600 animate-pulse' : 'text-[#8B5E3C]'}`} />
+          <span>Safety &amp; Contacts</span>
+          {isLost && (
+            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+          )}
+        </button>
+      </div>
+
+      {/* TAB 1: VERIFIED PET PASSPORT & CARE DOSSIER */}
+      {activeTab === 'passport' && (
+        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 sm:p-7 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black text-[#2C211B] font-brand">
-                  Custom Puppy URL &amp; Smart Collar Tag
-                </h2>
-                {hasSmartTagPass ? (
-                  <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
-                    Live Verified
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-amber-200">
-                    $1.99 Pass
-                  </span>
-                )}
+                <Dog className="w-5 h-5 text-[#8B5E3C]" />
+                <h3 className="text-base sm:text-lg font-black text-[#2C211B] font-brand">
+                  Verified Pet Dossier &amp; Care Details
+                </h3>
               </div>
-              <p className="text-xs sm:text-sm text-[#766A63] mt-0.5">
-                Customize {puppy.name}&apos;s public webpage link and manage their physical collar tag QR code.
+              <p className="text-xs text-[#766A63] mt-0.5">
+                Essential identity, health formula, temperament, and attending vet records.
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditOpen(true)}
+              leftIcon={<Edit3 className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+              className="text-xs font-bold bg-white rounded-xl shadow-2xs hover:bg-[#FAF6F0] self-start sm:self-auto"
+            >
+              Edit Details
+            </Button>
           </div>
 
-          {!hasSmartTagPass && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsPaywallOpen(true)}
-              leftIcon={<Zap className="w-4 h-4 text-amber-300" />}
-              className="shadow-sm font-bold text-xs"
-            >
-              Unlock Collar Tag ($1.99)
-            </Button>
-          )}
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Temperament & Personality */}
+            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <Smile className="w-4 h-4" /> Temperament &amp; Traits
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
+                {puppy.temperament ? (
+                  <span className="italic font-medium">&ldquo;{puppy.temperament}&rdquo;</span>
+                ) : (
+                  <span className="text-[#766A63] italic">No temperament notes recorded. Tap &quot;Edit Details&quot; to describe personality.</span>
+                )}
+              </p>
+            </div>
 
-        {/* CUSTOM URL MANAGEMENT BAR */}
-        <div className="bg-[#FFF9F2] rounded-2xl border-2 border-[#8B5E3C]/20 p-4 sm:p-5 space-y-4">
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5" /> Primary Puppy Page URL
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-black font-mono text-[#2C211B] bg-white px-3 py-1 rounded-xl border border-[#E8DDD3] shadow-2xs">
-                  {displayUrl}
+            {/* Nutrition & Diet Formula */}
+            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 text-rose-500" /> Nutrition &amp; Diet Formula
                 </span>
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">
-                  Active
+              </div>
+              <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
+                {puppy.dietaryRestrictions || (
+                  <span className="text-[#766A63] italic">No dietary restrictions or food formula recorded.</span>
+                )}
+              </p>
+              {puppy.favoriteTreat && (
+                <p className="text-xs text-[#5F3E29] font-medium pt-2 border-t border-[#E8DDD3]/60 flex items-center gap-1.5">
+                  <span>🍖 Favorite Reward:</span>
+                  <strong className="text-[#2C211B]">{puppy.favoriteTreat}</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Primary Veterinary Clinic */}
+            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <Stethoscope className="w-4 h-4 text-[#8B5E3C]" /> Primary Veterinary Clinic
                 </span>
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              </div>
+              {puppy.vetClinic || puppy.vetPhone || puppy.vetName ? (
+                <div className="space-y-1.5 text-xs">
+                  <h4 className="font-bold text-[#2C211B]">{puppy.vetClinic || 'Clinic not specified'}</h4>
+                  {puppy.vetName && <p className="text-[#5F3E29]">Attending Vet: {puppy.vetName}</p>}
+                  {puppy.vetPhone && (
+                    <a
+                      href={`tel:${puppy.vetPhone}`}
+                      className="text-xs font-bold text-[#8B5E3C] hover:underline flex items-center gap-1 pt-1"
+                    >
+                      <Phone className="w-3.5 h-3.5" /> Call Clinic: {puppy.vetPhone}
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-[#766A63] italic">No veterinary clinic added yet.</p>
+              )}
+            </div>
+
+            {/* Official Identification & Policy */}
+            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-amber-500" /> Official Identification &amp; Policy
+                </span>
+              </div>
+              <div className="space-y-2 text-xs text-[#2C211B]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#766A63]">Microchip RFID:</span>
+                  <strong className="font-mono">{puppy.microchipNumber || 'Not recorded'}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#766A63]">Insurance Provider:</span>
+                  <strong>{puppy.insuranceProvider || 'Not recorded'}</strong>
+                </div>
+                {puppy.insurancePolicyNumber && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#766A63]">Policy Number:</span>
+                    <strong className="font-mono">{puppy.insurancePolicyNumber}</strong>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1.5 border-t border-[#E8DDD3]/60">
+                  <span className="text-[#766A63]">Passport Serial:</span>
+                  <strong className="font-mono text-[#8B5E3C]">{passportSerial}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: SMART TAG & CUSTOM QR HUB */}
+      {activeTab === 'collar' && (
+        <div className="space-y-5">
+          {/* Custom URL Management Bar */}
+          <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
+              <div className="flex items-center gap-3">
+                <SmartCollarTagLogo variant="icon" size="sm" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-[#2C211B] font-brand">
+                      Custom Puppy URL
+                    </h3>
+                    {hasSmartTagPass ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
+                        Live Verified
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-amber-200">
+                        $1.99 Pass
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#766A63] mt-0.5">
+                    Customize {puppy.name}&apos;s public webpage link.
+                  </p>
+                </div>
+              </div>
+
+              {!hasSmartTagPass && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsPaywallOpen(true)}
+                  leftIcon={<Zap className="w-3.5 h-3.5 text-amber-300" />}
+                  className="shadow-2xs font-bold text-xs self-start sm:self-auto"
+                >
+                  Unlock Collar Tag ($1.99)
+                </Button>
+              )}
+            </div>
+
+            {/* URL Display and Action Bar */}
+            <div className="bg-[#FFF9F2] rounded-2xl border border-[#E8DDD3] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5" /> Primary Puppy Page URL
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base font-black font-mono text-[#2C211B] bg-white px-3 py-1 rounded-xl border border-[#E8DDD3] shadow-2xs">
+                    {displayUrl}
+                  </span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">
+                    Active
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="px-3 py-1.5 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+                  <span>{copiedUrl ? 'Copied!' : 'Copy Link'}</span>
+                </button>
+
+                <a
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 bg-white hover:bg-[#FAF6F0] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Visit Page</span>
+                </a>
+
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setSlugInput(activeSlug);
+                    setSlugErrorMessage(null);
+                    setIsSlugEditorOpen(!isSlugEditorOpen);
+                  }}
+                  leftIcon={<Edit3 className="w-3.5 h-3.5" />}
+                  className="text-xs font-bold"
+                >
+                  {isSlugEditorOpen ? 'Close Editor' : 'Customize URL'}
+                </Button>
               </div>
             </div>
 
-            {/* Quick link action buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="px-3.5 py-2 bg-white hover:bg-[#F3E7DA] text-[#2C211B] text-xs font-bold rounded-xl border border-[#E8DDD3] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              >
-                {copiedUrl ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-[#8B5E3C]" />}
-                <span>{copiedUrl ? 'Copied URL!' : 'Copy Link'}</span>
-              </button>
-
-              <a
-                href={publicUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-2 bg-white hover:bg-[#FAF6F0] text-[#8B5E3C] text-xs font-bold rounded-xl border border-[#8B5E3C]/30 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Test Live Page</span>
-              </a>
-
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  setSlugInput(activeSlug);
-                  setSlugErrorMessage(null);
-                  setIsSlugEditorOpen(!isSlugEditorOpen);
-                }}
-                leftIcon={<Edit3 className="w-3.5 h-3.5" />}
-                className="text-xs font-bold"
-              >
-                {isSlugEditorOpen ? 'Close Editor' : 'Customize URL'}
-              </Button>
-            </div>
-          </div>
-
-          {/* EXPANDABLE INTERACTIVE SLUG EDITOR */}
-          {isSlugEditorOpen && (
-            <div className="pt-4 border-t border-[#E8DDD3] space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] shadow-xs space-y-4">
-                
+            {/* Expandable Inline Slug Editor */}
+            {isSlugEditorOpen && (
+              <div className="p-4 sm:p-5 bg-white rounded-2xl border-2 border-[#8B5E3C]/30 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div>
                   <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
                     Edit URL Slug for {puppy.name}
@@ -975,7 +1153,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     Choose a short, unique handle. The slug must be <strong>3 to 7 characters</strong> and contain your puppy&apos;s name.
                   </p>
 
-                  {/* Slug Input with Prefix */}
                   <div className="flex items-center rounded-xl border-2 border-[#8B5E3C]/30 focus-within:border-[#8B5E3C] bg-[#FFF9F2] overflow-hidden shadow-2xs">
                     <span className="px-3.5 py-2.5 text-xs sm:text-sm font-bold text-[#766A63] bg-[#F3E7DA] select-none border-r border-[#E8DDD3]">
                       puplume.com/
@@ -998,10 +1175,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                   </div>
                 </div>
 
-                {/* Real-time Validation Criteria Checklist */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
-                  
-                  {/* Rule 1: 3-7 chars */}
                   <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
                     slugValidation.checks.length 
                       ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
@@ -1015,7 +1189,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     <span>3 to 7 characters</span>
                   </div>
 
-                  {/* Rule 2: Contains puppy name */}
                   <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
                     slugValidation.checks.containsName 
                       ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
@@ -1029,7 +1202,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     <span className="truncate">Includes &quot;{puppy.name.toLowerCase()}&quot;</span>
                   </div>
 
-                  {/* Rule 3: URL safe */}
                   <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
                     slugValidation.checks.characters 
                       ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
@@ -1043,10 +1215,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     <span>URL-safe (a-z, 0-9)</span>
                   </div>
 
-                  {/* Rule 4: Uniqueness / Availability */}
                   <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
                     availabilityQuery === undefined 
-                      ? 'bg-neutral-50 border-neutral-200 text-neutral-600'
+                      ? 'bg-neutral-50 border-neutral-200 text-neutral-600' 
                       : availabilityQuery.available
                         ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
                         : 'bg-rose-50/80 border-rose-200 text-rose-900'
@@ -1066,10 +1237,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                           : 'Already Taken'}
                     </span>
                   </div>
-
                 </div>
 
-                {/* Live URL Preview Bar */}
                 <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#E8DDD3] flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <span className="text-[#766A63] font-medium shrink-0">Live URL Preview:</span>
@@ -1091,7 +1260,6 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                   </div>
                 )}
 
-                {/* Action buttons */}
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <Button
                     variant="outline"
@@ -1121,457 +1289,349 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
                     Save &amp; Migrate URL
                   </Button>
                 </div>
-
               </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* TWO-COLUMN GRID: PHYSICAL COLLAR QR BADGE & EMERGENCY LOST MODE */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-          
-          {/* Left Column: Official PupLume Center-Logo QR Code */}
-          <div className="md:col-span-5 bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 flex flex-col items-center text-center space-y-4">
-            <div className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C] block">
-                Physical Collar Tag QR Code
-              </span>
-              <p className="text-xs text-[#766A63]">
-                Instant smartphone camera scan to open {puppy.name}&apos;s verified card
-              </p>
-            </div>
-
-            {/* Razor sharp custom PupLume QR with center emblem */}
-            <PupLumeQRCode
-              value={publicUrl}
-              puppyName={puppy.name}
-              size={180}
-              showActions={true}
-            />
-
-            {/* Print Collar Tag Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenPrintCollarTag}
-              leftIcon={<Printer className="w-4 h-4 text-[#8B5E3C]" />}
-              className="w-full bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FFF9F2]"
-            >
-              Print Collar Tag (1.5&quot;)
-            </Button>
+            )}
           </div>
 
-          {/* Right Column: Emergency Lost Mode & Finder Contacts */}
-          <div className="md:col-span-7 space-y-4">
-            
-            {/* Lost Mode Card */}
-            <div className={`rounded-3xl p-5 border-2 transition-all ${
-              isLost 
-                ? 'bg-rose-50 border-rose-400 shadow-sm' 
-                : 'bg-white border-[#E8DDD3]'
-            }`}>
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className={`w-5 h-5 ${isLost ? 'text-rose-600' : 'text-[#766A63]'}`} />
-                  <h3 className={`text-sm font-black uppercase tracking-wider ${isLost ? 'text-rose-900' : 'text-[#2C211B]'}`}>
-                    Emergency Lost Mode
-                  </h3>
-                </div>
-
-                {/* Toggle switch */}
-                <button
-                  type="button"
-                  onClick={() => handleToggleLostMode(!isLost)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    isLost ? 'bg-rose-600' : 'bg-neutral-300'
-                  }`}
-                  role="switch"
-                  aria-checked={isLost}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                      isLost ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+          {/* QR Code and Search Indexing 2-Column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            {/* Physical QR Collar Badge */}
+            <div className="md:col-span-5 bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 flex flex-col items-center text-center space-y-4 shadow-xs">
+              <div className="space-y-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#8B5E3C] block">
+                  Physical Collar Tag QR Code
+                </span>
+                <p className="text-xs text-[#766A63]">
+                  Smartphone camera scan to open {puppy.name}&apos;s verified card
+                </p>
               </div>
 
-              <p className="text-xs text-[#766A63] leading-relaxed">
-                {isLost ? (
-                  <span className="font-bold text-rose-800">
-                    🚨 Lost Mode is ACTIVE! The public webpage is displaying urgent missing alerts and reward callouts.
-                  </span>
-                ) : (
-                  "Turn on Lost Mode if your puppy wanders away. This adds a prominent Missing Alert and reward banner to their public safety webpage."
-                )}
-              </p>
+              <PupLumeQRCode
+                value={publicUrl}
+                puppyName={puppy.name}
+                size={180}
+                showActions={true}
+              />
 
-              {/* Action buttons */}
-              <div className="mt-4 pt-3 border-t border-neutral-200/80 flex flex-wrap items-center gap-2">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleOpenFlyer}
-                  leftIcon={<FileText className="w-4 h-4 text-amber-300" />}
-                  className={`text-xs font-bold ${
-                    isLost ? 'bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20' : ''
-                  }`}
-                >
-                  🚨 Printable Missing Flyer
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShareEmergencyAlert}
-                  leftIcon={<Share2 className="w-4 h-4 text-rose-600" />}
-                  className="text-xs font-bold border-rose-300 text-rose-700 hover:bg-rose-50"
-                >
-                  Broadcast Missing Alert
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenPrintCollarTag}
+                leftIcon={<Printer className="w-4 h-4 text-[#8B5E3C]" />}
+                className="w-full bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FFF9F2]"
+              >
+                Print Collar Tag (1.5&quot;)
+              </Button>
             </div>
 
-            {/* Emergency Contact & Finder Information Box */}
-            <div className="bg-[#FAF6F0] rounded-3xl border border-[#E8DDD3] p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5" /> Emergency Contacts on Tag
-                </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                  Visible to Finders
-                </span>
-              </div>
-
-              {contactError && (
-                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 font-semibold flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                  <span>{contactError}</span>
-                </div>
-              )}
-
-              {saveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
-                  <Check className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>{saveSuccessMessage || 'Tag details and contact information updated in database!'}</span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Owner Phone */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[11px] font-bold text-[#5F3E29]">
-                      Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
-                    </label>
-                    {phoneValidation.isValid && ownerPhone.trim() && (
-                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                        <Check className="w-3 h-3 text-emerald-600" /> Valid
-                      </span>
-                    )}
+            {/* Search Engine Indexing & SEO Setting */}
+            <div className="md:col-span-7 bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs shrink-0">
+                    <Globe className="w-4 h-4 text-[#8B5E3C]" />
                   </div>
-                  <CountryPhoneInput
-                    value={ownerPhone}
-                    required
-                    onChange={(val) => {
-                      setOwnerPhone(val);
-                      if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
-                      if (contactError) setContactError(null);
-                    }}
-                    placeholder="+1 (555) 123-4567 or 03XX XXXXXXX"
-                    error={fieldErrors.phone}
-                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs sm:text-sm font-black text-[#2C211B] font-brand">
+                        Search Engine Indexing
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowIndexingInfo((prev) => !prev)}
+                        className="p-1 rounded-full text-[#766A63] hover:text-[#2C211B] hover:bg-[#E8DDD3]/60 transition-colors cursor-pointer"
+                        title="What does search engine indexing mean? Tap to learn more."
+                        aria-label="Search engine indexing info"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                      </button>
+                      {allowIndexing ? (
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
+                          ✓ Indexed
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-neutral-200 text-neutral-700 text-[10px] font-black rounded-full uppercase tracking-wider border border-neutral-300">
+                          Unlisted (noindex)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#766A63] truncate">
+                      {allowIndexing ? 'Crawlable on Google & Bing with Schema.org SEO' : 'Direct link & QR collar tag only'}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Reward Setting */}
-                <div>
-                  <RewardSettingInput
-                    value={rewardAmount}
-                    onChange={(val) => {
-                      setRewardAmount(val);
-                      if (fieldErrors.reward) setFieldErrors(prev => ({ ...prev, reward: undefined }));
-                      if (contactError) setContactError(null);
-                    }}
-                    error={fieldErrors.reward}
-                  />
+                {/* Compact Toggle Switch */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleIndexing(!allowIndexing)}
+                    disabled={isUpdatingIndexing}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      allowIndexing ? 'bg-emerald-600' : 'bg-neutral-300'
+                    }`}
+                    role="switch"
+                    aria-checked={allowIndexing}
+                    title={allowIndexing ? 'Click to disable search engine indexing' : 'Click to enable search engine indexing'}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        allowIndexing ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
 
-              {/* Instructions for Finder */}
+              {indexingSuccessMessage && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{indexingSuccessMessage}</span>
+                </div>
+              )}
+
+              {/* Expandable Explanation */}
+              {showIndexingInfo && (
+                <div className="pt-3 border-t border-[#E8DDD3] space-y-2.5 text-xs animate-in fade-in duration-150">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="p-3 bg-[#FAF6F0] rounded-xl border border-emerald-200">
+                      <div className="font-bold text-emerald-800 flex items-center gap-1.5 mb-1 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>When Indexing is Enabled</span>
+                      </div>
+                      <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                        Search engines (Google, Bing) crawl this page, making it searchable by puppy name or microchip ID if they wander away. We inject 100% compliant Schema.org JSON-LD data.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-[#FAF6F0] rounded-xl border border-neutral-300">
+                      <div className="font-bold text-neutral-800 flex items-center gap-1.5 mb-1 text-[11px]">
+                        <ShieldCheck className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
+                        <span>When Indexing is Disabled (Unlisted)</span>
+                      </div>
+                      <p className="text-[#5F3E29] leading-relaxed text-[11px]">
+                        We instruct search engines not to index this page (noindex, nofollow). Only people with the direct URL or physical collar tag scan can access it.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowIndexingInfo(false)}
+                      className="text-[11px] font-bold text-[#8B5E3C] hover:underline cursor-pointer"
+                    >
+                      Close Explanation
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: SAFETY, LOST MODE & EMERGENCY CONTACTS */}
+      {activeTab === 'safety' && (
+        <div className="space-y-5">
+          {/* Emergency Lost Mode Card */}
+          <div className={`rounded-3xl p-5 sm:p-6 border-2 transition-all ${
+            isLost 
+              ? 'bg-rose-50 border-rose-400 shadow-sm' 
+              : 'bg-[#FFFDF9] border-[#E8DDD3] shadow-xs'
+          }`}>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className={`w-5 h-5 ${isLost ? 'text-rose-600' : 'text-[#8B5E3C]'}`} />
+                <h3 className={`text-sm sm:text-base font-black uppercase tracking-wider ${isLost ? 'text-rose-900' : 'text-[#2C211B]'}`}>
+                  Emergency Lost Mode
+                </h3>
+              </div>
+
+              {/* Toggle switch */}
+              <button
+                type="button"
+                onClick={() => handleToggleLostMode(!isLost)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isLost ? 'bg-rose-600' : 'bg-neutral-300'
+                }`}
+                role="switch"
+                aria-checked={isLost}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    isLost ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#766A63] leading-relaxed">
+              {isLost ? (
+                <span className="font-bold text-rose-800">
+                  🚨 Lost Mode is ACTIVE! The public webpage is displaying urgent missing alerts and reward callouts.
+                </span>
+              ) : (
+                "Turn on Lost Mode if your puppy wanders away. This immediately adds a prominent Missing Alert and reward banner to their public safety webpage."
+              )}
+            </p>
+
+            {/* Quick Actions */}
+            <div className="mt-4 pt-3 border-t border-neutral-200/80 flex flex-wrap items-center gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleOpenFlyer}
+                leftIcon={<FileText className="w-4 h-4 text-amber-300" />}
+                className={`text-xs font-bold ${
+                  isLost ? 'bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20' : ''
+                }`}
+              >
+                🚨 Printable Missing Flyer
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareEmergencyAlert}
+                leftIcon={<Share2 className="w-4 h-4 text-rose-600" />}
+                className="text-xs font-bold border-rose-300 text-rose-700 hover:bg-rose-50"
+              >
+                Broadcast Missing Alert
+              </Button>
+            </div>
+          </div>
+
+          {/* Emergency Contacts on Tag */}
+          <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E8DDD3] pb-3">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-[#8B5E3C]" />
+                <h4 className="text-sm font-black uppercase tracking-wider text-[#2C211B]">
+                  Emergency Contacts on Tag
+                </h4>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                Visible to Finders
+              </span>
+            </div>
+
+            {contactError && (
+              <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                <span>{contactError}</span>
+              </div>
+            )}
+
+            {saveSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+                <Check className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{saveSuccessMessage || 'Tag details and contact information updated in database!'}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Owner Phone */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[11px] font-bold text-[#5F3E29]">
-                    Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
+                    Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
                   </label>
-                  {notesValidation.isValid && emergencyNotes.trim() && (
+                  {phoneValidation.isValid && ownerPhone.trim() && (
                     <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
                       <Check className="w-3 h-3 text-emerald-600" /> Valid
                     </span>
                   )}
                 </div>
-                <textarea
-                  rows={2}
+                <CountryPhoneInput
+                  value={ownerPhone}
                   required
-                  value={emergencyNotes}
-                  onChange={(e) => {
-                    setEmergencyNotes(e.target.value);
-                    if (fieldErrors.notes) setFieldErrors(prev => ({ ...prev, notes: undefined }));
+                  onChange={(val) => {
+                    setOwnerPhone(val);
+                    if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
                     if (contactError) setContactError(null);
                   }}
-                  placeholder="e.g. Loves peanut butter, friendly with kids and dogs, do not chase"
-                  className={`w-full px-3 py-2 rounded-xl border ${
-                    fieldErrors.notes ? 'border-amber-400 bg-amber-50/20' : 'border-[#E8DDD3] bg-white'
-                  } text-xs text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] resize-none`}
+                  placeholder="+1 (555) 123-4567 or 03XX XXXXXXX"
+                  error={fieldErrors.phone}
                 />
               </div>
 
-              {/* Dynamic Communication Links */}
-              <div className="pt-2 border-t border-[#E8DDD3]/80">
-                <CommunicationLinksInput
-                  links={communicationLinks}
-                  onChange={(updatedLinks) => {
-                    setCommunicationLinks(updatedLinks);
+              {/* Reward Setting */}
+              <div>
+                <RewardSettingInput
+                  value={rewardAmount}
+                  onChange={(val) => {
+                    setRewardAmount(val);
+                    if (fieldErrors.reward) setFieldErrors(prev => ({ ...prev, reward: undefined }));
+                    if (contactError) setContactError(null);
                   }}
-                  maxRecommended={3}
+                  error={fieldErrors.reward}
                 />
               </div>
-
-              {/* Save Button for Quick Tag Details */}
-              <div className="pt-2 flex justify-end">
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={handleSaveEmergencyContact}
-                  disabled={isSavingContact}
-                  leftIcon={
-                    isSavingContact ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )
-                  }
-                  className="text-xs font-bold"
-                >
-                  {isSavingContact ? 'Saving to Database...' : 'Save Emergency Contacts'}
-                </Button>
-              </div>
-
             </div>
 
-          </div>
-
-        </div>
-
-        {/* COMPACT PUP PAGE SEARCH ENGINE INDEXING & SEO SETTING */}
-        <div className="bg-[#FAF6F0] rounded-2xl border border-[#E8DDD3] p-3.5 sm:p-4 transition-all">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-white border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs shrink-0">
-                <Globe className="w-4 h-4 text-[#8B5E3C]" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs sm:text-sm font-black text-[#2C211B] font-brand">
-                    Search Engine Indexing
+            {/* Instructions for Finder */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-[#5F3E29]">
+                  Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
+                </label>
+                {notesValidation.isValid && emergencyNotes.trim() && (
+                  <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600" /> Valid
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowIndexingInfo((prev) => !prev)}
-                    className="p-1 rounded-full text-[#766A63] hover:text-[#2C211B] hover:bg-[#E8DDD3]/60 transition-colors cursor-pointer"
-                    title="What does search engine indexing mean? Tap to learn more."
-                    aria-label="Search engine indexing info"
-                  >
-                    <HelpCircle className="w-3.5 h-3.5 text-[#8B5E3C]" />
-                  </button>
-                  {allowIndexing ? (
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase tracking-wider border border-emerald-200">
-                      ✓ Indexed
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 bg-neutral-200 text-neutral-700 text-[10px] font-black rounded-full uppercase tracking-wider border border-neutral-300">
-                      Unlisted (noindex)
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-[#766A63] truncate hidden sm:block">
-                  {allowIndexing ? 'Crawlable on Google & Bing with Schema.org SEO' : 'Direct link & QR collar tag only'}
-                </p>
+                )}
               </div>
+              <textarea
+                rows={2}
+                required
+                value={emergencyNotes}
+                onChange={(e) => {
+                  setEmergencyNotes(e.target.value);
+                  if (fieldErrors.notes) setFieldErrors(prev => ({ ...prev, notes: undefined }));
+                  if (contactError) setContactError(null);
+                }}
+                placeholder="e.g. Friendly, loves peanut butter, do not chase"
+                className={`w-full px-3 py-2 rounded-xl border ${
+                  fieldErrors.notes ? 'border-amber-400 bg-amber-50/20' : 'border-[#E8DDD3] bg-white'
+                } text-xs text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] resize-none`}
+              />
             </div>
 
-            {/* Compact Toggle Switch */}
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-bold text-[#5F3E29] hidden xs:inline">
-                {allowIndexing ? 'Allowed' : 'Blocked'}
-              </span>
-              <button
+            {/* Dynamic Communication Links */}
+            <div className="pt-2 border-t border-[#E8DDD3]/80">
+              <CommunicationLinksInput
+                links={communicationLinks}
+                onChange={(updatedLinks) => {
+                  setCommunicationLinks(updatedLinks);
+                }}
+                maxRecommended={3}
+              />
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-2 flex justify-end">
+              <Button
                 type="button"
-                onClick={() => handleToggleIndexing(!allowIndexing)}
-                disabled={isUpdatingIndexing}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  allowIndexing ? 'bg-emerald-600' : 'bg-neutral-300'
-                }`}
-                role="switch"
-                aria-checked={allowIndexing}
-                title={allowIndexing ? 'Click to disable search engine indexing' : 'Click to enable search engine indexing'}
+                variant="primary"
+                size="sm"
+                onClick={handleSaveEmergencyContact}
+                disabled={isSavingContact}
+                leftIcon={
+                  isSavingContact ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )
+                }
+                className="text-xs font-bold"
               >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                    allowIndexing ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
+                {isSavingContact ? 'Saving to Database...' : 'Save Emergency Contacts'}
+              </Button>
             </div>
           </div>
-
-          {indexingSuccessMessage && (
-            <div className="mt-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2 animate-in fade-in duration-150">
-              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>{indexingSuccessMessage}</span>
-            </div>
-          )}
-
-          {/* Expandable Explanation (Only shown if user clicks the ? symbol) */}
-          {showIndexingInfo && (
-            <div className="mt-3 pt-3 border-t border-[#E8DDD3] space-y-2.5 text-xs animate-in fade-in duration-150">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="p-3 bg-white rounded-xl border border-emerald-200">
-                  <div className="font-bold text-emerald-800 flex items-center gap-1.5 mb-1 text-[11px]">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>When Indexing is Enabled</span>
-                  </div>
-                  <p className="text-[#5F3E29] leading-relaxed text-[11px]">
-                    Search engines (Google, Bing) crawl this page, making it searchable by puppy name or microchip ID if they wander away. We inject 100% compliant Schema.org JSON-LD data and include your puppy in our public sitemap.
-                  </p>
-                </div>
-
-                <div className="p-3 bg-white rounded-xl border border-neutral-300">
-                  <div className="font-bold text-neutral-800 flex items-center gap-1.5 mb-1 text-[11px]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
-                    <span>When Indexing is Disabled (Unlisted)</span>
-                  </div>
-                  <p className="text-[#5F3E29] leading-relaxed text-[11px]">
-                    We instruct search engines not to index this page (<code className="bg-[#FAF6F0] px-1 py-0.5 rounded text-[10px]">noindex, nofollow</code>) and remove it from the sitemap. Only people with the direct URL or physical collar tag scan can access it.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowIndexingInfo(false)}
-                  className="text-[11px] font-bold text-[#8B5E3C] hover:underline cursor-pointer"
-                >
-                  Close Explanation
-                </button>
-              </div>
-            </div>
-          )}
         </div>
-
-      </div>
-
-      {/* SECTION 3: EDITORIAL DETAILS DOSSIER (4 PILLARS) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
-        {/* Pillar 1: Temperament & Traits */}
-        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4" /> Temperament &amp; Traits
-            </span>
-            <Smile className="w-4 h-4 text-[#8B5E3C]" />
-          </div>
-          <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-            {puppy.temperament ? (
-              <span className="italic font-medium">&ldquo;{puppy.temperament}&rdquo;</span>
-            ) : (
-              <span className="text-[#766A63] italic">No temperament notes added yet. Tap &quot;Edit Profile&quot; to describe personality.</span>
-            )}
-          </p>
-        </div>
-
-        {/* Pillar 2: Nutrition & Diet */}
-        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Heart className="w-4 h-4" /> Nutrition &amp; Diet Formula
-            </span>
-            <Heart className="w-4 h-4 text-rose-500" />
-          </div>
-          <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-            {puppy.dietaryRestrictions ? (
-              puppy.dietaryRestrictions
-            ) : (
-              <span className="text-[#766A63] italic">No dietary restrictions or food formula recorded.</span>
-            )}
-          </p>
-          {puppy.favoriteTreat && (
-            <p className="text-xs text-[#5F3E29] font-medium pt-1 border-t border-[#E8DDD3]/60">
-              🍖 <strong>Favorite High-Value Reward:</strong> {puppy.favoriteTreat}
-            </p>
-          )}
-        </div>
-
-        {/* Pillar 3: Veterinary Clinic */}
-        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Stethoscope className="w-4 h-4" /> Primary Veterinary Clinic
-            </span>
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          </div>
-          {puppy.vetClinic || puppy.vetPhone || puppy.vetName ? (
-            <div className="space-y-1.5">
-              <h4 className="text-sm font-bold text-[#2C211B]">{puppy.vetClinic || 'Clinic not specified'}</h4>
-              {puppy.vetName && <p className="text-xs text-[#5F3E29]">Attending Vet: {puppy.vetName}</p>}
-              {puppy.vetPhone && (
-                <a
-                  href={`tel:${puppy.vetPhone}`}
-                  className="text-xs font-bold text-[#8B5E3C] hover:underline flex items-center gap-1 inline-flex pt-1"
-                >
-                  <Phone className="w-3.5 h-3.5" /> Call Clinic: {puppy.vetPhone}
-                </a>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-[#766A63] italic">No veterinary clinic added yet.</p>
-          )}
-        </div>
-
-        {/* Pillar 4: Official Identification & Insurance */}
-        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-6 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Award className="w-4 h-4" /> Official Identification &amp; Policy
-            </span>
-            <Award className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="space-y-1.5 text-xs text-[#2C211B]">
-            <p className="flex items-center justify-between">
-              <span className="text-[#766A63]">Microchip RFID:</span>
-              <strong className="font-mono">{puppy.microchipNumber || 'Not recorded'}</strong>
-            </p>
-            <p className="flex items-center justify-between">
-              <span className="text-[#766A63]">Insurance Provider:</span>
-              <strong>{puppy.insuranceProvider || 'Not recorded'}</strong>
-            </p>
-            {puppy.insurancePolicyNumber && (
-              <p className="flex items-center justify-between">
-                <span className="text-[#766A63]">Policy Number:</span>
-                <strong className="font-mono">{puppy.insurancePolicyNumber}</strong>
-              </p>
-            )}
-            <p className="flex items-center justify-between pt-1 border-t border-[#E8DDD3]/60">
-              <span className="text-[#766A63]">Passport Serial:</span>
-              <strong className="font-mono text-[#8B5E3C]">{passportSerial}</strong>
-            </p>
-          </div>
-        </div>
-
-      </div>
+      )}
 
       {/* MODAL 1: CONFIRMATION FOR SLUG CHANGE (WARNING ABOUT PRINTED QR COLLAR) */}
       <Modal
