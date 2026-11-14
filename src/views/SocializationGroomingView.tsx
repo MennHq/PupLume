@@ -188,7 +188,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
   const positiveCount = socialItems.filter(s => s.status === 'positive').length;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -205,23 +205,23 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex p-1 bg-[#F5EDE4] rounded-2xl border border-[#E8DDD3] self-stretch sm:self-auto">
           <button
             onClick={() => setTab('socialization')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               tab === 'socialization'
-                ? 'bg-[#8B5E3C] text-white border-[#8B5E3C]'
-                : 'bg-white text-[#766A63] border-[#E8DDD3] hover:bg-[#FFF9F2]'
+                ? 'bg-white text-[#2C211B] shadow-xs'
+                : 'text-[#766A63] hover:text-[#2C211B]'
             }`}
           >
             Socialization ({positiveCount}/{socialItems.length})
           </button>
           <button
             onClick={() => setTab('grooming')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               tab === 'grooming'
-                ? 'bg-[#8B5E3C] text-white border-[#8B5E3C]'
-                : 'bg-white text-[#766A63] border-[#E8DDD3] hover:bg-[#FFF9F2]'
+                ? 'bg-white text-[#2C211B] shadow-xs'
+                : 'text-[#766A63] hover:text-[#2C211B]'
             }`}
           >
             Grooming & Handling

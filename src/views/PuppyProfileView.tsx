@@ -701,7 +701,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-28 px-2 sm:px-4">
+    <div className="space-y-6 max-w-5xl mx-auto pb-6 px-1 sm:px-4">
 
       {/* Global Success / Notice Banners */}
       {slugSuccessMessage && (

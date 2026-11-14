@@ -299,14 +299,14 @@ const PlatformLinkRow: React.FC<PlatformLinkRowProps> = ({
                         </div>
                         <span className="truncate">{p.name}</span>
                         {idx < 3 && !searchQuery && (
-                          <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
                             isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
                           }`}>
                             Top {idx + 1}
                           </span>
                         )}
                         {idx === 3 && !searchQuery && (
-                          <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
                             isSelected ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'
                           }`}>
                             4th

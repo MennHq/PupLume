@@ -119,7 +119,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="text-xs font-bold text-[#2C211B] truncate">{item.title}</h4>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-[#F3E7DA] text-[#5F3E29] font-semibold flex-shrink-0">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#F3E7DA] text-[#5F3E29] font-semibold flex-shrink-0">
                           {item.type}
                         </span>
                       </div>

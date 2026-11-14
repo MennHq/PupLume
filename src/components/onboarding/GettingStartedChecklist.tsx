@@ -260,7 +260,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
     return (
       <>
         {showConfetti && <FullScreenConfetti onComplete={() => setShowConfetti(false)} />}
-        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-3 sm:left-auto sm:right-6 z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-8 left-3 sm:left-8 sm:right-auto z-30 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <button
             onClick={handleToggleMinimize}
             className="flex items-center gap-3 px-4 py-2.5 bg-white border border-[#E8DDD3] rounded-2xl shadow-xl hover:shadow-2xl transition-all cursor-pointer group hover:border-[#8B5E3C]"
@@ -271,7 +271,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
             <div className="text-left">
               <div className="text-xs font-extrabold text-[#2C211B] flex items-center gap-1.5">
                 Getting Started
-                <span className="text-[10px] font-bold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.2 rounded-full border border-[#E8DDD3]">
+                <span className="text-[10px] font-bold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.5 rounded-full border border-[#E8DDD3]">
                   {completedCount}/{totalCount}
                 </span>
               </div>
@@ -290,7 +290,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   }
 
   return (
-    <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-[360px] max-w-sm z-40 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-8 inset-x-3 sm:inset-x-auto sm:left-8 sm:right-auto sm:w-[360px] max-w-sm z-40 animate-in fade-in zoom-in-95 duration-200">
       <div className="bg-white rounded-3xl border border-[#E8DDD3] shadow-[0_12px_40px_rgba(0,0,0,0.16)] p-5 overflow-hidden relative">
         
         {/* Header Bar */}

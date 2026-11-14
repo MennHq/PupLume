@@ -73,7 +73,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
   const successPercentage = totalCount > 0 ? Math.round((outdoorCount / totalCount) * 100) : 100;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -236,7 +236,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                       <h4 className="text-xs font-bold text-[#2C211B] uppercase">
                         {log.type}
                       </h4>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-white border border-[#E8DDD3] text-[#766A63]">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-white border border-[#E8DDD3] text-[#766A63]">
                         {log.location === 'indoor_accident' ? 'Indoor Slip' : 'Outdoor'}
                       </span>
                     </div>

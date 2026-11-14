@@ -59,7 +59,7 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
     {
       title: 'Records & Organization',
       items: [
-        { id: 'expenses', label: 'Expense & Budget Tracker', desc: 'Receipt scanner, vet bills & CSV export', icon: <DollarSign className="w-5 h-5 text-amber-600" />, badge: monthTotal > 0 ? `${monthTotal} this mo` : 'Track budget' },
+        { id: 'expenses', label: 'Expense & Budget Tracker', desc: 'Receipt scanner, vet bills & CSV export', icon: <DollarSign className="w-5 h-5 text-amber-600" />, badge: monthTotal > 0 ? `$${monthTotal.toFixed(0)} this mo` : 'Track budget' },
         { id: 'vault', label: 'Document Vault', desc: 'Vaccine records, microchip & insurance PDFs', icon: <FileText className="w-5 h-5 text-sky-600" />, badge: documents.length > 0 ? `${documents.length} docs` : 'Store files' },
         { id: 'sharing', label: 'Family & Caregiver Team', desc: 'Partner sharing & pet sitter emergency sheet', icon: <Users className="w-5 h-5 text-indigo-600" /> }
       ]
@@ -118,7 +118,7 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
           <div>
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-extrabold text-[#2C211B]">Install PupLume App</h3>
-              <span className="text-[10px] bg-[#8B5E3C] text-white px-1.5 py-0.2 rounded-md font-bold">PWA</span>
+              <span className="text-[10px] bg-[#8B5E3C] text-white px-1.5 py-0.5 rounded-md font-bold">PWA</span>
             </div>
             <p className="text-xs text-[#766A63] mt-0.5">
               Add to Home Screen for one-tap launch, offline capability, and standalone display.

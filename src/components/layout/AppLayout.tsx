@@ -319,7 +319,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-20 md:pb-6' : 'pb-28 md:pb-8'}`}>
+      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-16 md:pb-4' : 'pb-24 md:pb-8'}`}>
         {children}
       </main>
 

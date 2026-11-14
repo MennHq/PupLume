@@ -128,7 +128,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -216,7 +216,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
                   <div className="flex items-center gap-2">
                     <h4 className="text-xs sm:text-sm font-bold text-[#2C211B]">{member.name}</h4>
                     {member.status === 'invited' && (
-                      <span className="text-[10px] bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-semibold">
+                      <span className="text-[10px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-semibold">
                         Invite Sent
                       </span>
                     )}

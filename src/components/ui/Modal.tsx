@@ -135,7 +135,7 @@ export const Modal: React.FC<ModalProps> = ({
             )}
 
             {/* Body */}
-            <div className="p-5 overflow-y-auto flex-1">{children}</div>
+            <div className="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 overflow-y-auto flex-1">{children}</div>
           </motion.div>
         </div>
       )}

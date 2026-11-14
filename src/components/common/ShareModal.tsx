@@ -549,7 +549,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               >
                 <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] shadow-md shadow-rose-500/20 text-white flex items-center justify-center group-hover:scale-105 transition-all">
                   <InstagramGlyph className="w-6 h-6 text-white" />
-                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full bg-amber-400 text-[#2C211B] text-[8px] font-black uppercase tracking-tighter shadow-xs">
+                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded-full bg-amber-400 text-[#2C211B] text-[8px] font-black uppercase tracking-tighter shadow-xs">
                     Story
                   </span>
                 </div>

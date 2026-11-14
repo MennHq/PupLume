@@ -141,7 +141,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               <h5 className="text-xs font-bold text-[#2C211B] flex items-center gap-1.5">
                 <span>{permission === 'granted' ? 'Background Alerts Active' : 'Enable Device Push Alerts'}</span>
                 {permission === 'granted' && (
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
                     Live
                   </span>
                 )}

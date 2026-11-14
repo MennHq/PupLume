@@ -234,7 +234,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             id="home-search-button"
             onClick={onOpenSearch}
-            className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+            className="sm:hidden p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
             aria-label="Search records"
           >
             <Search className="w-4 h-4" />
@@ -243,7 +243,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             id="home-notifications-button"
             onClick={onOpenNotifications}
-            className="p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+            className="sm:hidden p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />

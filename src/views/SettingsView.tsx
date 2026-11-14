@@ -274,7 +274,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
 
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6">
       {/* Header */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-5 sm:p-6 shadow-xs">
         <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B]">
