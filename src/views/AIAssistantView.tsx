@@ -87,8 +87,10 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     setIsLoading(true);
 
     try {
-      const birthDate = new Date(puppy.birthDate);
-      const ageWeeks = Math.max(1, Math.floor((new Date().getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+      const birthTimestamp = puppy.birthDate ? new Date(puppy.birthDate).getTime() : NaN;
+      const ageWeeks = isNaN(birthTimestamp)
+        ? 12
+        : Math.max(1, Math.floor((Date.now() - birthTimestamp) / (1000 * 60 * 60 * 24 * 7)));
 
       const pLogs = storage.getPottyLogs(puppy.id);
       const outdoorCount = pLogs.filter(l => l.location === 'outdoor' || l.location === 'pad').length;

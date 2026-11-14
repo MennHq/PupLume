@@ -153,7 +153,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
   const handleSaveExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(expenseAmount);
-    if (!expenseTitle || isNaN(amount)) return;
+    if (!expenseTitle.trim() || isNaN(amount) || amount <= 0) return;
     storage.addExpense({
       puppyId: activePuppy.id,
       title: expenseTitle,
@@ -173,7 +173,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
     if (!noteText.trim()) return;
     storage.addJournalEntry({
       puppyId: activePuppy.id,
-      title: `Puppy Log: ${noteText.slice(0, 30)}...`,
+      title: noteText.trim().length > 30 ? `Puppy Log: ${noteText.trim().slice(0, 30)}...` : `Puppy Log: ${noteText.trim()}`,
       date: new Date().toISOString().split('T')[0],
       notes: noteText
     });

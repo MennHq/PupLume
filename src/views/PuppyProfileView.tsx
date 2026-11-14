@@ -299,8 +299,10 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
   }, [puppy]);
 
   // Age calculations
-  const bDate = new Date(puppy.birthDate);
-  const ageWeeks = Math.max(1, Math.floor((Date.now() - bDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+  const birthTimestamp = puppy.birthDate ? new Date(puppy.birthDate).getTime() : NaN;
+  const ageWeeks = isNaN(birthTimestamp)
+    ? 12
+    : Math.max(1, Math.floor((Date.now() - birthTimestamp) / (1000 * 60 * 60 * 24 * 7)));
   const ageDisplay = ageWeeks >= 52 
     ? `${(ageWeeks / 52).toFixed(1)} yrs old` 
     : `${ageWeeks} weeks old`;

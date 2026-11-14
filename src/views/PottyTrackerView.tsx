@@ -64,6 +64,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
   };
 
   const handleDeleteLog = (id: string) => {
+    if (!confirm('Are you sure you want to delete this potty log?')) return;
     storage.deletePottyLog(id);
     setLogs(storage.getPottyLogs(puppy.id));
   };
@@ -141,8 +142,10 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Potty Countdown */}
         {(() => {
-          const birthDate = new Date(puppy.birthDate);
-          const ageWeeks = Math.max(1, Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+          const birthTimestamp = puppy.birthDate ? new Date(puppy.birthDate).getTime() : NaN;
+          const ageWeeks = isNaN(birthTimestamp)
+            ? 12
+            : Math.max(1, Math.floor((Date.now() - birthTimestamp) / (1000 * 60 * 60 * 24 * 7)));
           const maxIntervalMin = Math.min(240, Math.max(45, Math.round((ageWeeks / 4) * 60)));
           const lastLog = logs[0];
           let remainingMin = maxIntervalMin;

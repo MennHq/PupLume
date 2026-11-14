@@ -24,6 +24,7 @@ import {
 import { INITIAL_TRAINING_CURRICULUM } from './curriculumData';
 import { 
   syncPuppyToConvex, 
+  deletePuppyInConvex,
   syncTaskToConvex, 
   toggleTaskInConvex,
   skipTaskInConvex,
@@ -106,6 +107,12 @@ const DEFAULT_SETTINGS: UserSettingsData = {
   snoozeDurationMin: 15,
   chimeSound: true,
 };
+
+let _uniqueIdCounter = 0;
+function generateUniqueId(prefix: string): string {
+  _uniqueIdCounter = (_uniqueIdCounter + 1) % 10000;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}-${_uniqueIdCounter}`;
+}
 
 class StorageManager {
   private currentUserId: string | null = null;
@@ -858,6 +865,18 @@ class StorageManager {
     syncPuppyToConvex(puppy, this.currentUserId || undefined).catch(() => {});
   }
 
+  deletePuppy(id: string): void {
+    if (this.puppies.length <= 1) return;
+    this.puppies = this.puppies.filter((p) => p.id !== id);
+    if (this.activePuppyId === id) {
+      this.activePuppyId = this.puppies[0].id;
+      this.settings.activePuppyId = this.activePuppyId;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
+    deletePuppyInConvex(id, this.currentUserId || undefined).catch(() => {});
+  }
+
   private matchesPuppy(recordPuppyId: string | undefined, targetPuppyId: string): boolean {
     if (!targetPuppyId) return true;
     if (this.puppies.length <= 1) return true;
@@ -1006,7 +1025,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newTask: TaskItem = {
       ...task,
-      id: `task-${Date.now()}`,
+      id: generateUniqueId('task'),
       puppyId: task.puppyId || activePup?.id || 'pup-1',
       title: task.title.trim(),
       category: task.category || 'custom',
@@ -1056,7 +1075,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newLog: PottyLog = { 
       ...log, 
-      id: `potty-${Date.now()}`,
+      id: generateUniqueId('potty'),
       puppyId: log.puppyId || activePup?.id || 'pup-1',
     };
     this.pottyLogs.unshift(newLog);
@@ -1084,7 +1103,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newLog: SleepLog = { 
       ...log, 
-      id: `sleep-${Date.now()}`,
+      id: generateUniqueId('sleep'),
       puppyId: log.puppyId || activePup?.id || 'pup-1',
     };
     this.sleepLogs.unshift(newLog);
@@ -1112,7 +1131,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newLog: FeedingLog = { 
       ...log, 
-      id: `feed-${Date.now()}`,
+      id: generateUniqueId('feed'),
       puppyId: log.puppyId || activePup?.id || 'pup-1',
     };
     this.feedingLogs.unshift(newLog);
@@ -1140,7 +1159,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newLog: WalkLog = { 
       ...log, 
-      id: `walk-${Date.now()}`,
+      id: generateUniqueId('walk'),
       puppyId: log.puppyId || activePup?.id || 'pup-1',
     };
     this.walkLogs.unshift(newLog);
@@ -1203,7 +1222,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newVac: VaccinationRecord = { 
       ...v, 
-      id: `vac-${Date.now()}`,
+      id: generateUniqueId('vac'),
       puppyId: v.puppyId || activePup?.id || 'pup-1',
     };
     this.vaccinations.push(newVac);
@@ -1230,7 +1249,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newMed: MedicationRecord = { 
       ...m, 
-      id: `med-${Date.now()}`,
+      id: generateUniqueId('med'),
       puppyId: m.puppyId || activePup?.id || 'pup-1',
     };
     this.medications.push(newMed);
@@ -1257,7 +1276,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newApt: VetAppointment = { 
       ...a, 
-      id: `apt-${Date.now()}`,
+      id: generateUniqueId('apt'),
       puppyId: a.puppyId || activePup?.id || 'pup-1',
     };
     this.appointments.push(newApt);
@@ -1285,7 +1304,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newExp: ExpenseRecord = { 
       ...e, 
-      id: `exp-${Date.now()}`,
+      id: generateUniqueId('exp'),
       puppyId: e.puppyId || activePup?.id || 'pup-1',
     };
     this.expenses.unshift(newExp);
@@ -1313,7 +1332,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newDoc: DocumentRecord = { 
       ...d, 
-      id: `doc-${Date.now()}`,
+      id: generateUniqueId('doc'),
       puppyId: d.puppyId || activePup?.id || 'pup-1',
     };
     this.documents.unshift(newDoc);
@@ -1341,7 +1360,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newBeh: BehaviorIncident = { 
       ...b, 
-      id: `beh-${Date.now()}`,
+      id: generateUniqueId('beh'),
       puppyId: b.puppyId || activePup?.id || 'pup-1',
     };
     this.behaviorLogs.unshift(newBeh);
@@ -1444,7 +1463,7 @@ class StorageManager {
     const activePup = this.getActivePuppy();
     const newEntry: JournalEntry = { 
       ...j, 
-      id: `jrn-${Date.now()}`,
+      id: generateUniqueId('jrn'),
       puppyId: j.puppyId || activePup?.id || 'pup-1',
     };
     this.journal.unshift(newEntry);
@@ -1473,7 +1492,7 @@ class StorageManager {
   }
 
   addFamilyMember(m: Omit<FamilyMember, 'id'>): FamilyMember {
-    const newMember: FamilyMember = { ...m, id: `fam-${Date.now()}` };
+    const newMember: FamilyMember = { ...m, id: generateUniqueId('fam') };
     this.family.push(newMember);
     this.persistUserCache();
     this.notifyListeners();

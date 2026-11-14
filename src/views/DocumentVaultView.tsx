@@ -62,6 +62,8 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
 
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
+    const label = doc ? ` "${doc.title}"` : '';
+    if (!confirm(`Are you sure you want to permanently delete document${label}?`)) return;
     if (doc?.fileUrl) {
       deleteImageFromCloudinary(doc.fileUrl).catch(() => {});
     }

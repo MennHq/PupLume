@@ -46,7 +46,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
-    if (!title.trim() || isNaN(val)) return;
+    if (!title.trim() || isNaN(val) || val <= 0) return;
 
     storage.addExpense({
       puppyId: puppy.id,
@@ -98,7 +98,10 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   const handleExportCSV = () => {
     let csv = 'ID,Date,Title,Category,Vendor,Amount\n';
     expenses.forEach(exp => {
-      csv += `"${exp.id}","${exp.date}","${exp.title}","${exp.category}","${exp.vendor}","${exp.amount.toFixed(2)}"\n`;
+      const cleanTitle = (exp.title || '').replace(/"/g, '""');
+      const cleanCat = (exp.category || '').replace(/"/g, '""');
+      const cleanVendor = (exp.vendor || '').replace(/"/g, '""');
+      csv += `"${exp.id}","${exp.date}","${cleanTitle}","${cleanCat}","${cleanVendor}","${(Number(exp.amount) || 0).toFixed(2)}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -243,6 +246,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
                 <button
                   type="button"
                   onClick={() => {
+                    if (!confirm(`Are you sure you want to delete the expense "${exp.title}" ($${exp.amount.toFixed(2)})?`)) return;
                     storage.deleteExpense(exp.id);
                     setExpenses([...storage.getExpenses(puppy.id)]);
                   }}

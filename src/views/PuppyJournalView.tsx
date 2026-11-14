@@ -169,6 +169,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
                 <button
                   type="button"
                   onClick={() => {
+                    if (!confirm(`Are you sure you want to delete this memory: "${entry.title}"?`)) return;
                     const media = entry.mediaUrl || (entry as any).photoUrl;
                     if (media) {
                       deleteImageFromCloudinary(media).catch(() => {});

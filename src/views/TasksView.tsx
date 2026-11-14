@@ -43,20 +43,23 @@ const parseTimeToHoursAndMinutes = (timeStr: string): { hours: number; minutes: 
 };
 
 const generateTaskGoogleCalendarUrl = (task: TaskItem) => {
-  const startDate = (task.date || new Date().toISOString().split('T')[0]).replace(/-/g, '');
   const { hours, minutes } = parseTimeToHoursAndMinutes(task.time);
-  const startHourStr = String(hours).padStart(2, '0');
-  const startMinStr = String(minutes).padStart(2, '0');
-  const startTime = `${startHourStr}${startMinStr}00`;
-  
+  const [y, m, d] = (task.date || new Date().toISOString().split('T')[0]).split('-').map(Number);
   const duration = task.durationMin || 30;
-  const tempDate = new Date();
-  tempDate.setHours(hours, minutes + duration, 0);
-  const endHour = String(tempDate.getHours()).padStart(2, '0');
-  const endMinute = String(tempDate.getMinutes()).padStart(2, '0');
-  const endTime = `${endHour}${endMinute}00`;
+  const start = new Date(y, (m || 1) - 1, d || 1, hours, minutes, 0);
+  const end = new Date(start.getTime() + duration * 60000);
 
-  const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
+  const formatCalDate = (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
+  };
+
+  const dates = `${formatCalDate(start)}/${formatCalDate(end)}`;
 
   const url = new URL('https://calendar.google.com/calendar/render');
   url.searchParams.append('action', 'TEMPLATE');
@@ -116,32 +119,30 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
   // Desktop keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input or textarea
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      // Don't trigger if user is typing in an input, textarea, select, or contenteditable
+      const target = e.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement || 
+        target instanceof HTMLTextAreaElement || 
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable
+      ) {
         return;
       }
 
-      // Force Alt+N or Shift+N or simply N (if not typing)
-      const isNewTaskShortcut = 
-        (e.altKey && e.key.toLowerCase() === 'n') || 
-        (e.shiftKey && e.key.toLowerCase() === 'n') ||
-        (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'n');
+      // Escape to close active menus
+      if (e.key === 'Escape' && activeMenuTaskId) {
+        setActiveMenuTaskId(null);
+        return;
+      }
+
+      // Standard shortcut: Alt+N or Cmd/Ctrl+Alt+N
+      const isNewTaskShortcut = (e.altKey && e.key.toLowerCase() === 'n');
 
       if (isNewTaskShortcut) {
         e.preventDefault();
         e.stopPropagation();
         setIsAddOpen(true);
-      }
-      
-      // Allow pressing 'T' to add a task quickly
-      if (!e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        setIsAddOpen(true);
-      }
-
-      // Escape to close
-      if (e.key === 'Escape' && activeMenuTaskId) {
-        setActiveMenuTaskId(null);
       }
     };
     
@@ -167,6 +168,9 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
   };
 
   const handleDelete = (taskId: string) => {
+    const target = tasks.find(t => t.id === taskId);
+    const label = target ? ` "${target.title}"` : '';
+    if (!confirm(`Are you sure you want to delete task${label}?`)) return;
     storage.deleteTask(taskId);
     setTasks([...storage.getTasks(puppy.id)]);
     setActiveMenuTaskId(null);

@@ -63,29 +63,33 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
     }
   }, [activeLessonId]);
 
-  // Screen Wake Lock & Timer tick
+  // Screen Wake Lock & Timer tick (stable interval, no drift)
   React.useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-    if (isTimerRunning && timerSeconds > 0) {
-      nativeBridge.wakeLock.request('academy-timer');
-      interval = setInterval(() => {
-        setTimerSeconds(s => s - 1);
-      }, 1000);
-    } else if (timerSeconds === 0) {
-      if (isTimerRunning) {
-        nativeBridge.haptics.success();
-        playNotificationChime();
-      }
-      setIsTimerRunning(false);
+    if (!isTimerRunning) {
       nativeBridge.wakeLock.release('academy-timer');
-    } else {
-      nativeBridge.wakeLock.release('academy-timer');
+      return;
     }
+
+    nativeBridge.wakeLock.request('academy-timer');
+    const interval = setInterval(() => {
+      setTimerSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsTimerRunning(false);
+          nativeBridge.haptics.success();
+          playNotificationChime();
+          nativeBridge.wakeLock.release('academy-timer');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => {
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
       nativeBridge.wakeLock.release('academy-timer');
     };
-  }, [isTimerRunning, timerSeconds]);
+  }, [isTimerRunning]);
 
   const modules = [
     { id: 'all', title: 'All Modules' },

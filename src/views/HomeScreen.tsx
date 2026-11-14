@@ -131,9 +131,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   // Next up task: first uncompleted task
   const nextUpTask = tasks.find(t => !t.completed && !t.skipped) || null;
 
-  // Calculate puppy age in weeks
-  const birthDate = new Date(puppy.birthDate);
-  const ageWeeks = Math.max(1, Math.floor((new Date().getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
+  // Calculate puppy age in weeks with NaN guard
+  const birthTimestamp = puppy.birthDate ? new Date(puppy.birthDate).getTime() : NaN;
+  const ageWeeks = isNaN(birthTimestamp)
+    ? 12
+    : Math.max(1, Math.floor((Date.now() - birthTimestamp) / (1000 * 60 * 60 * 24 * 7)));
 
   const handleToggleTask = (taskId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -332,7 +334,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   {lastPotty ? `Last: ${lastPotty.type} (${lastPotty.location})` : 'Untracked Today'}
                 </h3>
                 <p className="text-[11px] text-[#766A63] mt-1">
-                  {lastPotty ? `Recorded at ${new Date(lastPotty.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Tap to log first bathroom break'}
+                  {lastPotty 
+                    ? `Recorded at ${!isNaN(new Date(lastPotty.timestamp).getTime()) ? new Date(lastPotty.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'recently'}` 
+                    : 'Tap to log first bathroom break'}
                 </p>
               </div>
               <div className={`p-2.5 rounded-xl ${lastPotty ? 'bg-emerald-50 text-emerald-700' : 'bg-[#FAF6F0] text-[#8B5E3C]'} group-hover:scale-105 transition-transform`}>
@@ -414,7 +418,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 variant="primary"
                 size="sm"
                 leftIcon={<Play className="w-4 h-4 fill-white" />}
-                onClick={() => onOpenLesson('lesson-1')}
+                onClick={() => {
+                  const lessons = storage.getTrainingLessons();
+                  const matched = lessons.find(l => 
+                    l.title.toLowerCase().includes(nextUpTask.title.toLowerCase()) || 
+                    nextUpTask.title.toLowerCase().includes(l.title.toLowerCase())
+                  );
+                  onOpenLesson(matched ? matched.id : 'lesson-1');
+                }}
               >
                 Start Interactive Drill
               </Button>

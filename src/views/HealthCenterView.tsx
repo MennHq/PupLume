@@ -44,16 +44,22 @@ const parseTimeToHoursAndMinutes = (timeStr: string): { hours: number; minutes: 
 };
 
 const generateGoogleCalendarUrl = (apt: VetAppointment) => {
-  const startDate = apt.date.replace(/-/g, '');
   const { hours, minutes } = parseTimeToHoursAndMinutes(apt.time);
-  const startHourStr = String(hours).padStart(2, '0');
-  const startMinStr = String(minutes).padStart(2, '0');
-  const startTime = `${startHourStr}${startMinStr}00`;
-  
-  const endHour = String((hours + 1) % 24).padStart(2, '0');
-  const endTime = `${endHour}${startMinStr}00`;
+  const [y, m, d] = (apt.date || new Date().toISOString().split('T')[0]).split('-').map(Number);
+  const start = new Date(y, (m || 1) - 1, d || 1, hours, minutes, 0);
+  const end = new Date(start.getTime() + 60 * 60000); // 1-hour appointment window
 
-  const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
+  const formatCalDate = (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
+  };
+
+  const dates = `${formatCalDate(start)}/${formatCalDate(end)}`;
   const details = `Reason: ${apt.reason}\nNotes: ${apt.notes || ''}`;
   const location = apt.clinic;
 
@@ -409,6 +415,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     <button
                       type="button"
                       onClick={() => {
+                        if (!confirm(`Are you sure you want to remove the vaccination record for "${vac.vaccineName}"?`)) return;
                         storage.deleteVaccination(vac.id);
                         setVaccinations(storage.getVaccinations(puppy.id));
                       }}
@@ -480,6 +487,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     <button
                       type="button"
                       onClick={() => {
+                        if (!confirm(`Are you sure you want to remove the medication "${med.name}"?`)) return;
                         storage.deleteMedication(med.id);
                         setMedications(storage.getMedications(puppy.id));
                       }}
@@ -555,6 +563,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                       <button
                         type="button"
                         onClick={() => {
+                          if (!confirm(`Are you sure you want to remove the appointment "${apt.title}"?`)) return;
                           storage.deleteAppointment(apt.id);
                           setAppointments(storage.getAppointments(puppy.id));
                         }}

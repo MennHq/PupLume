@@ -232,6 +232,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
                 {member.role !== 'Admin' && (
                   <button
                     onClick={() => {
+                      if (!confirm(`Are you sure you want to remove ${member.name} (${member.email}) from family sharing?`)) return;
                       storage.removeFamilyMember(member.id);
                       if (user?.id) {
                         deleteFamilyMemberMutation({ id: member.id, userId: user.id }).catch((err) =>
@@ -239,7 +240,8 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
                         );
                       }
                     }}
-                    className="p-1 text-[#766A63] hover:text-rose-600 transition-colors"
+                    className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                    title="Remove member"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
