@@ -988,12 +988,18 @@ class StorageManager {
   }
 
   deleteTask(taskId: string): void {
+    const taskToDelete = this.tasks.find((t) => t.id === taskId);
     this.tasks = this.tasks.filter((t) => t.id !== taskId);
     this.persistUserCache();
     this.notifyListeners();
 
-    // Convex IDs vs Local IDs (We attempt to delete in convex if it's a valid ID)
-    deleteTaskInConvex(taskId, this.currentUserId || undefined).catch(() => {});
+    // Convex IDs vs Local IDs (We attempt to delete in convex if it's a valid ID or title match)
+    deleteTaskInConvex(
+      taskId,
+      this.currentUserId || undefined,
+      taskToDelete?.title,
+      taskToDelete?.puppyId
+    ).catch(() => {});
   }
 
   addTask(task: Omit<TaskItem, 'id'>): TaskItem {

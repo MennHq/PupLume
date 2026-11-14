@@ -166,15 +166,24 @@ export async function skipTaskInConvex(
 
 export async function deleteTaskInConvex(
   id: string,
-  userId?: string
+  userId?: string,
+  title?: string,
+  puppyId?: string
 ): Promise<boolean> {
-  if (!id || id.startsWith('task-')) {
+  const isValidConvexId = Boolean(id && !id.startsWith('task-'));
+  if (!isValidConvexId && !title) {
     return true;
   }
-  const payload = {
-    id: id as any,
-    userId,
-  };
+  const payload: any = { userId };
+  if (isValidConvexId) {
+    payload.id = id;
+  }
+  if (title) {
+    payload.title = title;
+  }
+  if (puppyId) {
+    payload.puppyId = puppyId;
+  }
   return runWithOfflineQueue("tasks:deleteTask", payload, () =>
     convex.mutation(api.tasks.deleteTask, payload)
   );
