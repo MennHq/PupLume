@@ -8,9 +8,15 @@ import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary credentials from Convex environment variables
 function getCloudinary() {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "puplume";
-  const apiKey = process.env.CLOUDINARY_API_KEY || "676714719837168";
-  const apiSecret = process.env.CLOUDINARY_API_SECRET || "OdMstlADoBFXHObvTBGhUR091Lk";
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error(
+      "Missing Cloudinary environment configuration (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)."
+    );
+  }
 
   cloudinary.config({
     cloud_name: cloudName,

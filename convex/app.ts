@@ -74,30 +74,9 @@ export const getUserAppData = query({
       } as any;
     }
 
-    const [
-      puppies, tasks, pottyLogs, feedingLogs, sleepLogs, walkLogs, vaccinations, medications, appointments, expenses, documents, behaviorLogs, groomingTasks, socialization, journalEntries, trainingLessons, notifications, familyMembers, memories, settings
-    ] = await Promise.all([
-      ctx.db.query('puppies').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('tasks').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('pottyLogs').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('feedingLogs').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('sleepLogs').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('walkLogs').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('vaccinations').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('medications').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('appointments').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('expenses').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('documents').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('behaviorLogs').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('groomingTasks').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('socialization').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('journalEntries').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('trainingLessons').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('notifications').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('familyMembers').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('memories').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('userSettings').withIndex('by_user', q => q.eq('userId', userId)).first(),
-    ]);
+    // 1. Fetch owned puppies and puppies shared via family invites
+    const ownedPuppies = await ctx.db.query('puppies').withIndex('by_user', q => q.eq('userId', userId)).collect();
+    const puppies = [...ownedPuppies];
 
     // Also include puppies shared with this user via family membership
     if (effectiveEmail) {
@@ -119,14 +98,58 @@ export const getUserAppData = query({
       }
     }
 
-    // Deduplicate puppies by trimmed lowercase name
+    // Deduplicate puppies by trimmed lowercase name and ID
     const seenNames = new Set<string>();
+    const seenIds = new Set<string>();
     const deduplicatedPuppies = puppies.filter((p: any) => {
       const key = (p.name || '').trim().toLowerCase();
-      if (!key || seenNames.has(key)) return false;
-      seenNames.add(key);
+      if (seenIds.has(p._id) || (key && seenNames.has(key))) return false;
+      seenIds.add(p._id);
+      if (key) seenNames.add(key);
       return true;
     });
+
+    const accessiblePuppyIds = deduplicatedPuppies.map((p: any) => p._id);
+
+    // Helper to query child tables for all accessible puppies + user's own records
+    const collectForPuppies = async (table: any) => {
+      const byUser = await ctx.db.query(table).withIndex('by_user', (q: any) => q.eq('userId', userId)).collect();
+      const byPuppyPromises = accessiblePuppyIds.map((pupId: any) =>
+        ctx.db.query(table).withIndex('by_puppy', (q: any) => q.eq('puppyId', pupId)).collect()
+      );
+      const byPuppyResults = await Promise.all(byPuppyPromises);
+      const all = [...byUser, ...byPuppyResults.flat()];
+      const seen = new Set<string>();
+      return all.filter((item: any) => {
+        if (seen.has(item._id)) return false;
+        seen.add(item._id);
+        return true;
+      });
+    };
+
+    const [
+      tasks, pottyLogs, feedingLogs, sleepLogs, walkLogs, vaccinations, medications, appointments, expenses, documents, behaviorLogs, groomingTasks, socialization, journalEntries, trainingLessons, notifications, familyMembers, memories, settings
+    ] = await Promise.all([
+      collectForPuppies('tasks'),
+      collectForPuppies('pottyLogs'),
+      collectForPuppies('feedingLogs'),
+      collectForPuppies('sleepLogs'),
+      collectForPuppies('walkLogs'),
+      collectForPuppies('vaccinations'),
+      collectForPuppies('medications'),
+      collectForPuppies('appointments'),
+      collectForPuppies('expenses'),
+      collectForPuppies('documents'),
+      collectForPuppies('behaviorLogs'),
+      collectForPuppies('groomingTasks'),
+      collectForPuppies('socialization'),
+      collectForPuppies('journalEntries'),
+      collectForPuppies('trainingLessons'),
+      ctx.db.query('notifications').withIndex('by_user', q => q.eq('userId', userId)).collect(),
+      ctx.db.query('familyMembers').withIndex('by_user', q => q.eq('userId', userId)).collect(),
+      ctx.db.query('memories').withIndex('by_user', q => q.eq('userId', userId)).collect(),
+      ctx.db.query('userSettings').withIndex('by_user', q => q.eq('userId', userId)).first(),
+    ]);
 
     const primaryPuppyId = deduplicatedPuppies[0]?._id;
     const knownPuppyIds = new Set(deduplicatedPuppies.map((p: any) => p._id));
@@ -157,9 +180,9 @@ export const getUserAppData = query({
       documents: documents.map(normalizePuppyId),
       behaviorLogs: behaviorLogs.map(normalizePuppyId),
       groomingTasks: groomingTasks.map(normalizePuppyId),
-      socialization,
-      journalEntries,
-      trainingLessons,
+      socialization: socialization.map(normalizePuppyId),
+      journalEntries: journalEntries.map(normalizePuppyId),
+      trainingLessons: trainingLessons.map(normalizePuppyId),
       notifications,
       familyMembers,
       memories,

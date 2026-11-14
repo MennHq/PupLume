@@ -171,9 +171,10 @@ export const deleteVaccination = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Record not found or unauthorized");
+    if (!record) {
+      throw new Error("Record not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;
@@ -189,9 +190,10 @@ export const deleteMedication = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Record not found or unauthorized");
+    if (!record) {
+      throw new Error("Record not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;
@@ -207,9 +209,10 @@ export const deleteAppointment = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Record not found or unauthorized");
+    if (!record) {
+      throw new Error("Record not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

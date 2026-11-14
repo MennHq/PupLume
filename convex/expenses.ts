@@ -36,6 +36,7 @@ export const addExpense = mutation({
     amount: v.number(),
     date: v.string(),
     vendor: v.string(),
+    receiptUrl: v.optional(v.string()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -64,9 +65,10 @@ export const deleteExpense = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Expense not found or unauthorized");
+    if (!record) {
+      throw new Error("Expense not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

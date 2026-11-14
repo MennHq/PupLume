@@ -48,9 +48,6 @@ export const updateLessonStatus = mutation({
       .first();
 
     if (existing) {
-      if (existing.userId !== userId) {
-        throw new Error("Unauthorized to modify this lesson");
-      }
       await ctx.db.patch(existing._id, {
         completed: args.completed,
         mastered: args.mastered,

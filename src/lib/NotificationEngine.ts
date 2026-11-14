@@ -10,6 +10,7 @@ class NotificationEngine {
   private notifiedTaskIds: Set<string> = new Set();
   private lastPottyAlertTimes: Map<string, number> = new Map();
   private notifiedMedicationKeys: Set<string> = new Set();
+  private currentUserId: string | null = null;
   
   public async requestPermission(): Promise<NotificationPermission> {
     if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -18,7 +19,7 @@ class NotificationEngine {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        await this.syncPushSubscriptionToCloud();
+        await this.syncPushSubscriptionToCloud(this.currentUserId || undefined);
       }
       return permission;
     } catch {
@@ -36,7 +37,7 @@ class NotificationEngine {
   /**
    * Register push subscription with service worker and sync to Convex
    */
-  public async syncPushSubscriptionToCloud(): Promise<void> {
+  public async syncPushSubscriptionToCloud(userId?: string): Promise<void> {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
     try {
@@ -61,10 +62,10 @@ class NotificationEngine {
 
       if (subscription) {
         const subJson = subscription.toJSON();
-        const currentUserId = storage.getCurrentUserId();
-        if (currentUserId && subJson.endpoint && subJson.keys) {
+        const activeUserId = userId || this.currentUserId || storage.getCurrentUserId();
+        if (activeUserId && subJson.endpoint && subJson.keys) {
           await convex.mutation(api.notifications.registerPushSubscription, {
-            userId: currentUserId,
+            userId: activeUserId,
             endpoint: subJson.endpoint,
             keys: {
               p256dh: subJson.keys.p256dh || '',
@@ -80,7 +81,11 @@ class NotificationEngine {
     }
   }
 
-  start() {
+  start(userId?: string) {
+    if (userId) {
+      this.currentUserId = userId;
+      storage.setAuthenticatedUser(userId);
+    }
     if (this.timer) return;
 
     // Run check every 60 seconds
@@ -90,7 +95,7 @@ class NotificationEngine {
     this.initialTimer = setTimeout(() => {
       this.check();
       if (this.getPermissionStatus() === 'granted') {
-        this.syncPushSubscriptionToCloud();
+        this.syncPushSubscriptionToCloud(this.currentUserId || undefined);
       }
       this.initialTimer = null;
     }, 4000);
@@ -396,7 +401,7 @@ class NotificationEngine {
     }
 
     // 2. In-App Notification (Stored in Convex & local storage)
-    const currentUserId = storage.getCurrentUserId();
+    const currentUserId = this.currentUserId || storage.getCurrentUserId();
     if (currentUserId) {
       convex.mutation(api.notifications.addNotification, {
         userId: currentUserId,

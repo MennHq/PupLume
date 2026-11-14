@@ -61,9 +61,10 @@ export const deleteJournalEntry = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const entry = await ctx.db.get(args.id);
-    if (!entry || entry.userId !== userId) {
-      throw new Error("Journal entry not found or unauthorized");
+    if (!entry) {
+      throw new Error("Journal entry not found");
     }
+    await verifyPuppyAccess(ctx, entry.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

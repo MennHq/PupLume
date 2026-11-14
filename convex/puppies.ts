@@ -618,6 +618,43 @@ export const unlockSmartTagPass = mutation({
       throw new Error("Puppy not found or unauthorized");
     }
 
+    // Verify payment record in purchases table for smart tag pass or full lifetime access
+    const userPurchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("itemType"), "smart_tag_pass"),
+          q.eq(q.field("itemType"), "lifetime_access")
+        )
+      )
+      .first();
+
+    if (!userPurchases) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
+        .first();
+
+      let emailPurchase = null;
+      if (user?.email) {
+        emailPurchase = await ctx.db
+          .query("purchases")
+          .withIndex("by_email", (q) => q.eq("email", user.email!))
+          .filter((q) =>
+            q.or(
+              q.eq(q.field("itemType"), "smart_tag_pass"),
+              q.eq(q.field("itemType"), "lifetime_access")
+            )
+          )
+          .first();
+      }
+
+      if (!emailPurchase && !user?.hasAccess) {
+        throw new Error("Payment record required to unlock smart collar tag pass.");
+      }
+    }
+
     await ctx.db.patch(puppy._id, {
       hasSmartTagPass: true,
     });

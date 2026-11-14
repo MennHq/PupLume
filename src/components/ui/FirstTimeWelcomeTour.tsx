@@ -26,7 +26,8 @@ export const FirstTimeWelcomeTour: React.FC<FirstTimeWelcomeTourProps> = ({ pupp
 
   useEffect(() => {
     // Check if user has already seen this tour
-    const hasSeen = localStorage.getItem(storageKey);
+    const settings = storage.getSettings();
+    const hasSeen = settings.hasCompletedOnboarding || localStorage.getItem(storageKey);
     if (!hasSeen) {
       // Small 800ms delay so user sees dashboard first, then gets greeted
       const timer = setTimeout(() => {
@@ -48,6 +49,10 @@ export const FirstTimeWelcomeTour: React.FC<FirstTimeWelcomeTourProps> = ({ pupp
 
   const handleFinish = () => {
     localStorage.setItem(storageKey, 'true');
+    const settings = storage.getSettings();
+    if (!settings.hasCompletedOnboarding) {
+      storage.saveSettings({ ...settings, hasCompletedOnboarding: true });
+    }
     setIsOpen(false);
     if (onTourComplete) onTourComplete();
   };

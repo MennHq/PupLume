@@ -52,9 +52,7 @@ export const saveGroomingTasks = mutation({
       .collect();
 
     for (const item of existing) {
-      if (item.userId === userId) {
-        await ctx.db.delete(item._id);
-      }
+      await ctx.db.delete(item._id);
     }
 
     // Insert new

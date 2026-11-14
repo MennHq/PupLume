@@ -30,23 +30,34 @@ import {
   deleteTaskInConvex,
   updateTaskInConvex,
   syncPottyLogToConvex,
+  deletePottyLogInConvex,
   syncFeedingLogToConvex,
+  deleteFeedingLogInConvex,
   syncSleepLogToConvex,
+  deleteSleepLogInConvex,
   syncWalkLogToConvex,
+  deleteWalkLogInConvex,
   syncVaccinationToConvex,
+  deleteVaccinationInConvex,
   syncMedicationToConvex,
+  deleteMedicationInConvex,
   syncAppointmentToConvex,
+  deleteAppointmentInConvex,
   syncExpenseToConvex,
+  deleteExpenseInConvex,
   syncDocumentToConvex,
   removeDocumentFromConvex,
   syncBehaviorLogToConvex,
+  deleteBehaviorLogInConvex,
   syncGroomingTasksToConvex,
   syncSocializationToConvex,
   syncJournalEntryToConvex,
+  deleteJournalEntryInConvex,
   syncTrainingLessonToConvex,
   syncSettingsToConvex,
   syncFamilyMemberToConvex,
   removeFamilyMemberFromConvex,
+  syncNotificationToConvex,
   syncNotificationReadToConvex,
   syncAllNotificationsReadToConvex,
   syncAIMessageToConvex,
@@ -402,8 +413,14 @@ class StorageManager {
   }
 
   // Hydrate authoritative state from Convex reactive subscription
-  hydrateFromConvex(cloudData: any): void {
-    if (!cloudData || !this.currentUserId) return;
+  hydrateFromConvex(cloudData: any, userId?: string): void {
+    if (!cloudData) return;
+    if (userId && this.currentUserId !== userId) {
+      this.currentUserId = userId;
+    }
+    if (!this.currentUserId && cloudData.user?.clerkId) {
+      this.currentUserId = cloudData.user.clerkId;
+    }
 
     this.hasHydratedFromConvex = true;
 
@@ -679,6 +696,7 @@ class StorageManager {
         amount: e.amount,
         date: e.date,
         vendor: e.vendor,
+        receiptUrl: e.receiptUrl,
         notes: e.notes,
       }));
     }
@@ -1046,6 +1064,7 @@ class StorageManager {
     this.pottyLogs = this.pottyLogs.filter((p) => p.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deletePottyLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Sleep logs (Scoped strictly to active or target puppy)
@@ -1073,6 +1092,7 @@ class StorageManager {
     this.sleepLogs = this.sleepLogs.filter((s) => s.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteSleepLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Feeding logs (Scoped strictly to active or target puppy)
@@ -1100,6 +1120,7 @@ class StorageManager {
     this.feedingLogs = this.feedingLogs.filter((f) => f.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteFeedingLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Walk logs (Scoped strictly to active or target puppy)
@@ -1127,6 +1148,7 @@ class StorageManager {
     this.walkLogs = this.walkLogs.filter((w) => w.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteWalkLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Training
@@ -1189,6 +1211,7 @@ class StorageManager {
     this.vaccinations = this.vaccinations.filter((v) => v.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteVaccinationInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   getMedications(puppyId?: string): MedicationRecord[] {
@@ -1215,6 +1238,7 @@ class StorageManager {
     this.medications = this.medications.filter((m) => m.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteMedicationInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   getAppointments(puppyId?: string): VetAppointment[] {
@@ -1241,6 +1265,7 @@ class StorageManager {
     this.appointments = this.appointments.filter((a) => a.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteAppointmentInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Expenses (Scoped strictly to active or target puppy)
@@ -1268,6 +1293,7 @@ class StorageManager {
     this.expenses = this.expenses.filter((e) => e.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteExpenseInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Documents (Scoped strictly to active or target puppy)
@@ -1317,6 +1343,13 @@ class StorageManager {
     this.notifyListeners();
     syncBehaviorLogToConvex(newBeh, this.currentUserId || undefined).catch(() => {});
     return newBeh;
+  }
+
+  deleteBehaviorIncident(id: string): void {
+    this.behaviorLogs = this.behaviorLogs.filter((b) => b.id !== id);
+    this.persistUserCache();
+    this.notifyListeners();
+    deleteBehaviorLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Grooming & Socialization
@@ -1419,11 +1452,18 @@ class StorageManager {
     this.journal = this.journal.filter((j) => j.id !== id);
     this.persistUserCache();
     this.notifyListeners();
+    deleteJournalEntryInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
   // Family
   getFamily(): FamilyMember[] {
     return this.family;
+  }
+
+  saveFamily(members: FamilyMember[]): void {
+    this.family = members;
+    this.persistUserCache();
+    this.notifyListeners();
   }
 
   addFamilyMember(m: Omit<FamilyMember, 'id'>): FamilyMember {
@@ -1462,6 +1502,16 @@ class StorageManager {
     this.notifications = [notification, ...this.notifications.slice(0, 49)];
     this.persistUserCache();
     this.notifyListeners();
+    syncNotificationToConvex(
+      {
+        title: notification.title,
+        message: notification.message,
+        category: notification.category,
+        timestamp: notification.timestamp,
+        actionUrl: notification.actionUrl,
+      },
+      this.currentUserId || undefined
+    ).catch(() => {});
   }
 
   saveNotifications(notifications: NotificationItem[]): void {
@@ -1631,11 +1681,85 @@ class StorageManager {
       behavior: this.getBehaviorLogs(),
       socialization: this.getSocialization(),
       journal: this.getJournal(),
+      grooming: this.getGroomingTasks(),
+      family: this.getFamily(),
       settings: this.getSettings(),
       exportedAt: new Date().toISOString(),
       version: '2.0.0-convex',
     };
     return JSON.stringify(data, null, 2);
+  }
+
+  // Import data from JSON backup and synchronize to cloud
+  async importDataJSON(data: any): Promise<boolean> {
+    if (!data || typeof data !== 'object') return false;
+
+    if (data.puppy) {
+      this.savePuppy(data.puppy);
+    }
+    if (Array.isArray(data.tasks)) {
+      this.tasks = data.tasks;
+    }
+    if (Array.isArray(data.potty || data.pottyLogs)) {
+      this.pottyLogs = data.potty || data.pottyLogs;
+    }
+    if (Array.isArray(data.sleep || data.sleepLogs)) {
+      this.sleepLogs = data.sleep || data.sleepLogs;
+    }
+    if (Array.isArray(data.feeding || data.feedingLogs)) {
+      this.feedingLogs = data.feeding || data.feedingLogs;
+    }
+    if (Array.isArray(data.walks || data.walkLogs)) {
+      this.walkLogs = data.walks || data.walkLogs;
+    }
+    if (Array.isArray(data.training || data.trainingLessons)) {
+      this.trainingLessons = data.training || data.trainingLessons;
+    }
+    if (Array.isArray(data.vaccinations)) {
+      this.vaccinations = data.vaccinations;
+    }
+    if (Array.isArray(data.medications)) {
+      this.medications = data.medications;
+    }
+    if (Array.isArray(data.appointments)) {
+      this.appointments = data.appointments;
+    }
+    if (Array.isArray(data.expenses)) {
+      this.expenses = data.expenses;
+    }
+    if (Array.isArray(data.documents)) {
+      this.documents = data.documents;
+    }
+    if (Array.isArray(data.behavior || data.behaviorLogs)) {
+      this.behaviorLogs = data.behavior || data.behaviorLogs;
+    }
+    if (Array.isArray(data.grooming || data.groomingTasks)) {
+      this.groomingTasks = data.grooming || data.groomingTasks;
+    }
+    if (Array.isArray(data.socialization)) {
+      this.socialization = data.socialization;
+    }
+    if (Array.isArray(data.journal || data.journalEntries)) {
+      this.journal = data.journal || data.journalEntries;
+    }
+    if (Array.isArray(data.family || data.familyMembers)) {
+      this.family = data.family || data.familyMembers;
+    }
+    if (data.settings && typeof data.settings === 'object') {
+      this.settings = { ...this.settings, ...data.settings };
+    }
+
+    this.persistUserCache();
+    this.notifyListeners();
+
+    // Trigger full background sync to Convex
+    if (this.currentUserId) {
+      this.syncFullStateToConvex(this.currentUserId).catch((err) => {
+        console.debug('[storage] Background sync after import note:', err);
+      });
+    }
+
+    return true;
   }
 
   // Generate .ICS Calendar File
@@ -1740,6 +1864,11 @@ class StorageManager {
       if (pup) {
         for (const s of this.socialization) {
           await syncSocializationToConvex(pup.id, s, uid);
+        }
+        for (const l of this.trainingLessons) {
+          if (l.completed || l.mastered) {
+            await syncTrainingLessonToConvex(pup.id, l.id, l.completed, l.mastered, uid);
+          }
         }
       }
       for (const j of this.journal) {

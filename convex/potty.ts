@@ -60,9 +60,10 @@ export const deletePottyLog = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const log = await ctx.db.get(args.id);
-    if (!log || log.userId !== userId) {
-      throw new Error("Log not found or unauthorized");
+    if (!log) {
+      throw new Error("Log not found");
     }
+    await verifyPuppyAccess(ctx, log.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

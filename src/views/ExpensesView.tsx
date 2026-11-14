@@ -11,6 +11,7 @@ import { PuppyProfile, ExpenseRecord, ExpenseCategory } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { uploadImageToCloudinary } from '../lib/cloudinary';
 
 interface ExpensesViewProps {
   puppy: PuppyProfile;
@@ -38,6 +39,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   const [category, setCategory] = useState<ExpenseCategory>('vet');
   const [vendor, setVendor] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [receiptUrl, setReceiptUrl] = useState('');
 
   const totalSpend = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -52,26 +54,44 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
       amount: val,
       category,
       vendor: vendor.trim() || 'Store',
-      date
+      date,
+      receiptUrl: receiptUrl || undefined,
     });
     setExpenses(storage.getExpenses(puppy.id));
     setIsAddOpen(false);
     setTitle('');
     setAmount('');
     setVendor('');
+    setReceiptUrl('');
   };
 
-  const handleSimulateReceiptScan = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSimulateReceiptScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
       setIsScanning(true);
-      setTimeout(() => {
-        setIsScanning(false);
+      try {
+        const result = await uploadImageToCloudinary(file, {
+          folder: 'expenses',
+          targetType: 'document',
+          userId: storage.getCurrentUserId() || undefined,
+        });
+        if (result?.url) {
+          setReceiptUrl(result.url);
+        }
+        setTitle(file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || 'Puppy Supplies');
+        setCategory('accessories');
+        setVendor('Store');
+        setIsAddOpen(true);
+      } catch (err) {
+        console.error('[Expenses] Receipt upload error:', err);
         setTitle('Puppy Dental Treats & Chew Rope');
         setAmount('18.49');
         setCategory('treats');
         setVendor('Petco');
         setIsAddOpen(true);
-      }, 1200);
+      } finally {
+        setIsScanning(false);
+      }
     }
   };
 
@@ -206,6 +226,17 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               </div>
 
               <div className="flex items-center gap-3">
+                {exp.receiptUrl && (
+                  <a
+                    href={exp.receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-bold text-[#8B5E3C] hover:underline flex items-center gap-1"
+                    title="View uploaded receipt"
+                  >
+                    Receipt
+                  </a>
+                )}
                 <div className="text-sm font-black text-[#2C211B]">
                   ${exp.amount.toFixed(2)}
                 </div>
@@ -304,6 +335,24 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               />
             </div>
           </div>
+
+          {receiptUrl && (
+            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
+              <span className="truncate max-w-[200px]">Receipt attached</span>
+              <div className="flex items-center gap-2">
+                <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-emerald-700">
+                  View
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setReceiptUrl('')}
+                  className="text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="flex-1">

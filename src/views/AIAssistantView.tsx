@@ -246,6 +246,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       });
     } else if (action.type === 'SAVE_MEMORY') {
       saveMemory({
+        userId: user?.id,
         puppyId: puppy.id,
         fact: p.fact || action.title,
         category: p.category || 'preference'

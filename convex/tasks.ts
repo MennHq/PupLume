@@ -99,7 +99,8 @@ export const updateTask = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const task = await ctx.db.get(args.id);
-    if (!task || task.userId !== userId) throw new Error("Not authorized");
+    if (!task) throw new Error("Task not found");
+    await verifyPuppyAccess(ctx, task.puppyId, userId);
 
     const { id, userId: _, ...updates } = args;
     await ctx.db.patch(id, updates);
@@ -121,8 +122,8 @@ export const toggleTask = mutation({
     let task = null;
     if (args.id) {
       task = await ctx.db.get(args.id);
-      if (task && task.userId !== userId) {
-        throw new Error("Unauthorized: Task does not belong to user");
+      if (task) {
+        await verifyPuppyAccess(ctx, task.puppyId, userId);
       }
     }
     if (!task && args.title) {
@@ -178,8 +179,8 @@ export const skipTask = mutation({
     let task = null;
     if (args.id) {
       task = await ctx.db.get(args.id);
-      if (task && task.userId !== userId) {
-        throw new Error("Unauthorized: Task does not belong to user");
+      if (task) {
+        await verifyPuppyAccess(ctx, task.puppyId, userId);
       }
     }
     if (!task && args.title) {
@@ -222,19 +223,35 @@ export const skipTask = mutation({
 
 export const deleteTask = mutation({
   args: { 
-    id: v.id("tasks"),
+    id: v.optional(v.id("tasks")),
+    title: v.optional(v.string()),
+    puppyId: v.optional(v.string()),
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
 
-    const task = await ctx.db.get(args.id);
-    if (!task || task.userId !== userId) {
-      throw new Error("Task not found or unauthorized");
+    let task = null;
+    if (args.id) {
+      task = await ctx.db.get(args.id);
+    }
+    if (!task && args.title) {
+      const candidates = await ctx.db
+        .query("tasks")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .filter((q) => q.eq(q.field("title"), args.title))
+        .collect();
+      task = (args.puppyId ? candidates.find((c) => c.puppyId === args.puppyId) : candidates[0]) || null;
     }
 
-    await ctx.db.delete(args.id);
-    return args.id;
+    if (!task) {
+      return null;
+    }
+
+    await verifyPuppyAccess(ctx, task.puppyId, userId);
+
+    await ctx.db.delete(task._id);
+    return task._id;
   },
 });
 

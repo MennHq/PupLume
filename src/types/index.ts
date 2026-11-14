@@ -290,6 +290,7 @@ export type FamilyRole = 'Owner' | 'Admin' | 'Caregiver' | 'Viewer';
 
 export interface FamilyMember {
   id: string;
+  puppyId?: string;
   name: string;
   email: string;
   role: FamilyRole;

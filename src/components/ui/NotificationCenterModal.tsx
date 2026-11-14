@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, CheckCheck, Calendar, Activity, Sparkles, CheckCircle2, Volume2, ShieldCheck, Droplets } from 'lucide-react';
+import { useQuery, useMutation } from 'convex/react';
+import { useUser } from '@clerk/react';
+import { api } from '../../../convex/_generated/api';
 import { Modal } from './Modal';
 import { storage } from '../../lib/storage';
 import { NotificationItem } from '../../types';
@@ -16,30 +19,71 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   onClose,
   onSelectAction
 }) => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(storage.getNotifications());
+  const { user } = useUser();
+  const cloudNotifications = useQuery(
+    api.notifications.listNotifications,
+    user?.id ? { userId: user.id } : 'skip'
+  );
+  const markReadMutation = useMutation(api.notifications.markNotificationRead);
+  const markAllReadMutation = useMutation(api.notifications.markAllNotificationsRead);
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => storage.getNotifications());
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [permission, setPermission] = useState<NotificationPermission>(() => 
     notificationEngine.getPermissionStatus()
   );
   const [testSent, setTestSent] = useState(false);
 
-  React.useEffect(() => {
-    if (isOpen) {
+  useEffect(() => {
+    if (cloudNotifications) {
+      const mapped: NotificationItem[] = cloudNotifications.map((n: any) => ({
+        id: n._id,
+        title: n.title,
+        message: n.message,
+        category: (n.category as NotificationItem['category']) || 'reminder',
+        timestamp: n.timestamp,
+        actionUrl: n.actionUrl,
+        read: Boolean(n.read),
+      }));
+      setNotifications(mapped);
+      storage.saveNotifications(mapped);
+    } else if (isOpen) {
       setNotifications(storage.getNotifications());
+    }
+    if (isOpen) {
       setPermission(notificationEngine.getPermissionStatus());
     }
-  }, [isOpen]);
+  }, [cloudNotifications, isOpen]);
+
+  useEffect(() => {
+    const unsub = storage.subscribe(() => {
+      setNotifications(storage.getNotifications());
+    });
+    return unsub;
+  }, []);
 
   const filtered = notifications.filter(n => filter === 'all' || !n.read);
 
   const handleMarkAllRead = () => {
     storage.markAllNotificationsRead();
-    setNotifications(storage.getNotifications());
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (user?.id) {
+      markAllReadMutation({ userId: user.id }).catch((err) =>
+        console.debug('[NotificationCenter] markAllRead note:', err)
+      );
+    }
   };
 
   const handleItemClick = (n: NotificationItem) => {
     storage.markNotificationRead(n.id);
-    setNotifications(storage.getNotifications());
+    setNotifications((prev) =>
+      prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+    );
+    if (user?.id) {
+      markReadMutation({ id: n.id, userId: user.id }).catch((err) =>
+        console.debug('[NotificationCenter] markRead note:', err)
+      );
+    }
     if (n.actionUrl && onSelectAction) {
       onSelectAction(n.actionUrl);
       onClose();
@@ -49,6 +93,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   const handleEnablePush = async () => {
     const res = await notificationEngine.requestPermission();
     setPermission(res);
+    if (res === 'granted' && user?.id) {
+      await notificationEngine.syncPushSubscriptionToCloud(user.id);
+    }
   };
 
   const handleTestPush = async () => {

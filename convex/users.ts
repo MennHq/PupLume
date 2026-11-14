@@ -294,40 +294,54 @@ export const unlockPro = internalMutation({
 
 /**
  * Client-side confirmation after Paddle checkout completion.
- * Verifies caller authentication and registers the completed purchase.
+ * Verifies caller authentication and registers the completed purchase against authoritative records.
  */
 export const confirmCheckoutSuccess = mutation({
   args: {
     userId: v.optional(v.string()),
     email: v.optional(v.string()),
-    transactionId: v.optional(v.string()),
+    transactionId: v.string(),
   },
   handler: async (ctx, args) => {
     const clerkId = await requireAuthUser(ctx, args.userId);
     const normEmail = args.email ? args.email.trim().toLowerCase() : undefined;
 
-    // Validate transactionId format if provided
-    if (args.transactionId && !args.transactionId.startsWith("txn_") && !args.transactionId.startsWith("sim_")) {
-      throw new Error("Invalid transaction ID format.");
+    // Validate transactionId format
+    if (!args.transactionId || (!args.transactionId.startsWith("txn_") && !args.transactionId.startsWith("sim_"))) {
+      throw new Error("Invalid transaction ID format. Must begin with txn_");
     }
 
-    // 1. Record in purchases ledger if transactionId is present
-    if (args.transactionId && normEmail) {
-      const existingPurchase = await ctx.db
-        .query("purchases")
-        .withIndex("by_transaction_id", (q) => q.eq("transactionId", args.transactionId!))
-        .first();
+    // Verify against authoritative purchases table or verified webhook logs
+    const verifiedPurchase = await ctx.db
+      .query("purchases")
+      .withIndex("by_transaction_id", (q) => q.eq("transactionId", args.transactionId))
+      .first();
 
-      if (!existingPurchase) {
-        await ctx.db.insert("purchases", {
-          email: normEmail,
-          userId: clerkId,
-          transactionId: args.transactionId,
-          status: "completed",
-          itemType: "lifetime_access",
-          createdAt: new Date().toISOString(),
-        });
-      }
+    const verifiedWebhook = await ctx.db
+      .query("webhookLogs")
+      .withIndex("by_action", (q) => q.eq("action", "PADDLE_transaction.completed"))
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("environment"), "test_simulation"),
+          q.eq(q.field("payload.data.id"), args.transactionId)
+        )
+      )
+      .first();
+
+    if (!verifiedPurchase && !verifiedWebhook) {
+      throw new Error("Transaction could not be verified against authoritative payment records.");
+    }
+
+    // 1. Record in purchases ledger if not yet recorded
+    if (!verifiedPurchase && normEmail) {
+      await ctx.db.insert("purchases", {
+        email: normEmail,
+        userId: clerkId,
+        transactionId: args.transactionId,
+        status: "completed",
+        itemType: "lifetime_access",
+        createdAt: new Date().toISOString(),
+      });
     }
 
     // 2. Find user by clerkId or indexed email
@@ -348,7 +362,8 @@ export const confirmCheckoutSuccess = mutation({
         clerkId,
         hasAccess: true,
         ...(normEmail ? { email: normEmail } : {}),
-        ...(args.transactionId ? { subscriptionId: args.transactionId, paddleTransactionId: args.transactionId } : {}),
+        subscriptionId: args.transactionId,
+        paddleTransactionId: args.transactionId,
         paidAt: user.paidAt || new Date().toISOString(),
       });
       return true;

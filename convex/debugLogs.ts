@@ -92,12 +92,53 @@ export const logWebhook = internalMutation({
   }
 });
 
+function maskEmail(email: string): string {
+  const parts = email.split('@');
+  if (parts.length !== 2) return '***';
+  const name = parts[0];
+  const maskedName = name.length > 2 ? `${name[0]}***${name[name.length - 1]}` : `${name[0]}***`;
+  return `${maskedName}@${parts[1]}`;
+}
+
+function redactSensitive(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(redactSensitive);
+
+  const result: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === 'string') {
+      if (k.toLowerCase().includes('email')) {
+        result[k] = maskEmail(v);
+      } else if (
+        k.toLowerCase().includes('secret') ||
+        k.toLowerCase().includes('token') ||
+        k.toLowerCase().includes('password') ||
+        k.toLowerCase().includes('key') ||
+        k.toLowerCase().includes('signature')
+      ) {
+        result[k] = '***REDACTED***';
+      } else {
+        result[k] = v;
+      }
+    } else if (typeof v === 'object' && v !== null) {
+      result[k] = redactSensitive(v);
+    } else {
+      result[k] = v;
+    }
+  }
+  return result;
+}
+
 // Authenticated queries & mutations for the developer PaddleLogPage view
 export const getWebhookLogs = query({
   args: {},
   handler: async (ctx) => {
     await requireAuthUser(ctx);
-    return await ctx.db.query('webhookLogs').order('desc').take(50);
+    const logs = await ctx.db.query('webhookLogs').order('desc').take(50);
+    return logs.map((log) => ({
+      ...log,
+      payload: log.payload ? redactSensitive(log.payload) : log.payload,
+    }));
   }
 });
 

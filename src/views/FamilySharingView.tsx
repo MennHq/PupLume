@@ -8,6 +8,9 @@ import {
   Trash2, 
   FileText 
 } from 'lucide-react';
+import { useQuery, useMutation } from 'convex/react';
+import { useUser } from '@clerk/react';
+import { api } from '../../convex/_generated/api';
 import { PuppyProfile, FamilyMember } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -37,10 +40,38 @@ const mapFamilyToMember = (f: FamilyMember): Member => ({
 });
 
 export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) => {
+  const { user } = useUser();
   const [members, setMembers] = useState<Member[]>(() => storage.getFamily().map(mapFamilyToMember));
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const cloudFamily = useQuery(api.family.listFamilyMembers, user?.id ? { userId: user.id } : 'skip');
+  const addFamilyMemberMutation = useMutation(api.family.addFamilyMember);
+  const deleteFamilyMemberMutation = useMutation(api.family.deleteFamilyMember);
+
+  useEffect(() => {
+    if (cloudFamily) {
+      const mapped: Member[] = cloudFamily.map((f: any) => ({
+        id: f._id,
+        name: f.name,
+        email: f.email,
+        role: (f.role === 'Admin' ? 'Admin' : f.role === 'Caregiver' ? 'Walker / Sitter' : 'Member') as 'Admin' | 'Member' | 'Walker / Sitter',
+        avatar: f.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+        status: 'active' as const,
+      }));
+      setMembers(mapped);
+      storage.saveFamily(cloudFamily.map((f: any) => ({
+        id: f._id,
+        name: f.name,
+        email: f.email,
+        role: (f.role || 'Member') as any,
+        avatarUrl: f.avatarUrl,
+        puppyId: f.puppyId,
+        dateAdded: f.dateAdded || new Date().toISOString().split('T')[0],
+      })));
+    }
+  }, [cloudFamily]);
 
   useEffect(() => {
     const unsub = storage.subscribe(() => {
@@ -58,13 +89,24 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
     e.preventDefault();
     if (!inviteEmail.trim()) return;
 
-    storage.addFamilyMember({
+    const roleName: 'Admin' | 'Caregiver' = inviteRole === 'Admin' ? 'Admin' : 'Caregiver';
+    const newMember: Omit<FamilyMember, 'id'> = {
       name: inviteName || inviteEmail.split('@')[0],
-      email: inviteEmail,
-      role: inviteRole === 'Admin' ? 'Admin' : 'Caregiver',
+      email: inviteEmail.trim().toLowerCase(),
+      role: roleName,
       avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
       dateAdded: new Date().toISOString().split('T')[0],
-    });
+      puppyId: puppy.id,
+    };
+
+    storage.addFamilyMember(newMember);
+
+    if (user?.id) {
+      addFamilyMemberMutation({
+        userId: user.id,
+        ...newMember,
+      }).catch((err) => console.debug('[FamilySharing] addFamilyMember note:', err));
+    }
 
     setIsInviteOpen(false);
     setInviteEmail('');
@@ -189,7 +231,14 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
                 </span>
                 {member.role !== 'Admin' && (
                   <button
-                    onClick={() => storage.removeFamilyMember(member.id)}
+                    onClick={() => {
+                      storage.removeFamilyMember(member.id);
+                      if (user?.id) {
+                        deleteFamilyMemberMutation({ id: member.id, userId: user.id }).catch((err) =>
+                          console.debug('[FamilySharing] deleteFamilyMember note:', err)
+                        );
+                      }
+                    }}
                     className="p-1 text-[#766A63] hover:text-rose-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />

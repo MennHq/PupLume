@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const cloud_name = process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || 'puplume';
-const api_key = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || '676714719837168';
-const api_secret = process.env.CLOUDINARY_API_SECRET || 'OdMstlADoBFXHObvTBGhUR091Lk';
+const cloud_name = process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME;
+const api_key = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY;
+const api_secret = process.env.CLOUDINARY_API_SECRET;
 
 if (!cloud_name || !api_key || !api_secret) {
   console.warn('[CloudinaryService] Warning: CLOUDINARY credentials missing from process.env.');

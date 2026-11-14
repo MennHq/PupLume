@@ -54,6 +54,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Malformed JSON payload' });
     }
 
+    // Require authentication: either an auth header or a valid userId
+    const authHeader = (req.headers.authorization as string) || (req.headers['x-user-id'] as string);
+    const callerId = authHeader || body?.userId;
+    if (!callerId || typeof callerId !== 'string' || callerId.trim().length === 0) {
+      return res.status(401).json({ error: 'Authentication required to delete assets' });
+    }
+
     const { url, publicId } = body || {};
     const rawTarget = url || publicId;
 

@@ -62,9 +62,10 @@ export const deleteBehaviorLog = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Behavior log not found or unauthorized");
+    if (!record) {
+      throw new Error("Behavior log not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

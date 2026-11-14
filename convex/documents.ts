@@ -56,29 +56,32 @@ export const deleteDocument = mutation({
   args: { 
     id: v.string(),
     userId: v.optional(v.string()),
+    title: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUser(ctx, args.userId);
 
     const normId = ctx.db.normalizeId("documents", args.id);
-    if (normId) {
-      const doc = await ctx.db.get(normId);
-      if (doc && doc.userId === userId) {
-        await ctx.db.delete(normId);
-        return normId;
+    let doc = normId ? await ctx.db.get(normId) : null;
+
+    if (!doc && (args.title || args.id)) {
+      const matchTitle = args.title || args.id;
+      doc = await ctx.db
+        .query("documents")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .filter((q) => q.eq(q.field("title"), matchTitle))
+        .first();
+    }
+
+    if (!doc) {
+      if (args.id.startsWith("doc-")) {
+        return null;
       }
+      throw new Error("Document not found or unauthorized");
     }
 
-    const doc = await ctx.db
-      .query("documents")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("title"), args.id))
-      .first();
-    if (doc && doc.userId === userId) {
-      await ctx.db.delete(doc._id);
-      return doc._id;
-    }
-
-    throw new Error("Document not found or unauthorized");
+    await verifyPuppyAccess(ctx, doc.puppyId, userId);
+    await ctx.db.delete(doc._id);
+    return doc._id;
   },
 });

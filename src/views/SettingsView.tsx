@@ -95,6 +95,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   const cloudData = useQuery(api.app.getUserAppData, user?.id ? { userId: user.id } : 'skip');
   const memories = cloudData?.memories || [];
   const deleteMemory = useMutation(api.ai.deleteMemory);
+  const saveSettingsMutation = useMutation(api.settings.saveSettings);
+
+  React.useEffect(() => {
+    if (cloudData?.settings) {
+      const s = cloudData.settings;
+      if (s.pottyAlerts !== undefined) setPottyAlerts(s.pottyAlerts);
+      if (s.feedingAlerts !== undefined) setFeedingAlerts(s.feedingAlerts);
+      if (s.trainingAlerts !== undefined) setTrainingAlerts(s.trainingAlerts);
+      if (s.medAlerts !== undefined) setMedAlerts(s.medAlerts);
+      if (s.taskAlerts !== undefined) setTaskAlerts(s.taskAlerts);
+      if (s.units && (s.units === 'imperial' || s.units === 'metric')) setUnits(s.units);
+      if (s.chimeSound !== undefined) setChimeSound(s.chimeSound);
+      if (s.pottyIntervalMode) setPottyIntervalMode(s.pottyIntervalMode as any);
+      if (s.pottyCustomIntervalHours !== undefined) setPottyCustomIntervalHours(s.pottyCustomIntervalHours);
+      if (s.quietHoursEnabled !== undefined) setQuietHoursEnabled(s.quietHoursEnabled);
+      if (s.quietHoursStart) setQuietHoursStart(s.quietHoursStart);
+      if (s.quietHoursEnd) setQuietHoursEnd(s.quietHoursEnd);
+      if (s.taskAdvanceMinutes !== undefined) setTaskAdvanceMinutes(s.taskAdvanceMinutes);
+      if (s.headsUpDurationSec !== undefined) setHeadsUpDurationSec(s.headsUpDurationSec);
+      if (s.snoozeDurationMin !== undefined) setSnoozeDurationMin(s.snoozeDurationMin);
+    }
+  }, [cloudData?.settings]);
 
   React.useEffect(() => {
     return storage.subscribe(() => {
@@ -123,21 +145,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   };
 
   const handleExportJSON = () => {
-    const backup = {
-      puppy: storage.getPuppy(),
-      tasks: storage.getTasks(),
-      pottyLogs: storage.getPottyLogs(),
-      feedingLogs: storage.getFeedingLogs(),
-      sleepLogs: storage.getSleepLogs(),
-      vaccinations: storage.getVaccinations(),
-      medications: storage.getMedications(),
-      appointments: storage.getAppointments(),
-      expenses: storage.getExpenses(),
-      documents: storage.getDocuments(),
-      exportedAt: new Date().toISOString()
-    };
-
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const jsonStr = storage.exportDataJSON();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -145,18 +154,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showStatus('Backup exported successfully!');
+    showStatus('Full backup exported successfully!');
   };
 
   const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const data = JSON.parse(event.target?.result as string);
-          if (data.puppy) storage.savePuppy(data.puppy);
-          if (data.tasks) storage.saveTasks(data.tasks);
-          showStatus('PupLume data restored successfully!');
+          const ok = await storage.importDataJSON(data);
+          if (ok) {
+            showStatus('PupLume data restored & synced to cloud!');
+          } else {
+            showStatus('Error: Invalid JSON backup file.');
+          }
         } catch (err) {
           showStatus('Error: Invalid JSON backup file.');
         }
@@ -166,7 +178,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   };
 
   const handleSaveSettings = () => {
-    storage.saveSettings({
+    const updated = {
       pottyAlerts,
       feedingAlerts,
       trainingAlerts,
@@ -183,7 +195,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
       taskAdvanceMinutes,
       headsUpDurationSec,
       snoozeDurationMin,
-    });
+    };
+    storage.saveSettings(updated);
+    if (user?.id) {
+      saveSettingsMutation({
+        userId: user.id,
+        ...updated,
+      }).catch((err) => console.debug('[SettingsView] saveSettings error:', err));
+    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
@@ -918,7 +937,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
               <div key={mem._id} className="flex items-center justify-between p-3 bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl">
                 <span className="text-[11px] font-medium text-[#2C211B]">{mem.fact}</span>
                 <button
-                  onClick={() => deleteMemory({ memoryId: mem._id })}
+                  onClick={() => deleteMemory({ memoryId: mem._id, userId: user?.id })}
                   className="p-1.5 text-[#766A63] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
                   title="Delete memory"
                 >
@@ -966,7 +985,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             Replay Welcome Tour
           </Button>
 
-          {localStorage.getItem(`puplume_checklist_finished_forever_${puppy.id}`) === 'true' ? (
+          {(localStorage.getItem(`puplume_checklist_finished_forever_${puppy.id}`) === 'true' || Boolean(cloudData?.settings?.hasCompletedChecklist)) ? (
             <span className="px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-800 flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Onboarding 100% Complete
             </span>

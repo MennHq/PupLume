@@ -495,20 +495,20 @@ export default function App() {
     if (cloudData && user?.id) {
       if (cloudData.user?.hasAccess && typeof window !== 'undefined') {
         localStorage.setItem(`puplume_access_${user.id}`, 'true');
-        localStorage.setItem('puplume_access_permanent', 'true');
         const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
         if (email) {
           localStorage.setItem(`puplume_access_${email}`, 'true');
         }
       }
       if (cloudData.puppies && cloudData.puppies.length > 0) {
-        storage.hydrateFromConvex(cloudData);
+        storage.hydrateFromConvex(cloudData, user.id);
         const activePup = storage.getPuppy();
         setPuppy(activePup ? { ...activePup } : null);
-      } else {
-        // Cloud has zero puppies for this account (clean database or fresh account)
-        storage.clearAllUserData();
-        setPuppy(null);
+      } else if (Array.isArray(cloudData.puppies) && cloudData.puppies.length === 0) {
+        // Cloud has zero puppies for this account; only reset if no local puppy exists
+        if (!storage.getPuppy()) {
+          setPuppy(null);
+        }
       }
     }
   }, [cloudData, user?.id]);
@@ -538,9 +538,9 @@ export default function App() {
   
   // Start the background notification engine
   useEffect(() => {
-    notificationEngine.start();
+    notificationEngine.start(user?.id);
     return () => notificationEngine.stop();
-  }, []);
+  }, [user?.id]);
 
   // 0. Public zero-auth emergency page for collar tag scans (/pup/*, /safety/*, or custom puppy slug e.g. /leo)
   if (typeof window !== 'undefined') {
@@ -679,8 +679,7 @@ export default function App() {
   // 3. Waiting for user's cloud data to load before making routing decision
   const hasLocalAccess = typeof window !== 'undefined' && (
     (user?.id && localStorage.getItem(`puplume_access_${user.id}`) === 'true') ||
-    (currentUserEmail && localStorage.getItem(`puplume_access_${currentUserEmail}`) === 'true') ||
-    localStorage.getItem('puplume_access_permanent') === 'true'
+    (currentUserEmail && localStorage.getItem(`puplume_access_${currentUserEmail}`) === 'true')
   );
 
   // Wait for user cloud data and user account resolution before routing
@@ -696,26 +695,33 @@ export default function App() {
 
 
   // Active puppy from state, storage, or cloud data
-  const activePuppy: PuppyProfile | null = puppy || storage.getPuppy() || (cloudData?.puppies && cloudData.puppies.length > 0 ? {
-    id: cloudData.puppies[0]._id,
-    name: cloudData.puppies[0].name,
-    breed: cloudData.puppies[0].breed,
-    birthDate: cloudData.puppies[0].birthDate,
-    sex: cloudData.puppies[0].sex as 'male' | 'female',
-    weightLbs: cloudData.puppies[0].weightLbs,
-    photoUrl: cloudData.puppies[0].photoUrl,
-    temperament: cloudData.puppies[0].temperament,
-    dietaryRestrictions: cloudData.puppies[0].dietaryRestrictions,
-    favoriteTreat: cloudData.puppies[0].favoriteTreat,
-    createdAt: cloudData.puppies[0].createdAt,
-    hasSmartTagPass: Boolean(cloudData.puppies[0].hasSmartTagPass),
-    isLost: Boolean(cloudData.puppies[0].isLost),
-    ownerPhone: cloudData.puppies[0].ownerPhone,
-    ownerEmail: cloudData.puppies[0].ownerEmail,
-    emergencyNotes: cloudData.puppies[0].emergencyNotes,
-    emergencyContactName: cloudData.puppies[0].emergencyContactName,
-    emergencyContactPhone: cloudData.puppies[0].emergencyContactPhone,
-    communicationLinks: cloudData.puppies[0].communicationLinks,
+  const activePuppyId = cloudData?.settings?.activePuppyId;
+  const cloudActivePup = cloudData?.puppies && cloudData.puppies.length > 0
+    ? (activePuppyId
+        ? cloudData.puppies.find((p: any) => p._id === activePuppyId) || cloudData.puppies[0]
+        : cloudData.puppies[0])
+    : null;
+
+  const activePuppy: PuppyProfile | null = puppy || storage.getPuppy() || (cloudActivePup ? {
+    id: cloudActivePup._id,
+    name: cloudActivePup.name,
+    breed: cloudActivePup.breed,
+    birthDate: cloudActivePup.birthDate,
+    sex: cloudActivePup.sex as 'male' | 'female',
+    weightLbs: cloudActivePup.weightLbs,
+    photoUrl: cloudActivePup.photoUrl,
+    temperament: cloudActivePup.temperament,
+    dietaryRestrictions: cloudActivePup.dietaryRestrictions,
+    favoriteTreat: cloudActivePup.favoriteTreat,
+    createdAt: cloudActivePup.createdAt,
+    hasSmartTagPass: Boolean(cloudActivePup.hasSmartTagPass),
+    isLost: Boolean(cloudActivePup.isLost),
+    ownerPhone: cloudActivePup.ownerPhone,
+    ownerEmail: cloudActivePup.ownerEmail,
+    emergencyNotes: cloudActivePup.emergencyNotes,
+    emergencyContactName: cloudActivePup.emergencyContactName,
+    emergencyContactPhone: cloudActivePup.emergencyContactPhone,
+    communicationLinks: cloudActivePup.communicationLinks,
   } : null);
 
   // 4. Show onboarding only if user explicitly navigated to it, OR if user has no puppy profile yet

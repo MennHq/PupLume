@@ -12,7 +12,8 @@ import {
   Phone, 
   Download,
   ExternalLink,
-  Edit3 
+  Edit3,
+  Trash2 
 } from 'lucide-react';
 import { 
   PuppyProfile, 
@@ -218,6 +219,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
     if (isNaN(wt)) return;
     const updatedPuppy = { ...puppy, weightLbs: wt };
     storage.savePuppy(updatedPuppy);
+    onUpdatePuppy?.(updatedPuppy);
     setIsAddWeightOpen(false);
   };
 
@@ -398,11 +400,24 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     )}
                   </div>
 
-                  {vac.vetClinic && (
-                    <div className="text-xs font-semibold text-[#5F3E29] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3] self-start sm:self-auto">
-                      {vac.vetClinic}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    {vac.vetClinic && (
+                      <div className="text-xs font-semibold text-[#5F3E29] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3]">
+                        {vac.vetClinic}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        storage.deleteVaccination(vac.id);
+                        setVaccinations(storage.getVaccinations(puppy.id));
+                      }}
+                      className="p-1.5 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Delete record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -458,9 +473,22 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     </div>
                   </div>
 
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    Active
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                      Active
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        storage.deleteMedication(med.id);
+                        setMedications(storage.getMedications(puppy.id));
+                      }}
+                      className="p-1.5 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Delete medication"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -520,8 +548,21 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                   </div>
 
                   <div className="flex flex-col sm:items-end gap-2 self-start sm:self-auto">
-                    <div className="text-xs font-bold text-[#8B5E3C] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3]">
-                      {apt.doctor || 'Staff Vet'}
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs font-bold text-[#8B5E3C] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3]">
+                        {apt.doctor || 'Staff Vet'}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          storage.deleteAppointment(apt.id);
+                          setAppointments(storage.getAppointments(puppy.id));
+                        }}
+                        className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                        title="Delete visit"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                     {apt.status === 'scheduled' && (
                       <a 

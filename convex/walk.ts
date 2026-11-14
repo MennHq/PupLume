@@ -66,9 +66,10 @@ export const deleteWalkLog = mutation({
     const userId = await requireAuthUser(ctx, args.userId);
 
     const record = await ctx.db.get(args.id);
-    if (!record || record.userId !== userId) {
-      throw new Error("Log not found or unauthorized");
+    if (!record) {
+      throw new Error("Log not found");
     }
+    await verifyPuppyAccess(ctx, record.puppyId, userId);
 
     await ctx.db.delete(args.id);
     return args.id;

@@ -264,6 +264,40 @@ class OfflineMutationQueue {
       case 'behavior:addBehaviorLog':
         await convex.mutation(api.behavior.addBehaviorLog, payload);
         return true;
+      case 'behavior:deleteBehaviorLog':
+        await convex.mutation(api.behavior.deleteBehaviorLog, payload);
+        return true;
+
+      // Family
+      case 'family:addFamilyMember':
+        await convex.mutation(api.family.addFamilyMember, payload);
+        return true;
+      case 'family:deleteFamilyMember':
+        await convex.mutation(api.family.deleteFamilyMember, payload);
+        return true;
+
+      // Notifications
+      case 'notifications:addNotification':
+        await convex.mutation(api.notifications.addNotification, payload);
+        return true;
+      case 'notifications:markNotificationRead':
+        await convex.mutation(api.notifications.markNotificationRead, payload);
+        return true;
+      case 'notifications:markAllNotificationsRead':
+        await convex.mutation(api.notifications.markAllNotificationsRead, payload);
+        return true;
+
+      // Training & Grooming
+      case 'training:updateLessonStatus':
+        await convex.mutation(api.training.updateLessonStatus, payload);
+        return true;
+      case 'grooming:saveGroomingTasks':
+        await convex.mutation(api.grooming.saveGroomingTasks, payload);
+        return true;
+      case 'socialization:updateSocializationStatus':
+      case 'socialization:saveSocialization':
+        await convex.mutation(api.socialization.updateSocializationStatus, payload);
+        return true;
 
       // Settings
       case 'settings:saveSettings':
@@ -271,6 +305,19 @@ class OfflineMutationQueue {
         return true;
       case 'settings:dismissChecklistForever':
         await convex.mutation(api.settings.dismissChecklistForever, payload);
+        return true;
+
+      // App Onboarding
+      case 'app:completeAIOnboarding':
+        await convex.mutation(api.app.completeAIOnboarding, payload);
+        return true;
+
+      // AI Long-Term Memory
+      case 'ai:saveMemory':
+        await convex.mutation(api.ai.saveMemory, payload);
+        return true;
+      case 'ai:deleteMemory':
+        await convex.mutation(api.ai.deleteMemory, payload);
         return true;
 
       default:

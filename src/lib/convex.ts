@@ -430,23 +430,20 @@ export async function syncGroomingTasksToConvex(
   tasks: GroomingTask[],
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.grooming.saveGroomingTasks, {
-      userId,
-      puppyId,
-      tasks: tasks.map((t) => ({
-        type: t.type,
-        label: t.label,
-        lastDone: t.lastDone,
-        nextDue: t.nextDue,
-        frequencyDays: t.frequencyDays,
-      })),
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncGroomingTasks note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId,
+    tasks: tasks.map((t) => ({
+      type: t.type,
+      label: t.label,
+      lastDone: t.lastDone,
+      nextDue: t.nextDue,
+      frequencyDays: t.frequencyDays,
+    })),
+  };
+  return runWithOfflineQueue("grooming:saveGroomingTasks", payload, () =>
+    convex.mutation(api.grooming.saveGroomingTasks, payload)
+  );
 }
 
 export async function syncSocializationToConvex(
@@ -454,22 +451,19 @@ export async function syncSocializationToConvex(
   item: any,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.socialization.updateSocializationStatus, {
-      userId,
-      puppyId,
-      category: item.category || "General",
-      title: item.title,
-      description: item.description || "",
-      status: item.status,
-      notes: item.notes,
-      lastUpdated: item.lastUpdated || new Date().toISOString().split("T")[0],
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncSocialization note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId,
+    category: item.category || "General",
+    title: item.title,
+    description: item.description || "",
+    status: item.status,
+    notes: item.notes,
+    lastUpdated: item.lastUpdated || new Date().toISOString().split("T")[0],
+  };
+  return runWithOfflineQueue("socialization:updateSocializationStatus", payload, () =>
+    convex.mutation(api.socialization.updateSocializationStatus, payload)
+  );
 }
 
 export async function syncJournalEntryToConvex(
@@ -497,19 +491,16 @@ export async function syncTrainingLessonToConvex(
   mastered: boolean,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.training.updateLessonStatus, {
-      userId,
-      puppyId,
-      lessonId,
-      completed,
-      mastered,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncTrainingLesson note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppyId,
+    lessonId,
+    completed,
+    mastered,
+  };
+  return runWithOfflineQueue("training:updateLessonStatus", payload, () =>
+    convex.mutation(api.training.updateLessonStatus, payload)
+  );
 }
 
 export async function syncSettingsToConvex(
@@ -536,54 +527,55 @@ export async function syncFamilyMemberToConvex(
   },
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.family.addFamilyMember, {
-      ...m,
-      userId,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncFamilyMember note:", err);
-    return false;
-  }
+  const payload = { ...m, userId };
+  return runWithOfflineQueue("family:addFamilyMember", payload, () =>
+    convex.mutation(api.family.addFamilyMember, payload)
+  );
 }
 
 export async function removeFamilyMemberFromConvex(
   id: string,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.family.deleteFamilyMember, { id, userId });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] removeFamilyMember note:", err);
-    return false;
-  }
+  const payload = { id, userId };
+  return runWithOfflineQueue("family:deleteFamilyMember", payload, () =>
+    convex.mutation(api.family.deleteFamilyMember, payload)
+  );
+}
+
+export async function syncNotificationToConvex(
+  n: {
+    title: string;
+    message: string;
+    category: string;
+    timestamp: string;
+    actionUrl?: string;
+  },
+  userId?: string
+): Promise<boolean> {
+  const payload = { ...n, userId };
+  return runWithOfflineQueue("notifications:addNotification", payload, () =>
+    convex.mutation(api.notifications.addNotification, payload)
+  );
 }
 
 export async function syncNotificationReadToConvex(
   id: string,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.notifications.markNotificationRead, { id, userId });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncNotificationRead note:", err);
-    return false;
-  }
+  const payload = { id, userId };
+  return runWithOfflineQueue("notifications:markNotificationRead", payload, () =>
+    convex.mutation(api.notifications.markNotificationRead, payload)
+  );
 }
 
 export async function syncAllNotificationsReadToConvex(
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.notifications.markAllNotificationsRead, { userId });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] syncAllNotificationsRead note:", err);
-    return false;
-  }
+  const payload = { userId };
+  return runWithOfflineQueue("notifications:markAllNotificationsRead", payload, () =>
+    convex.mutation(api.notifications.markAllNotificationsRead, payload)
+  );
 }
 
 // Ephemeral local AI chat - no cloud sync required for privacy
@@ -625,17 +617,14 @@ export async function completeAIOnboardingInConvex(
   }>,
   userId?: string
 ): Promise<boolean> {
-  try {
-    await convex.mutation(api.app.completeAIOnboarding, {
-      userId,
-      puppy,
-      tasks,
-    });
-    return true;
-  } catch (err) {
-    console.debug("[Convex] completeAIOnboarding note:", err);
-    return false;
-  }
+  const payload = {
+    userId,
+    puppy,
+    tasks,
+  };
+  return runWithOfflineQueue("app:completeAIOnboarding", payload, () =>
+    convex.mutation(api.app.completeAIOnboarding, payload)
+  );
 }
 
 export async function clearUserDataInConvex(userId?: string): Promise<boolean> {
@@ -765,5 +754,16 @@ export async function deleteJournalEntryInConvex(
   const payload = { id: id as any, userId };
   return runWithOfflineQueue("journal:deleteJournalEntry", payload, () =>
     convex.mutation(api.journal.deleteJournalEntry, payload)
+  );
+}
+
+export async function deleteBehaviorLogInConvex(
+  id: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('beh-')) return true;
+  const payload = { id: id as any, userId };
+  return runWithOfflineQueue("behavior:deleteBehaviorLog", payload, () =>
+    convex.mutation(api.behavior.deleteBehaviorLog, payload)
   );
 }

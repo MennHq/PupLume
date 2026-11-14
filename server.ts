@@ -100,7 +100,7 @@ app.post('/api/ai-onboarding', async (req, res) => {
 // ----------------------------------------------------
 // 2. Paddle Billing Webhook Route
 // ----------------------------------------------------
-app.post('/api/billing/webhook', async (req: any, res) => {
+app.post(['/api/billing/webhook', '/paddle-webhook'], async (req: any, res) => {
   try {
     const rawBodyBuffer = req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
     const signatureHeader =
@@ -132,6 +132,24 @@ app.post('/api/billing/webhook', async (req: any, res) => {
     const eventType = String(payload.event_type || 'unknown');
     const eventId = payload.event_id ? String(payload.event_id) : undefined;
     console.log(`[Paddle Webhook] Verified event: ${eventType} (${eventId || 'no-id'})`);
+
+    // Forward verified event to Convex HTTP router if configured
+    const convexUrl = process.env.CONVEX_SITE_URL || process.env.VITE_CONVEX_URL;
+    if (convexUrl) {
+      try {
+        const httpSiteUrl = convexUrl.replace(/\.convex\.cloud\/?$/, '.convex.site');
+        await fetch(`${httpSiteUrl}/paddle-webhook`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Paddle-Signature': signatureHeader || '',
+          },
+          body: rawBodyBuffer.toString('utf8'),
+        });
+      } catch (forwardErr) {
+        console.warn('[Paddle Webhook] Note on Convex forwarding:', (forwardErr as Error)?.message);
+      }
+    }
 
     return res.status(200).json({
       received: true,
@@ -231,6 +249,12 @@ const PROTECTED_TARGETS = ['puplume', 'pupcollar', 'branding', 'system', 'assets
 
 const handleDelete = async (req: express.Request, res: express.Response) => {
   try {
+    const authHeader = (req.headers.authorization as string) || (req.headers['x-user-id'] as string);
+    const callerId = authHeader || req.body?.userId;
+    if (!callerId || typeof callerId !== 'string' || callerId.trim().length === 0) {
+      return res.status(401).json({ error: 'Authentication required to delete assets' });
+    }
+
     const { url, publicId } = req.body || {};
     const rawTarget = url || publicId;
     if (!rawTarget || typeof rawTarget !== 'string' || rawTarget.trim().length === 0) {

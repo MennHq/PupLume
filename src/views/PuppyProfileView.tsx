@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { useUser } from '@clerk/react';
 import { api } from '../../convex/_generated/api';
 import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';
@@ -89,6 +90,7 @@ interface PuppyProfileViewProps {
 }
 
 export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpdatePuppy }) => {
+  const { user } = useUser();
   // Convex mutations & queries
   const unlockSmartTagPassMutation = useMutation(api.puppies.unlockSmartTagPass);
   const updatePuppySlugMutation = useMutation(api.puppies.updatePuppySlug);
@@ -335,6 +337,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     unlockSmartTagPassMutation({
       identifier: puppy.name,
       puppyId: puppy.id,
+      userId: user?.id,
     }).catch((err) => {
       console.debug('[PuppyProfileView] Convex smart tag unlock sync error:', err);
     });
