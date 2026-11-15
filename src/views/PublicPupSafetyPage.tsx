@@ -244,7 +244,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         );
 
         if (ownerPhone) {
-          const smsLink = `sms:${ownerPhone}?body=${smsMessage}`;
+          const smsLink = `sms:${ownerPhone}?&body=${smsMessage}`;
           window.location.href = smsLink;
         } else {
           copyToClipboard(mapsUrl);
@@ -261,13 +261,15 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
   // Calculate age weeks/months
   let ageString = '';
   if (activePup.birthDate) {
-    const bDate = new Date(activePup.birthDate);
-    const diffWeeks = Math.max(1, Math.floor((Date.now() - bDate.getTime()) / (1000 * 60 * 60 * 24 * 7)));
-    if (diffWeeks >= 52) {
-      const years = (diffWeeks / 52).toFixed(1);
-      ageString = `${years} yrs old`;
-    } else {
-      ageString = `${diffWeeks} weeks old`;
+    const bTime = new Date(activePup.birthDate).getTime();
+    if (!isNaN(bTime)) {
+      const diffWeeks = Math.max(1, Math.floor((Date.now() - bTime) / (1000 * 60 * 60 * 24 * 7)));
+      if (diffWeeks >= 52) {
+        const years = (diffWeeks / 52).toFixed(1);
+        ageString = `${years} yrs old`;
+      } else {
+        ageString = `${diffWeeks} weeks old`;
+      }
     }
   }
 
@@ -471,7 +473,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             {/* Send SMS Button */}
             {ownerPhoneNumber ? (
               <a
-                href={`sms:${ownerPhoneNumber}?body=${encodeURIComponent(`Hi! I found ${activePup.name}. They are safe with me right now.`)}`}
+                href={`sms:${ownerPhoneNumber}?&body=${encodeURIComponent(`Hi! I found ${activePup.name}. They are safe with me right now.`)}`}
                 className="p-4 rounded-2xl bg-[#8B5E3C] hover:bg-[#6D492F] text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-sm transition-transform active:scale-[0.98] cursor-pointer"
               >
                 <MessageCircle className="w-5 h-5 shrink-0" />

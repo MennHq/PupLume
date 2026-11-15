@@ -284,7 +284,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       const slackLink = communicationLinks.find((l) => l.platform === 'slack')?.value;
 
       const newPuppy: PuppyProfile = {
-        id: `pup-${Date.now()}`,
+        id: `pup-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: puppyName.trim() || 'My Puppy',
         breed: breed.trim() || 'Mixed Breed',
         birthDate: finalBirthDate,

@@ -23,6 +23,7 @@ export const RESERVED_SLUGS = new Set([
   'onboarding',
   'privacy',
   'terms',
+  'legal',
   'auth',
   'signin',
   'signup',

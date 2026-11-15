@@ -165,8 +165,8 @@ export const PrintableCollarTagModal: React.FC<PrintableCollarTagModalProps> = (
   const effectiveQr = qrDataUrl || (publicUrl ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(generatePupLumeQRSvg(publicUrl))}` : '');
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-neutral-300 overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200 print:bg-white print:p-0 print:static print:overflow-visible">
+      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-neutral-300 overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full print:rounded-none">
         
         {/* Header (Hidden when printing) */}
         <div className="bg-[#8B5E3C] text-white p-4 sm:p-5 flex items-center justify-between print:hidden">

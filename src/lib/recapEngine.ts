@@ -367,7 +367,7 @@ export function getWeeklyRecapData(
     return jDate;
   });
   const photos = weekJournal
-    .map((j) => j.mediaUrl)
+    .map((j) => j.mediaUrl || (j as any).photoUrl)
     .filter((url): url is string => Boolean(url));
   if (photos.length === 0 && puppy.photoUrl) {
     photos.push(puppy.photoUrl);
@@ -555,7 +555,7 @@ export function getMonthlyRecapData(
 
   // Photos
   const photos = allJournal
-    .map((j) => j.mediaUrl)
+    .map((j) => j.mediaUrl || (j as any).photoUrl)
     .filter((url): url is string => Boolean(url));
   if (photos.length === 0 && puppy.photoUrl) {
     photos.push(puppy.photoUrl);

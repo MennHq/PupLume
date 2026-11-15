@@ -116,6 +116,8 @@ function sanitizeView(view: string | null | undefined): string {
   const clean = view.split('#')[0].split('?')[0].replace(/^\/+|\/+$/g, '').trim().toLowerCase();
   if (clean === 'plan') return 'tasks';
   if (clean === 'sign-in' || clean === 'login' || clean === 'auth' || clean === 'signin') return 'auth';
+  if (clean === 'privacy' || clean === 'legal/privacy') return 'privacy';
+  if (clean === 'terms' || clean === 'legal/terms' || clean === 'legal/refund' || clean === 'legal/cookies') return 'terms';
   return VALID_VIEWS.has(clean) ? clean : 'home';
 }
 
@@ -392,7 +394,7 @@ export default function App() {
       if (e.data?.type === 'NAVIGATE') {
         const view = e.data.view || (e.data.url ? e.data.url.replace(/^\/+/, '').split('?')[0] : null);
         if (view) {
-          setCurrentView(view === 'plan' ? 'tasks' : view);
+          setCurrentView(sanitizeView(view));
         }
       } else if (e.data?.type === 'SHOW_IN_APP_ALERT' && e.data.payload) {
         window.dispatchEvent(
@@ -564,6 +566,39 @@ export default function App() {
     return <SkeletonPlayground />;
   }
 
+  // Public legal pages accessible without authentication (privacy regulations compliance)
+  if (currentView === 'privacy' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase() === '/privacy')) {
+    return (
+      <div className="min-h-screen bg-[#FFFDF9] py-8 px-4 sm:px-6">
+        <Suspense fallback={<PupLumeSkeleton variant="privacy" label="Loading Privacy Policy..." />}>
+          <PrivacyPolicyView onBack={() => {
+            if (isSignedIn) setCurrentView('more');
+            else {
+              setCurrentView('auth');
+              if (typeof window !== 'undefined') window.history.pushState({}, '', '/sign-in');
+            }
+          }} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  if (currentView === 'terms' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase() === '/terms')) {
+    return (
+      <div className="min-h-screen bg-[#FFFDF9] py-8 px-4 sm:px-6">
+        <Suspense fallback={<PupLumeSkeleton variant="terms" label="Loading Terms of Service..." />}>
+          <TermsOfServiceView onBack={() => {
+            if (isSignedIn) setCurrentView('more');
+            else {
+              setCurrentView('auth');
+              if (typeof window !== 'undefined') window.history.pushState({}, '', '/sign-in');
+            }
+          }} />
+        </Suspense>
+      </div>
+    );
+  }
+
   if (!isLoaded) {
     const hasExistingSession = typeof window !== 'undefined' && (
       Boolean(storage.getPuppy()) || 
@@ -669,6 +704,25 @@ export default function App() {
                   }}
                 />
               )}
+            </div>
+
+            {/* Legal Links Footer */}
+            <div className="mt-8 flex items-center justify-center gap-4 text-xs text-[#766A63]">
+              <button
+                type="button"
+                onClick={() => setCurrentView('privacy')}
+                className="hover:text-[#2C211B] hover:underline cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setCurrentView('terms')}
+                className="hover:text-[#2C211B] hover:underline cursor-pointer"
+              >
+                Terms of Service
+              </button>
             </div>
           </div>
         </div>

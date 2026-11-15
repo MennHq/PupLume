@@ -57,13 +57,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(() => 
     storage.getNotifications().filter(n => !n.read).length
   );
+  const [puppyList, setPuppyList] = useState<PuppyProfile[]>(() => {
+    const raw = storage.getPuppies();
+    return raw.length > 0 ? raw : [puppy];
+  });
 
   React.useEffect(() => {
     const unsubscribe = storage.subscribe(() => {
       setUnreadNotifsCount(storage.getNotifications().filter(n => !n.read).length);
+      const raw = storage.getPuppies();
+      setPuppyList(raw.length > 0 ? raw : [puppy]);
     });
     return unsubscribe;
-  }, []);
+  }, [puppy]);
 
   const isSearchOpen = propIsSearchOpen !== undefined ? propIsSearchOpen : internalSearchOpen;
   const isNotificationsOpen = propIsNotificationsOpen !== undefined ? propIsNotificationsOpen : internalNotifsOpen;
@@ -146,7 +152,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   ];
 
   const allPuppies = React.useMemo(() => {
-    const rawPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
+    const rawPuppies = puppyList.length > 0 ? puppyList : [puppy];
     // Deduplicate puppies in header dropdown by unique name
     return rawPuppies.filter((p, index, self) => {
       const nameKey = (p.name || '').trim().toLowerCase();
@@ -154,7 +160,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         o.id === p.id || (nameKey && (o.name || '').trim().toLowerCase() === nameKey)
       ));
     });
-  }, [puppy]);
+  }, [puppyList, puppy]);
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">

@@ -29,8 +29,16 @@ function getPuppyDevelopmentStage(birthDateStr?: string) {
       tip: 'Prime window to introduce novel sounds, surfaces, and friendly people.'
     };
   }
-  const birthDate = new Date(birthDateStr);
-  const diffDays = Math.max(1, Math.floor((new Date().getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24)));
+  const bTime = new Date(birthDateStr).getTime();
+  if (isNaN(bTime)) {
+    return {
+      weeks: 10,
+      stage: 'Golden Socialization Window',
+      badge: 'Critical 8–16 Wks',
+      tip: 'Prime window to introduce novel sounds, surfaces, and friendly people.'
+    };
+  }
+  const diffDays = Math.max(1, Math.floor((Date.now() - bTime) / (1000 * 60 * 60 * 24)));
   const weeks = Math.max(1, Math.floor(diffDays / 7));
 
   if (weeks <= 12) {
@@ -81,9 +89,9 @@ export const CareMilestonesHub: React.FC<CareMilestonesHubProps> = ({
 
   // 2. Journal & Memories Data
   const journalEntries = storage.getJournal(puppy.id);
-  const photos = journalEntries.filter(j => Boolean(j.mediaUrl));
-  const hasCustomPhoto = Boolean(photos[0]?.mediaUrl || (puppy.photoUrl && !puppy.photoUrl.includes('placeholder') && !puppy.photoUrl.includes('via.placeholder')));
-  const latestPhoto = photos[0]?.mediaUrl || puppy.photoUrl;
+  const photos = journalEntries.filter(j => Boolean(j.mediaUrl || (j as any).photoUrl));
+  const latestPhoto = photos[0]?.mediaUrl || (photos[0] as any)?.photoUrl || puppy.photoUrl;
+  const hasCustomPhoto = Boolean(photos[0]?.mediaUrl || (photos[0] as any)?.photoUrl || (puppy.photoUrl && !puppy.photoUrl.includes('placeholder') && !puppy.photoUrl.includes('via.placeholder')));
 
   // 3. Health & Vaccines Data
   const vaccinations = storage.getVaccinations(puppy.id);
