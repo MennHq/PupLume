@@ -8,12 +8,13 @@ import {
   Meh, 
   Frown, 
   Scissors, 
-  ShieldCheck 
+  ShieldCheck,
+  Trash2 
 } from 'lucide-react';
-import { PuppyProfile } from '../types';
+import { PuppyProfile, GroomingTask } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
-import { storage } from '../lib/storage';
+import { storage, generateUniqueId } from '../lib/storage';
 
 interface SocializationGroomingViewProps {
   puppy: PuppyProfile;
@@ -155,20 +156,18 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
   const handleAddGrooming = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroomName.trim()) return;
-    const existing = storage.getGroomingTasks();
-    const freq = parseInt(newGroomFreqDays, 10) || 3;
-    storage.saveGroomingTasks([
-      ...existing,
-      {
-        id: `groom-${Date.now()}`,
-        puppyId: puppy.id,
-        type: 'brush',
-        label: newGroomName.trim(),
-        frequencyDays: freq,
-        lastDone: '',
-        nextDue: new Date(Date.now() + freq * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      }
-    ]);
+    const existing = storage.getGroomingTasks(puppy.id);
+    const freq = Math.max(1, parseInt(newGroomFreqDays, 10) || 3);
+    const newTask: GroomingTask = {
+      id: generateUniqueId('groom'),
+      puppyId: puppy.id,
+      type: 'brush',
+      label: newGroomName.trim(),
+      frequencyDays: freq,
+      lastDone: '',
+      nextDue: new Date(Date.now() + freq * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    };
+    storage.saveGroomingTasks([...existing, newTask], puppy.id);
     setNewGroomName('');
     setIsAddGroomOpen(false);
   };
@@ -180,9 +179,21 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
       }
       return g;
     }));
-    const tasks = storage.getGroomingTasks();
+    const tasks = storage.getGroomingTasks(puppy.id);
     const updated = tasks.map(t => t.id === id ? { ...t, lastDone: new Date().toISOString() } : t);
-    storage.saveGroomingTasks(updated);
+    storage.saveGroomingTasks(updated, puppy.id);
+  };
+
+  const handleDeleteGrooming = (id: string, label: string) => {
+    if (!confirm(`Are you sure you want to remove the grooming routine "${label}"?`)) return;
+    storage.deleteGroomingTask(id, puppy.id);
+    setGroomingItems(prev => prev.filter(g => g.id !== id));
+  };
+
+  const handleDeleteSocial = (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to remove "${title}" from socialization?`)) return;
+    storage.deleteSocializationItem(id);
+    setSocialItems(prev => prev.filter(s => s.id !== id));
   };
 
   const positiveCount = socialItems.filter(s => s.status === 'positive').length;
@@ -293,12 +304,26 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
                         <div
                           key={item.id}
                           onClick={() => handleCycleSocial(item.id)}
-                          className="p-3 rounded-xl border border-[#E8DDD3] hover:border-[#8B5E3C]/40 bg-[#FFF9F2]/50 hover:bg-[#FFF9F2] transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          className="group p-3 rounded-xl border border-[#E8DDD3] hover:border-[#8B5E3C]/40 bg-[#FFF9F2]/50 hover:bg-[#FFF9F2] transition-colors flex items-center justify-between gap-3 cursor-pointer"
                         >
                           <span className="text-xs font-bold text-[#2C211B]">{item.name}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeMap[item.status].color}`}>
-                            {badgeMap[item.status].text}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeMap[item.status].color}`}>
+                              {badgeMap[item.status].text}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSocial(item.id, item.name);
+                              }}
+                              className="p-1 text-[#766A63] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
+                              title="Delete exposure item"
+                              aria-label={`Delete ${item.name}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -361,14 +386,25 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
                     </span>
                   </div>
 
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleMarkGrooming(item.id)}
-                    leftIcon={<Check className="w-4 h-4" />}
-                  >
-                    Mark Completed Today
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMarkGrooming(item.id)}
+                      leftIcon={<Check className="w-4 h-4" />}
+                    >
+                      Mark Completed Today
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteGrooming(item.id, item.name)}
+                      className="p-2 text-[#766A63] hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                      title="Delete grooming routine"
+                      aria-label={`Delete ${item.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

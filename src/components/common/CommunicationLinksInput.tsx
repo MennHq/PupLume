@@ -17,6 +17,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { validateCommunicationLink } from '../../lib/validation';
+import { generateUniqueId } from '../../lib/storage';
 
 export interface CommunicationLinkItem {
   id: string;
@@ -44,7 +45,7 @@ export const CommunicationLinksInput: React.FC<CommunicationLinksInputProps> = (
       hasInitializedRef.current = true;
       onChange([
         {
-          id: `link-${Date.now()}`,
+          id: generateUniqueId('link'),
           platform: 'whatsapp',
           value: '',
         },
@@ -83,7 +84,7 @@ export const CommunicationLinksInput: React.FC<CommunicationLinksInputProps> = (
     ) || 'external';
 
     const newLink: CommunicationLinkItem = {
-      id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: generateUniqueId('link'),
       platform: nextPlatform,
       value: '',
     };

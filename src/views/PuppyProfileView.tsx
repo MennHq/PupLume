@@ -3,7 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { useUser } from '@clerk/react';
 import { api } from '../../convex/_generated/api';
 import { PuppyProfile } from '../types';
-import { storage } from '../lib/storage';
+import { storage, generateUniqueId } from '../lib/storage';
 import { nativeBridge } from '../lib/nativeBridge';
 import { copyToClipboard } from '../lib/clipboard';
 import { generatePupLumeQRDataUrl } from '../lib/qrCodeGenerator';
@@ -569,7 +569,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     try {
       const validLinks = [...communicationLinks.filter((l) => l.value.trim() !== '')];
       if (effectivePhone && !validLinks.some((l) => l.platform === 'whatsapp')) {
-        validLinks.push({ id: `link-wa-${Date.now()}`, platform: 'whatsapp', value: effectivePhone });
+        validLinks.push({ id: generateUniqueId('link-wa'), platform: 'whatsapp', value: effectivePhone });
         setCommunicationLinks(validLinks);
       }
 
@@ -663,7 +663,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         name,
         breed,
         birthDate,
-        weightLbs: parseFloat(weightLbs) || puppy.weightLbs,
+        weightLbs: Math.max(0.5, parseFloat(weightLbs) || puppy.weightLbs),
         photoUrl,
         temperament,
         dietaryRestrictions: dietary,
@@ -1724,6 +1724,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               <input
                 type="number"
                 step="0.1"
+                min="0.5"
+                max="300"
                 value={weightLbs}
                 onChange={(e) => setWeightLbs(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"

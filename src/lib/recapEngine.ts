@@ -361,16 +361,24 @@ export function getWeeklyRecapData(
   const masteredLessons = allLessons.filter((l) => l.mastered).length;
   const practicedLessons = allLessons.filter((l) => l.completed).length;
 
-  // Photos from Journal
+  // Photos from Journal in this week
   const weekJournal = allJournal.filter((j) => {
-    const jDate = j.date;
-    return jDate;
+    const jDate = j.date ? j.date.split('T')[0] : '';
+    return jDate >= startDateStr && jDate <= endDateStr;
   });
-  const photos = weekJournal
+  let photos = weekJournal
     .map((j) => j.mediaUrl || (j as any).photoUrl)
     .filter((url): url is string => Boolean(url));
-  if (photos.length === 0 && puppy.photoUrl) {
-    photos.push(puppy.photoUrl);
+  // If no photos logged this week, fall back to recent journal photos or puppy profile photo
+  if (photos.length === 0) {
+    const fallbackPhotos = allJournal
+      .map((j) => j.mediaUrl || (j as any).photoUrl)
+      .filter((url): url is string => Boolean(url));
+    if (fallbackPhotos.length > 0) {
+      photos = fallbackPhotos.slice(0, 3);
+    } else if (puppy.photoUrl) {
+      photos.push(puppy.photoUrl);
+    }
   }
 
   // Calculate Real Paw-gress Score
@@ -553,12 +561,24 @@ export function getMonthlyRecapData(
   const monthExpenses = allExpenses.filter((e) => e.date >= startDateStr && e.date <= endDateStr);
   const totalSpent = monthExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
 
-  // Photos
-  const photos = allJournal
+  // Photos from Journal in this month
+  const monthJournal = allJournal.filter((j) => {
+    const jDate = j.date ? j.date.split('T')[0] : '';
+    return jDate >= startDateStr && jDate <= endDateStr;
+  });
+  let photos = monthJournal
     .map((j) => j.mediaUrl || (j as any).photoUrl)
     .filter((url): url is string => Boolean(url));
-  if (photos.length === 0 && puppy.photoUrl) {
-    photos.push(puppy.photoUrl);
+  // If no photos logged this month, fall back to recent journal photos or puppy profile photo
+  if (photos.length === 0) {
+    const fallbackPhotos = allJournal
+      .map((j) => j.mediaUrl || (j as any).photoUrl)
+      .filter((url): url is string => Boolean(url));
+    if (fallbackPhotos.length > 0) {
+      photos = fallbackPhotos.slice(0, 4);
+    } else if (puppy.photoUrl) {
+      photos.push(puppy.photoUrl);
+    }
   }
 
   // Calculate Real Paw-gress Score

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { X, Printer, AlertTriangle, Phone } from 'lucide-react';
 import { Button } from './Button';
 import { PuppyProfile } from '../../types';
@@ -21,6 +21,24 @@ export const MissingPupFlyerModal: React.FC<MissingPupFlyerModalProps> = ({
 }) => {
   const flyerRef = useRef<HTMLDivElement>(null);
 
+  // Keyboard Escape and Scroll Lock
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -36,10 +54,18 @@ export const MissingPupFlyerModal: React.FC<MissingPupFlyerModalProps> = ({
     : null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200 print:bg-white print:p-0 print:static print:overflow-visible"
+      onClick={onClose}
+    >
       
       {/* Container */}
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-neutral-300 overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full">
+      <div 
+        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-neutral-300 overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         
         {/* Top Control Bar (Hidden when printing) */}
         <div className="bg-[#2C211B] text-white p-4 flex items-center justify-between print:hidden">

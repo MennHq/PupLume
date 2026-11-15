@@ -475,6 +475,21 @@ export async function syncSocializationToConvex(
   );
 }
 
+export async function deleteSocializationInConvex(
+  puppyId: string,
+  title: string,
+  userId?: string
+): Promise<boolean> {
+  const payload = {
+    userId,
+    puppyId,
+    title,
+  };
+  return runWithOfflineQueue("socialization:deleteSocializationItem", payload, () =>
+    convex.mutation(api.socialization.deleteSocializationItem, payload)
+  );
+}
+
 export async function syncJournalEntryToConvex(
   j: JournalEntry,
   userId?: string

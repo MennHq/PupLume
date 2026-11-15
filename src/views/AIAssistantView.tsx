@@ -19,7 +19,7 @@ import { useUser } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { PuppyProfile, AIMessage, AIActionSuggestion } from '../types';
-import { storage } from '../lib/storage';
+import { storage, generateUniqueId } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
 import { SkeletonBox } from 'skullet/react';
@@ -72,7 +72,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     setInput('');
 
     const userMsg: AIMessage = {
-      id: `usr-${Date.now()}`,
+      id: generateUniqueId('usr'),
       sender: 'user',
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -143,7 +143,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       const data = await res.json();
 
       const aiMsg: AIMessage = {
-        id: `ai-${Date.now()}`,
+        id: generateUniqueId('ai'),
         sender: 'assistant',
         text: data.text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -158,7 +158,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       console.error('Error calling AI endpoint:', err);
       // Fallback message
       const aiMsg: AIMessage = {
-        id: `ai-${Date.now()}`,
+        id: generateUniqueId('ai'),
         sender: 'assistant',
         text: `I've analyzed ${puppy.name}'s daily schedule. For a ${puppy.breed} at this stage, focusing on positive reinforcement and short 5-minute drills works best. Let me know if you'd like to log a potty event or adjust today's nap windows.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -265,7 +265,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     if (confirm('Clear chat history with PupLume?')) {
       const reset = [
         {
-          id: `ai-${Date.now()}`,
+          id: generateUniqueId('ai'),
           sender: 'assistant' as const,
           text: `Chat reset. I'm ready to help with ${puppy.name}'s training, schedule, or potty rhythm!`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

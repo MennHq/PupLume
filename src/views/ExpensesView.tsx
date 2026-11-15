@@ -286,6 +286,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               <input
                 type="number"
                 step="0.01"
+                min="0.01"
+                max="99999.99"
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}

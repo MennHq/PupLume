@@ -69,12 +69,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
     const fetchInsight = async () => {
       try {
+        const birthTimestamp = puppy.birthDate ? new Date(puppy.birthDate).getTime() : NaN;
+        const ageWeeks = isNaN(birthTimestamp)
+          ? 12
+          : Math.max(1, Math.floor((Date.now() - birthTimestamp) / (1000 * 60 * 60 * 24 * 7)));
+
         const payload = {
           message: `Write a short 2-sentence daily insight or tip for raising my puppy based on the recent tasks and data. Be extremely brief, warm, and concise. Do not use introductory phrases.`,
           puppyContext: {
             name: puppy.name,
             breed: puppy.breed,
-            ageWeeks: Math.max(1, Math.floor((new Date().getTime() - new Date(puppy.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 7))),
+            ageWeeks,
             tasks: storage.getTasks(puppy.id).slice(0, 5),
             pottyLogs: storage.getPottyLogs(puppy.id).slice(0, 3)
           }

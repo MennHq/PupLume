@@ -65,3 +65,27 @@ export const updateSocializationStatus = mutation({
     });
   },
 });
+
+export const deleteSocializationItem = mutation({
+  args: {
+    puppyId: v.string(),
+    userId: v.optional(v.string()),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+    await verifyPuppyAccess(ctx, args.puppyId, userId);
+
+    const existing = await ctx.db
+      .query("socialization")
+      .withIndex("by_puppy", (q) => q.eq("puppyId", args.puppyId))
+      .filter((q) => q.eq(q.field("title"), args.title))
+      .first();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      return true;
+    }
+    return false;
+  },
+});

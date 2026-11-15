@@ -53,6 +53,24 @@ export const SmartTagPaywallModal: React.FC<SmartTagPaywallModalProps> = ({
     });
   }, [onUnlock]);
 
+  // Keyboard Escape and Scroll Lock
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleOpenPaddleCheckout = () => {
@@ -82,8 +100,16 @@ export const SmartTagPaywallModal: React.FC<SmartTagPaywallModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#E8DDD3] animate-in zoom-in-95 duration-300">
+    <div 
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div 
+        className="w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#E8DDD3] animate-in zoom-in-95 duration-300"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         
         {/* Header Banner */}
         <div className="relative bg-gradient-to-br from-[#8B5E3C] via-[#6D492F] to-[#2C211B] p-7 text-center text-white">

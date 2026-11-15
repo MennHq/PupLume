@@ -52,6 +52,7 @@ import {
   deleteBehaviorLogInConvex,
   syncGroomingTasksToConvex,
   syncSocializationToConvex,
+  deleteSocializationInConvex,
   syncJournalEntryToConvex,
   deleteJournalEntryInConvex,
   syncTrainingLessonToConvex,
@@ -109,7 +110,7 @@ const DEFAULT_SETTINGS: UserSettingsData = {
 };
 
 let _uniqueIdCounter = 0;
-function generateUniqueId(prefix: string): string {
+export function generateUniqueId(prefix: string): string {
   _uniqueIdCounter = (_uniqueIdCounter + 1) % 10000;
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}-${_uniqueIdCounter}`;
 }
@@ -1384,13 +1385,30 @@ class StorageManager {
     return this.groomingTasks.filter((g) => this.matchesPuppy(g.puppyId, targetId));
   }
 
-  saveGroomingTasks(tasks: GroomingTask[]): void {
-    this.groomingTasks = tasks;
+  saveGroomingTasks(tasks: GroomingTask[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const otherPuppyTasks = this.groomingTasks.filter((g) => !this.matchesPuppy(g.puppyId, targetId));
+      this.groomingTasks = [...otherPuppyTasks, ...tasks];
+    } else {
+      this.groomingTasks = tasks;
+    }
     this.persistUserCache();
     this.notifyListeners();
     const activePup = this.getActivePuppy();
     if (activePup) {
       syncGroomingTasksToConvex(activePup.id, tasks, this.currentUserId || undefined).catch(() => {});
+    }
+  }
+
+  deleteGroomingTask(id: string, puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    this.groomingTasks = this.groomingTasks.filter((g) => g.id !== id);
+    this.persistUserCache();
+    this.notifyListeners();
+    if (targetId) {
+      const remaining = this.getGroomingTasks(targetId);
+      syncGroomingTasksToConvex(targetId, remaining, this.currentUserId || undefined).catch(() => {});
     }
   }
 
@@ -1435,7 +1453,7 @@ class StorageManager {
   }): SocializationItem {
     const activePup = this.getActivePuppy();
     const newItem: SocializationItem = {
-      id: `soc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: generateUniqueId('soc'),
       category: item.category,
       title: item.title,
       description: item.description || '',
@@ -1450,6 +1468,17 @@ class StorageManager {
       syncSocializationToConvex(activePup.id, newItem, this.currentUserId || undefined).catch(() => {});
     }
     return newItem;
+  }
+
+  deleteSocializationItem(id: string): void {
+    const itemToDelete = this.socialization.find((s) => s.id === id);
+    this.socialization = this.socialization.filter((s) => s.id !== id);
+    this.persistUserCache();
+    this.notifyListeners();
+    const activePup = this.getActivePuppy();
+    if (activePup && itemToDelete) {
+      deleteSocializationInConvex(activePup.id, itemToDelete.title, this.currentUserId || undefined).catch(() => {});
+    }
   }
 
   // Journal (Scoped strictly to active or target puppy)

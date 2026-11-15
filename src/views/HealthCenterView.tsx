@@ -222,7 +222,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
   const handleUpdateWeight = (e: React.FormEvent) => {
     e.preventDefault();
     const wt = parseFloat(newWeight);
-    if (isNaN(wt)) return;
+    if (isNaN(wt) || wt <= 0) return;
     const updatedPuppy = { ...puppy, weightLbs: wt };
     storage.savePuppy(updatedPuppy);
     onUpdatePuppy?.(updatedPuppy);
@@ -778,6 +778,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             <input
               type="number"
               step="0.1"
+              min="0.5"
+              max="350"
               required
               value={newWeight}
               onChange={(e) => setNewWeight(e.target.value)}

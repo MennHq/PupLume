@@ -57,6 +57,24 @@ export const FirstTimeWelcomeTour: React.FC<FirstTimeWelcomeTourProps> = ({ pupp
     if (onTourComplete) onTourComplete();
   };
 
+  // Keyboard Escape and Scroll Lock
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleFinish();
+      }
+    };
+    if (isOpen) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const totalSteps = 5;
@@ -107,8 +125,16 @@ export const FirstTimeWelcomeTour: React.FC<FirstTimeWelcomeTourProps> = ({ pupp
   const current = steps[currentStep - 1];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2C211B]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl border border-[#E8DDD3] shadow-2xl p-6 sm:p-8 overflow-hidden animate-in zoom-in-95 duration-200">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2C211B]/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={handleFinish}
+    >
+      <div 
+        className="relative w-full max-w-lg bg-white rounded-3xl border border-[#E8DDD3] shadow-2xl p-6 sm:p-8 overflow-hidden animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         
         {/* Decorative Top Accent */}
         <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#8B5E3C] via-[#A87954] to-[#C99E7D]" />
