@@ -9,7 +9,8 @@ import {
   Bell, 
   Plus, 
   ChevronDown,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 import { PupLumeLogo } from '../common/PupLumeLogo';
 import { PuppyProfile } from '../../types';
@@ -175,7 +176,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div onClick={() => onNavigate('home')} className="cursor-pointer shrink-0">
               <div className="sm:hidden flex items-center">
-                <PupLumeLogo variant="full" size="sm" />
+                <PupLumeLogo variant="icon" size="sm" />
               </div>
               <div className="hidden sm:flex items-center">
                 <PupLumeLogo variant="full" size="md" />
@@ -195,15 +196,27 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   alt={puppy.name}
                   className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0"
                 />
-                <span className="text-xs font-bold text-[#2C211B] truncate max-w-[65px] sm:max-w-none">{puppy.name}</span>
+                <span className="text-xs font-bold text-[#2C211B] truncate max-w-[80px] sm:max-w-none">{puppy.name}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 shrink-0 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isPuppyDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_10px_38px_rgba(0,0,0,0.12)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1.5 text-xs font-bold text-[#766A63]">
-                    Your Puppies
-                  </div>
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] sm:bg-transparent"
+                    onClick={() => setIsPuppyDropdownOpen(false)}
+                  />
+                  <div className="fixed inset-x-4 top-16 sm:top-auto sm:inset-auto sm:absolute sm:left-0 sm:mt-2 w-auto sm:w-64 max-w-sm mx-auto sm:mx-0 bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_12px_36px_rgba(0,0,0,0.18)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-3.5 py-1.5 text-xs font-bold text-[#766A63] flex items-center justify-between">
+                      <span>Your Puppies</span>
+                      <button
+                        onClick={() => setIsPuppyDropdownOpen(false)}
+                        className="sm:hidden p-1 text-[#766A63] hover:text-[#2C211B]"
+                        aria-label="Close"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   <div className="max-h-60 overflow-y-auto">
                     {allPuppies.map((p) => {
                       const isSelected = p.id === puppy.id;
@@ -251,7 +264,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                     </button>
                   </div>
                 </div>
-              )}
+              </>
+            )}
             </div>
           </div>
 
@@ -280,7 +294,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={handleOpenSearch}
-              className="hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
               title="Search (⌘K)"
               aria-label="Search"
             >
@@ -327,7 +341,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-16 md:pb-4' : 'pb-24 md:pb-8'}`}>
+      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-0 md:pb-4' : 'pb-24 md:pb-8'}`}>
         {children}
       </main>
 

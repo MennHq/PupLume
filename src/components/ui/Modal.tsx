@@ -74,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        <div className={`fixed inset-0 z-50 flex ${isBottomSheet ? 'items-end' : 'items-start sm:items-center pt-3 sm:pt-0'} justify-center p-0 sm:p-4 overflow-y-auto`}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -86,9 +86,9 @@ export const Modal: React.FC<ModalProps> = ({
 
           {/* Content Sheet / Dialog */}
           <motion.div
-            initial={isBottomSheet ? { y: '100%', opacity: 0.8 } : { scale: 0.95, opacity: 0 }}
-            animate={isBottomSheet ? { y: 0, opacity: 1 } : { scale: 1, opacity: 1 }}
-            exit={isBottomSheet ? { y: '100%', opacity: 0 } : { scale: 0.95, opacity: 0 }}
+            initial={isBottomSheet ? { y: '100%', opacity: 0.8 } : { y: -16, scale: 0.98, opacity: 0 }}
+            animate={isBottomSheet ? { y: 0, opacity: 1 } : { y: 0, scale: 1, opacity: 1 }}
+            exit={isBottomSheet ? { y: '100%', opacity: 0 } : { y: -16, scale: 0.98, opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             drag={isBottomSheet ? "y" : false}
             dragConstraints={{ top: 0, bottom: 0 }}
@@ -98,7 +98,9 @@ export const Modal: React.FC<ModalProps> = ({
                 onClose();
               }
             }}
-            className={`relative z-10 w-full ${maxWidthClass} bg-white rounded-t-3xl sm:rounded-2xl border border-[#E8DDD3] shadow-xl overflow-hidden max-h-[92vh] flex flex-col`}
+            className={`relative z-10 w-full ${maxWidthClass} bg-white ${
+              isBottomSheet ? 'rounded-t-3xl sm:rounded-2xl' : 'rounded-2xl mx-2 sm:mx-0 shadow-2xl'
+            } border border-[#E8DDD3] shadow-xl overflow-hidden max-h-[92dvh] sm:max-h-[90vh] flex flex-col`}
           >
             {/* Mobile Grab Bar with Swipe-to-Dismiss */}
             <div

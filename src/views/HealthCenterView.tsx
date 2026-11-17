@@ -25,6 +25,13 @@ import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
+
+const middleTruncate = (str: string, lead = 6, tail = 4): string => {
+  if (!str || str.length <= lead + tail + 3) return str;
+  return `${str.slice(0, lead)}...${str.slice(-tail)}`;
+};
 
 interface HealthCenterViewProps {
   puppy: PuppyProfile;
@@ -219,26 +226,156 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
     setAptTitle('');
   };
 
+  const [weightError, setWeightError] = useState<string | null>(null);
+
   const handleUpdateWeight = (e: React.FormEvent) => {
     e.preventDefault();
     const wt = parseFloat(newWeight);
-    if (isNaN(wt) || wt <= 0) return;
+    if (isNaN(wt) || wt <= 0) {
+      setWeightError('Please enter a valid weight.');
+      return;
+    }
+    if (wt < 0.5 || wt > 350) {
+      setWeightError('Weight must be between 0.5 and 350 lbs.');
+      return;
+    }
+    setWeightError(null);
     const updatedPuppy = { ...puppy, weightLbs: wt };
     storage.savePuppy(updatedPuppy);
     onUpdatePuppy?.(updatedPuppy);
     setIsAddWeightOpen(false);
   };
 
-  const handleExportICS = () => {
+  const handleExportICS = async () => {
     const icsContent = storage.generateICSFile(puppy.name, puppy.id);
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${puppy.name}-PupLume-Calendar.ics`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileName = `${puppy.name}-PupLume-Calendar.ics`;
+
+    // 1. Mobile Web Share API: directly opens native Calendar sheet (Google/Samsung/Apple) with no scary security prompts
+    if (typeof navigator !== 'undefined' && 'share' in navigator) {
+      try {
+        const file = new File([icsContent], fileName, { type: 'text/calendar;charset=utf-8' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${puppy.name}'s Calendar Schedule`,
+            text: `Vaccine and veterinary schedule for ${puppy.name}`,
+          });
+          return;
+        }
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return; // User closed share sheet
+      }
+    }
+
+    // 2. Data URI fallback to avoid Chrome mixed-content insecure download warning on HTTP
+    try {
+      const dataUri = `data:text/calendar;charset=utf-8;base64,${btoa(unescape(encodeURIComponent(icsContent)))}`;
+      const link = document.createElement('a');
+      link.href = dataUri;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+  };
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Delete',
+    onConfirm: () => {},
+  });
+
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    undoAction?: () => void;
+  }>({
+    open: false,
+    message: '',
+  });
+
+  const handleDeleteVaccine = (vac: VaccinationRecord) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Remove Vaccination Record?',
+      description: `Remove "${vac.vaccineName}" from ${puppy.name}'s medical records? You can undo this immediately.`,
+      confirmLabel: 'Delete Record',
+      onConfirm: () => {
+        storage.deleteVaccination(vac.id);
+        setVaccinations(storage.getVaccinations(puppy.id));
+        setUndoToast({
+          open: true,
+          message: `Vaccine record "${vac.vaccineName}" removed`,
+          undoAction: () => {
+            const current = storage.getVaccinations(puppy.id);
+            storage.saveVaccinations([...current, vac], puppy.id);
+            setVaccinations(storage.getVaccinations(puppy.id));
+          }
+        });
+      }
+    });
+  };
+
+  const handleDeleteMedication = (med: MedicationRecord) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Remove Medication?',
+      description: `Remove "${med.name}" from ${puppy.name}'s medications? You can undo this immediately.`,
+      confirmLabel: 'Delete Medication',
+      onConfirm: () => {
+        storage.deleteMedication(med.id);
+        setMedications(storage.getMedications(puppy.id));
+        setUndoToast({
+          open: true,
+          message: `Medication "${med.name}" removed`,
+          undoAction: () => {
+            const current = storage.getMedications(puppy.id);
+            storage.saveMedications([...current, med], puppy.id);
+            setMedications(storage.getMedications(puppy.id));
+          }
+        });
+      }
+    });
+  };
+
+  const handleDeleteAppointment = (apt: VetAppointment) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Cancel Vet Visit?',
+      description: `Remove scheduled visit "${apt.title}" on ${apt.date}? You can undo this immediately.`,
+      confirmLabel: 'Cancel Visit',
+      onConfirm: () => {
+        storage.deleteAppointment(apt.id);
+        setAppointments(storage.getAppointments(puppy.id));
+        setUndoToast({
+          open: true,
+          message: `Visit "${apt.title}" removed`,
+          undoAction: () => {
+            const current = storage.getAppointments(puppy.id);
+            storage.saveAppointments([...current, apt], puppy.id);
+            setAppointments(storage.getAppointments(puppy.id));
+          }
+        });
+      }
+    });
   };
 
   return (
@@ -321,10 +458,12 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               {puppy.insuranceProvider || 'No insurance recorded'}
             </h3>
             {puppy.insurancePolicyNumber && (
-              <p className="text-xs text-[#766A63]">Policy: #{puppy.insurancePolicyNumber}</p>
+              <p className="text-xs text-[#766A63]" title={puppy.insurancePolicyNumber}>
+                Policy: #{middleTruncate(puppy.insurancePolicyNumber, 6, 4)}
+              </p>
             )}
-            <p className="text-xs font-semibold text-[#5F3E29] mt-1">
-              Microchip: {puppy.microchipNumber || 'Not recorded'}
+            <p className="text-xs font-semibold text-[#5F3E29] mt-1" title={puppy.microchipNumber || undefined}>
+              Microchip: {puppy.microchipNumber ? middleTruncate(puppy.microchipNumber, 5, 4) : 'Not recorded'}
             </p>
           </div>
           <div className="p-2.5 rounded-lg bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
@@ -414,14 +553,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     )}
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!confirm(`Are you sure you want to remove the vaccination record for "${vac.vaccineName}"?`)) return;
-                        storage.deleteVaccination(vac.id);
-                        setVaccinations(storage.getVaccinations(puppy.id));
-                      }}
+                      onClick={() => handleDeleteVaccine(vac)}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
-                      aria-label="Delete record"
-                      title="Delete record"
+                      aria-label={`Delete record for ${vac.vaccineName}`}
+                      title={`Delete record for ${vac.vaccineName}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -487,14 +622,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                     </span>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!confirm(`Are you sure you want to remove the medication "${med.name}"?`)) return;
-                        storage.deleteMedication(med.id);
-                        setMedications(storage.getMedications(puppy.id));
-                      }}
+                      onClick={() => handleDeleteMedication(med)}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
-                      aria-label="Delete medication"
-                      title="Delete medication"
+                      aria-label={`Delete ${med.name}`}
+                      title={`Delete ${med.name}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -564,14 +695,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (!confirm(`Are you sure you want to remove the appointment "${apt.title}"?`)) return;
-                          storage.deleteAppointment(apt.id);
-                          setAppointments(storage.getAppointments(puppy.id));
-                        }}
+                        onClick={() => handleDeleteAppointment(apt)}
                         className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
-                        aria-label="Delete visit"
-                        title="Delete visit"
+                        aria-label={`Delete visit ${apt.title}`}
+                        title={`Delete visit ${apt.title}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -639,11 +766,19 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
 
       {/* Add Vaccine Modal */}
       <Modal isOpen={isAddVacOpen} onClose={() => setIsAddVacOpen(false)} title="Add Vaccine Record">
-        <form onSubmit={handleAddVaccine} className="space-y-4">
+        <form onSubmit={handleAddVaccine} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">Vaccine Name</label>
             <input
               type="text"
+              name="puppy_vaccine_name"
+              id="puppy_vaccine_name"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-form-type="other"
+              data-1p-ignore="true"
               required
               value={vacName}
               onChange={(e) => setVacName(e.target.value)}
@@ -680,11 +815,19 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
 
       {/* Add Medication Modal */}
       <Modal isOpen={isAddMedOpen} onClose={() => setIsAddMedOpen(false)} title="Add Medication">
-        <form onSubmit={handleAddMedication} className="space-y-4">
+        <form onSubmit={handleAddMedication} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">Medication Name</label>
             <input
               type="text"
+              name="puppy_medication_name"
+              id="puppy_medication_name"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-form-type="other"
+              data-1p-ignore="true"
               required
               value={medName}
               onChange={(e) => setMedName(e.target.value)}
@@ -697,6 +840,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               <label className="block text-xs font-bold text-[#2C211B] mb-1">Dosage</label>
               <input
                 type="text"
+                name="puppy_med_dosage"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
                 value={medDosage}
                 onChange={(e) => setMedDosage(e.target.value)}
                 placeholder="1 chewable tablet"
@@ -707,6 +854,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               <label className="block text-xs font-bold text-[#2C211B] mb-1">Frequency</label>
               <input
                 type="text"
+                name="puppy_med_freq"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
                 value={medFrequency}
                 onChange={(e) => setMedFrequency(e.target.value)}
                 placeholder="Monthly"
@@ -723,11 +874,19 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
 
       {/* Add Appointment Modal */}
       <Modal isOpen={isAddAptOpen} onClose={() => setIsAddAptOpen(false)} title="Schedule Vet Visit">
-        <form onSubmit={handleAddAppointment} className="space-y-4">
+        <form onSubmit={handleAddAppointment} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">Visit Title</label>
             <input
               type="text"
+              name="puppy_apt_title"
+              id="puppy_apt_title"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-form-type="other"
+              data-1p-ignore="true"
               required
               value={aptTitle}
               onChange={(e) => setAptTitle(e.target.value)}
@@ -774,37 +933,85 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       </Modal>
 
       {/* Log Weight Modal */}
-      <Modal isOpen={isAddWeightOpen} onClose={() => setIsAddWeightOpen(false)} title="Update Weight">
-        <form onSubmit={handleUpdateWeight} className="space-y-4">
+      <Modal 
+        isOpen={isAddWeightOpen} 
+        onClose={() => {
+          setIsAddWeightOpen(false);
+          setWeightError(null);
+        }} 
+        title="Update Weight"
+      >
+        <form onSubmit={handleUpdateWeight} noValidate autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">Weight (lbs)</label>
             <input
-              type="number"
-              step="0.1"
-              min="0.5"
-              max="350"
-              required
+              type="text"
+              inputMode="decimal"
+              name="puppy_weight_lbs"
+              id="puppy_weight_lbs"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              data-lpignore="true"
+              data-form-type="other"
+              data-1p-ignore="true"
               value={newWeight}
-              onChange={(e) => setNewWeight(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-lg font-bold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] tabular-nums"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                  setNewWeight(val);
+                  if (weightError) setWeightError(null);
+                }
+              }}
+              placeholder="e.g. 15.5"
+              className={`w-full px-3.5 py-2.5 rounded-xl border bg-[#FFF9F2] text-lg font-bold text-[#2C211B] focus:outline-none tabular-nums transition-colors ${
+                weightError ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200' : 'border-[#E8DDD3] focus:border-[#8B5E3C]'
+              }`}
             />
+            {weightError && (
+              <p className="text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1.5 animate-in fade-in duration-150">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>{weightError}</span>
+              </p>
+            )}
+            <p className="text-[11px] text-[#766A63] mt-1">
+              Valid range: 0.5 to 350 lbs for healthy canine growth.
+            </p>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setIsAddWeightOpen(false)} className="flex-1">Cancel</Button>
-            <Button type="submit" variant="primary" className="flex-1">Update Weight</Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsAddWeightOpen(false);
+                setWeightError(null);
+              }} 
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1">
+              Update Weight
+            </Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Primary Vet Modal */}
       <Modal isOpen={isEditVetOpen} onClose={() => setIsEditVetOpen(false)} title="Primary Veterinarian">
-        <form onSubmit={handleSaveVet} className="space-y-4">
+        <form onSubmit={handleSaveVet} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Clinic or Hospital Name
             </label>
             <input
               type="text"
+              name="vet_clinic_name"
+              id="vet_clinic_name"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={vetClinicInput}
               onChange={(e) => setVetClinicInput(e.target.value)}
               placeholder="e.g. City Paws Animal Hospital"
@@ -817,6 +1024,11 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </label>
             <input
               type="text"
+              name="vet_doctor_name"
+              id="vet_doctor_name"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={vetNameInput}
               onChange={(e) => setVetNameInput(e.target.value)}
               placeholder="e.g. Dr. Sarah Vance, DVM"
@@ -829,6 +1041,11 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </label>
             <input
               type="tel"
+              name="vet_phone_num"
+              id="vet_phone_num"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={vetPhoneInput}
               onChange={(e) => setVetPhoneInput(e.target.value)}
               placeholder="e.g. (555) 234-5678"
@@ -848,13 +1065,18 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
 
       {/* Edit Pet Insurance & Microchip Modal */}
       <Modal isOpen={isEditInsuranceOpen} onClose={() => setIsEditInsuranceOpen(false)} title="Pet Insurance & Microchip">
-        <form onSubmit={handleSaveInsurance} className="space-y-4">
+        <form onSubmit={handleSaveInsurance} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Pet Insurance Provider
             </label>
             <input
               type="text"
+              name="pet_insurance_provider"
+              id="pet_insurance_provider"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={insuranceProviderInput}
               onChange={(e) => setInsuranceProviderInput(e.target.value)}
               placeholder="e.g. Trupanion, Lemonade, Healthy Paws"
@@ -867,6 +1089,11 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </label>
             <input
               type="text"
+              name="pet_insurance_policy"
+              id="pet_insurance_policy"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={insurancePolicyInput}
               onChange={(e) => setInsurancePolicyInput(e.target.value)}
               placeholder="e.g. POL-984210"
@@ -879,6 +1106,11 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </label>
             <input
               type="text"
+              name="pet_microchip_num"
+              id="pet_microchip_num"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               value={microchipInput}
               onChange={(e) => setMicrochipInput(e.target.value)}
               placeholder="e.g. 985141002345678"
@@ -898,6 +1130,25 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           </div>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
+
+      {/* 5-second Undo Toast Notification */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast(prev => ({ ...prev, open: false }))}
+        onUndo={undoToast.undoAction}
+      />
     </div>
   );
 };

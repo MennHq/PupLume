@@ -12,6 +12,8 @@ import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 
 interface PottyTrackerViewProps {
   puppy: PuppyProfile;
@@ -63,10 +65,52 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
     setNotes('');
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Delete Entry',
+    onConfirm: () => {},
+  });
+
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    undoAction?: () => void;
+  }>({
+    open: false,
+    message: '',
+  });
+
   const handleDeleteLog = (id: string) => {
-    if (!confirm('Are you sure you want to delete this potty log?')) return;
-    storage.deletePottyLog(id);
-    setLogs(storage.getPottyLogs(puppy.id));
+    const target = logs.find(l => l.id === id);
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Potty Entry?',
+      description: `Remove this ${target ? target.type.toUpperCase() : 'potty'} record? You can undo this immediately.`,
+      confirmLabel: 'Delete Entry',
+      onConfirm: () => {
+        storage.deletePottyLog(id);
+        setLogs(storage.getPottyLogs(puppy.id));
+        if (target) {
+          setUndoToast({
+            open: true,
+            message: `${target.type.toUpperCase()} entry removed`,
+            undoAction: () => {
+              const current = storage.getPottyLogs(puppy.id);
+              storage.savePottyLogs([...current, target], puppy.id);
+              setLogs(storage.getPottyLogs(puppy.id));
+            }
+          });
+        }
+      }
+    });
   };
 
   const outdoorCount = logs.filter(l => l.location === 'outdoor' || l.location === 'pad').length;
@@ -342,6 +386,25 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
           </div>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
+
+      {/* 5-second Undo Toast Notification */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast(prev => ({ ...prev, open: false }))}
+        onUndo={undoToast.undoAction}
+      />
     </div>
   );
 };

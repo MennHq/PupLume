@@ -21,6 +21,7 @@ import { api } from '../../convex/_generated/api';
 import { PuppyProfile, AIMessage, AIActionSuggestion } from '../types';
 import { storage, generateUniqueId } from '../lib/storage';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
 import { SkeletonBox } from 'skullet/react';
 
@@ -261,23 +262,27 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     }
   };
 
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const handleClearChat = () => {
-    if (confirm('Clear chat history with PupLume?')) {
-      const reset = [
-        {
-          id: generateUniqueId('ai'),
-          sender: 'assistant' as const,
-          text: `Chat reset. I'm ready to help with ${puppy.name}'s training, schedule, or potty rhythm!`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ];
-      setMessages(reset);
-      storage.saveAIMessages(reset);
-    }
+    setShowClearConfirm(true);
+  };
+
+  const handleConfirmClearChat = () => {
+    const reset = [
+      {
+        id: generateUniqueId('ai'),
+        sender: 'assistant' as const,
+        text: `Chat reset. I'm ready to help with ${puppy.name}'s training, schedule, or potty rhythm!`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ];
+    setMessages(reset);
+    storage.saveAIMessages(reset);
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-7.5rem)] md:h-[calc(100vh-7.5rem)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100dvh-9.5rem-env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-8.5rem)] max-w-4xl mx-auto pb-1">
       
 
             {/* Sleek Professional Chat Header */}
@@ -478,10 +483,22 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
           e.preventDefault();
           handleSend();
         }}
-        className="relative flex items-center gap-2 mt-1"
+        autoComplete="off"
+        data-form-type="other"
+        className="relative flex items-center gap-2 mt-1 shrink-0"
       >
         <input
           type="text"
+          name="ai_chat_query"
+          id="ai_chat_query"
+          autoComplete="off"
+          autoCorrect="on"
+          autoCapitalize="sentences"
+          spellCheck={true}
+          enterKeyHint="send"
+          data-lpignore="true"
+          data-form-type="other"
+          data-1p-ignore="true"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={`Ask anything about ${puppy.name}... (e.g. "Create potty plan", "Why is ${puppy.name} biting?")`}
@@ -496,6 +513,17 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
           <Send className="w-4 h-4" />
         </button>
       </form>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleConfirmClearChat}
+        title="Reset Chat History?"
+        description={`Clear conversation history with PupLume for ${puppy.name}? A fresh assistant prompt will be started.`}
+        confirmLabel="Reset Chat"
+        isDestructive={true}
+      />
     </div>
   );
 };

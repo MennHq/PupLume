@@ -208,7 +208,7 @@ export const CareMilestonesHub: React.FC<CareMilestonesHubProps> = ({
                   alt={puppy.name} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2.5">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-end p-2.5">
                   <div className="w-full flex items-center justify-between text-white">
                     <span className="text-[11px] font-bold truncate max-w-[170px] flex items-center gap-1">
                       <Heart className="w-3 h-3 text-amber-300 fill-amber-300 shrink-0" />

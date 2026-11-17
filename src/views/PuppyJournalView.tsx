@@ -11,6 +11,8 @@ import { PuppyProfile } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
 import { deleteImageFromCloudinary } from '../lib/cloudinary';
 
@@ -21,6 +23,33 @@ interface PuppyJournalViewProps {
 export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => {
   const [entries, setEntries] = useState(() => storage.getJournal(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [pendingDeleteEntry, setPendingDeleteEntry] = useState<any | null>(null);
+  const [undoToast, setUndoToast] = useState<{ open: boolean; message: string; record?: any }>({
+    open: false,
+    message: '',
+  });
+
+  const handleDeleteEntry = (entry: any) => {
+    const media = entry.mediaUrl || entry.photoUrl;
+    if (media) {
+      deleteImageFromCloudinary(media).catch(() => {});
+    }
+    storage.deleteJournalEntry(entry.id);
+    setEntries([...storage.getJournal(puppy.id)]);
+    setUndoToast({
+      open: true,
+      message: `"${entry.title}" removed`,
+      record: entry,
+    });
+  };
+
+  const handleUndo = () => {
+    if (undoToast.record) {
+      storage.saveJournalEntries([undoToast.record, ...storage.getJournal(puppy.id)], puppy.id);
+      setEntries([...storage.getJournal(puppy.id)]);
+      setUndoToast({ open: false, message: '' });
+    }
+  };
 
   React.useEffect(() => {
     setEntries(storage.getJournal(puppy.id));
@@ -168,15 +197,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
                 )}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!confirm(`Are you sure you want to delete this memory: "${entry.title}"?`)) return;
-                    const media = entry.mediaUrl || (entry as any).photoUrl;
-                    if (media) {
-                      deleteImageFromCloudinary(media).catch(() => {});
-                    }
-                    storage.deleteJournalEntry(entry.id);
-                    setEntries([...storage.getJournal(puppy.id)]);
-                  }}
+                  onClick={() => setPendingDeleteEntry(entry)}
                   className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
                   aria-label="Delete memory"
                   title="Delete memory"
@@ -271,6 +292,30 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
           </div>
         </form>
       </Modal>
+
+      {/* Styled Confirmation Dialog (Case 39) */}
+      <ConfirmDialog
+        isOpen={!!pendingDeleteEntry}
+        onClose={() => setPendingDeleteEntry(null)}
+        onConfirm={() => {
+          if (pendingDeleteEntry) {
+            handleDeleteEntry(pendingDeleteEntry);
+          }
+        }}
+        title="Delete Memory?"
+        description={`Are you sure you want to remove "${pendingDeleteEntry?.title}" from ${puppy.name}'s storybook? You can undo this right after.`}
+        confirmLabel="Delete Memory"
+        cancelLabel="Keep Memory"
+        isDestructive={true}
+      />
+
+      {/* Reversible Undo Toast Notification (Case 15) */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast({ open: false, message: '' })}
+        action={undoToast.record ? { label: 'Undo', onClick: handleUndo } : undefined}
+      />
     </div>
   );
 };

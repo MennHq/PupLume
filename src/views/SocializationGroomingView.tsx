@@ -14,6 +14,8 @@ import {
 import { PuppyProfile, GroomingTask } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 import { storage, generateUniqueId } from '../lib/storage';
 
 interface SocializationGroomingViewProps {
@@ -184,16 +186,88 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
     storage.saveGroomingTasks(updated, puppy.id);
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Delete',
+    onConfirm: () => {},
+  });
+
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    undoAction?: () => void;
+  }>({
+    open: false,
+    message: '',
+  });
+
   const handleDeleteGrooming = (id: string, label: string) => {
-    if (!confirm(`Are you sure you want to remove the grooming routine "${label}"?`)) return;
-    storage.deleteGroomingTask(id, puppy.id);
-    setGroomingItems(prev => prev.filter(g => g.id !== id));
+    setConfirmDialog({
+      open: true,
+      title: 'Remove Grooming Routine?',
+      description: `Remove "${label}" from ${puppy.name}'s care checklist? You can undo this immediately.`,
+      confirmLabel: 'Remove Routine',
+      onConfirm: () => {
+        const removed = storage.getGroomingTasks(puppy.id).find(g => g.id === id);
+        storage.deleteGroomingTask(id, puppy.id);
+        setGroomingItems(prev => prev.filter(g => g.id !== id));
+        if (removed) {
+          setUndoToast({
+            open: true,
+            message: `"${label}" removed`,
+            undoAction: () => {
+              const current = storage.getGroomingTasks(puppy.id);
+              storage.saveGroomingTasks([...current, removed], puppy.id);
+              setGroomingItems(storage.getGroomingTasks(puppy.id).map(g => ({
+                id: g.id,
+                name: g.label,
+                frequency: `Every ${g.frequencyDays} days`,
+                lastDone: g.lastDone ? new Date(g.lastDone).toLocaleDateString() : 'Not yet logged',
+                cooperativeLevel: 'comfort'
+              })));
+            }
+          });
+        }
+      }
+    });
   };
 
   const handleDeleteSocial = (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to remove "${title}" from socialization?`)) return;
-    storage.deleteSocializationItem(id);
-    setSocialItems(prev => prev.filter(s => s.id !== id));
+    setConfirmDialog({
+      open: true,
+      title: 'Remove Socialization Item?',
+      description: `Remove "${title}" from ${puppy.name}'s exposure list? You can undo this immediately.`,
+      confirmLabel: 'Remove Item',
+      onConfirm: () => {
+        const removed = storage.getSocialization().find(s => s.id === id);
+        storage.deleteSocializationItem(id);
+        setSocialItems(prev => prev.filter(s => s.id !== id));
+        if (removed) {
+          setUndoToast({
+            open: true,
+            message: `"${title}" removed`,
+            undoAction: () => {
+              storage.addSocializationItem(removed);
+              setSocialItems(storage.getSocialization().map(s => ({
+                id: s.id,
+                category: (s.category.toLowerCase() as any) || 'people',
+                name: s.title,
+                status: (s.status as any) || 'unexposed',
+                notes: s.notes
+              })));
+            }
+          });
+        }
+      }
+    });
   };
 
   const positiveCount = socialItems.filter(s => s.status === 'positive').length;
@@ -495,6 +569,25 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
           </Button>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
+
+      {/* 5-second Undo Toast Notification */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast(prev => ({ ...prev, open: false }))}
+        onUndo={undoToast.undoAction}
+      />
     </div>
   );
 };

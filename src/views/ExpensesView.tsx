@@ -11,6 +11,8 @@ import { PuppyProfile, ExpenseRecord, ExpenseCategory } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 import { uploadImageToCloudinary } from '../lib/cloudinary';
 
 interface ExpensesViewProps {
@@ -21,6 +23,29 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => storage.getExpenses(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [pendingDeleteExpense, setPendingDeleteExpense] = useState<ExpenseRecord | null>(null);
+  const [undoToast, setUndoToast] = useState<{ open: boolean; message: string; record?: ExpenseRecord }>({
+    open: false,
+    message: '',
+  });
+
+  const handleDelete = (exp: ExpenseRecord) => {
+    storage.deleteExpense(exp.id);
+    setExpenses([...storage.getExpenses(puppy.id)]);
+    setUndoToast({
+      open: true,
+      message: `"${exp.title}" deleted`,
+      record: exp,
+    });
+  };
+
+  const handleUndo = () => {
+    if (undoToast.record) {
+      storage.saveExpenses([undoToast.record, ...storage.getExpenses(puppy.id)], puppy.id);
+      setExpenses([...storage.getExpenses(puppy.id)]);
+      setUndoToast({ open: false, message: '' });
+    }
+  };
 
   React.useEffect(() => {
     setExpenses(storage.getExpenses(puppy.id));
@@ -207,8 +232,17 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
           {expenses.length === 0 ? (
             <div className="p-8 text-center text-xs text-[#766A63]">
               <DollarSign className="w-8 h-8 text-[#8B5E3C]/40 mx-auto mb-2" />
-              <p className="font-semibold text-[#2C211B]">No expenses recorded yet</p>
+              <p className="font-semibold text-sm text-[#2C211B]">No expenses recorded yet</p>
               <p className="mt-0.5">Track your vet bills, food, training gear, and supplies for {puppy.name}.</p>
+              <Button
+                size="sm"
+                variant="primary"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => setIsAddOpen(true)}
+                className="mt-3.5 mx-auto"
+              >
+                Log First Expense
+              </Button>
             </div>
           ) : (
             expenses.map((exp) => (
@@ -245,11 +279,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!confirm(`Are you sure you want to delete the expense "${exp.title}" ($${exp.amount.toFixed(2)})?`)) return;
-                    storage.deleteExpense(exp.id);
-                    setExpenses([...storage.getExpenses(puppy.id)]);
-                  }}
+                  onClick={() => setPendingDeleteExpense(exp)}
                   className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
                   aria-label="Delete expense"
                   title="Delete expense"
@@ -371,6 +401,30 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
           </div>
         </form>
       </Modal>
+
+      {/* Styled Non-Blocking Confirmation Dialog (Case 39) */}
+      <ConfirmDialog
+        isOpen={!!pendingDeleteExpense}
+        onClose={() => setPendingDeleteExpense(null)}
+        onConfirm={() => {
+          if (pendingDeleteExpense) {
+            handleDelete(pendingDeleteExpense);
+          }
+        }}
+        title="Delete Expense?"
+        description={`Are you sure you want to remove "${pendingDeleteExpense?.title}" ($${pendingDeleteExpense?.amount.toFixed(2)})? You can undo this right after.`}
+        confirmLabel="Delete Expense"
+        cancelLabel="Keep Expense"
+        isDestructive={true}
+      />
+
+      {/* Reversible Undo Toast Notification (Case 15) */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast({ open: false, message: '' })}
+        action={undoToast.record ? { label: 'Undo', onClick: handleUndo } : undefined}
+      />
     </div>
   );
 };

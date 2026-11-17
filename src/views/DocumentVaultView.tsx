@@ -11,6 +11,8 @@ import { PuppyProfile, DocumentRecord, DocumentCategory } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
 import { deleteImageFromCloudinary } from '../lib/cloudinary';
 
@@ -60,15 +62,53 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
     setFileUrl('');
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Delete Document',
+    onConfirm: () => {},
+  });
+
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    undoAction?: () => void;
+  }>({
+    open: false,
+    message: '',
+  });
+
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
-    const label = doc ? ` "${doc.title}"` : '';
-    if (!confirm(`Are you sure you want to permanently delete document${label}?`)) return;
-    if (doc?.fileUrl) {
-      deleteImageFromCloudinary(doc.fileUrl).catch(() => {});
-    }
-    storage.deleteDocument(id);
-    setDocuments(storage.getDocuments(puppy.id));
+    const label = doc ? ` "${doc.title}"` : ' this document';
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Vault Document?',
+      description: `Permanently delete${label}? You can undo this immediately.`,
+      confirmLabel: 'Delete Document',
+      onConfirm: () => {
+        storage.deleteDocument(id);
+        setDocuments(storage.getDocuments(puppy.id));
+        if (doc) {
+          setUndoToast({
+            open: true,
+            message: `Document${label} removed`,
+            undoAction: () => {
+              const current = storage.getDocuments(puppy.id);
+              storage.saveDocuments([...current, doc], puppy.id);
+              setDocuments(storage.getDocuments(puppy.id));
+            }
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -308,6 +348,25 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
           </div>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
+
+      {/* 5-second Undo Toast Notification */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast(prev => ({ ...prev, open: false }))}
+        onUndo={undoToast.undoAction}
+      />
     </div>
   );
 };

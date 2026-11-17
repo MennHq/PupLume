@@ -204,10 +204,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="lg:col-span-8 space-y-6">
           {/* Top Header Card */}
       <div className="bg-white rounded-3xl border border-[#E8DDD3] p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
           <div
             onClick={() => onNavigate('puppy')}
-            className="relative cursor-pointer group"
+            className="relative cursor-pointer group shrink-0"
           >
             <img
               src={puppy.photoUrl}
@@ -219,12 +219,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </span>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B] leading-tight">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-2xl font-extrabold text-[#2C211B] leading-tight">
                 Good day, {puppy.name}!
               </h1>
-              <span className="text-[11px] font-bold bg-[#F3E7DA] text-[#5F3E29] px-2 py-0.5 rounded-full tabular-nums">
+              <span className="text-[11px] font-bold bg-[#F3E7DA] text-[#5F3E29] px-2 py-0.5 rounded-full tabular-nums shrink-0">
                 {ageWeeks} wks
               </span>
             </div>

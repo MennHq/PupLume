@@ -48,13 +48,24 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Global Search" maxWidth="lg">
-      <div className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title="Global Search" maxWidth="lg" isBottomSheet={false}>
+      <div className="space-y-4 pb-8 sm:pb-2">
         {/* Search Input */}
         <div className="relative">
-          <Search className="w-4 h-4 text-[#766A63] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#766A63] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
-            type="text"
+            type="search"
+            inputMode="search"
+            name="global_search_term"
+            id="global_search_term"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="search"
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -102,8 +113,20 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         {searchResults && (
           <div className="space-y-2 max-h-[50vh] overflow-y-auto">
             {searchResults.length === 0 ? (
-              <div className="py-8 text-center text-xs text-[#766A63]">
-                No records found matching "{query}".
+              <div className="py-8 px-4 text-center bg-[#FAF6F0] rounded-2xl border border-[#E8DDD3]">
+                <p className="text-xs font-bold text-[#2C211B] mb-1">
+                  No records found matching "{query}"
+                </p>
+                <p className="text-[11px] text-[#766A63] mb-3">
+                  Check your spelling, or try searching for health records, daily routines, or academy lessons.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#8B5E3C] bg-white hover:bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl transition-colors cursor-pointer shadow-2xs"
+                >
+                  Clear Search
+                </button>
               </div>
             ) : (
               searchResults.map((item) => (

@@ -1691,13 +1691,18 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
       {/* MODAL 2: FULL EDIT PROFILE MODAL */}
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Puppy Profile">
-        <form onSubmit={handleSaveFullProfile} className="space-y-4">
+        <form onSubmit={handleSaveFullProfile} autoComplete="off" data-form-type="other" className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Puppy Name
             </label>
             <input
               type="text"
+              name="pet_name_field"
+              id="pet_name_field"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -1707,34 +1712,49 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Breed
               </label>
               <input
                 type="text"
+                name="pet_breed_field"
+                id="pet_breed_field"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
                 value={breed}
                 onChange={(e) => setBreed(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Weight (lbs)
               </label>
               <input
-                type="number"
-                step="0.1"
-                min="0.5"
-                max="300"
+                type="text"
+                inputMode="decimal"
+                name="pet_weight_lbs"
+                id="pet_weight_lbs"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
                 value={weightLbs}
-                onChange={(e) => setWeightLbs(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '' || /^\d*\.?\d*$/.test(val)) setWeightLbs(val);
+                }}
                 className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Puppy Photo
             </label>
             <CloudinaryImageUploader
@@ -1755,7 +1775,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   Owner Phone <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
                 </label>
                 <CountryPhoneInput
@@ -1776,7 +1796,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100 px-1.5 py-0.5 rounded ml-1">Required</span>
               </label>
               <textarea
@@ -1799,7 +1819,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Microchip ID
             </label>
             <input
@@ -1812,7 +1832,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Diet / Food Formula
             </label>
             <input
@@ -1824,7 +1844,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Favorite Treat
             </label>
             <input
@@ -1837,7 +1857,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Vet Clinic
               </label>
               <input
@@ -1849,7 +1869,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Vet Phone
               </label>
               <input

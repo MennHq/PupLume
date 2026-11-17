@@ -1093,6 +1093,18 @@ class StorageManager {
     deletePottyLogInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
+  savePottyLogs(logs: PottyLog[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.pottyLogs.filter((p) => !this.matchesPuppy(p.puppyId, targetId));
+      this.pottyLogs = [...logs, ...others];
+    } else {
+      this.pottyLogs = logs;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
+  }
+
   // Sleep logs (Scoped strictly to active or target puppy)
   getSleepLogs(puppyId?: string): SleepLog[] {
     const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
@@ -1240,6 +1252,18 @@ class StorageManager {
     deleteVaccinationInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
+  saveVaccinations(vaccinations: VaccinationRecord[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.vaccinations.filter((v) => !this.matchesPuppy(v.puppyId, targetId));
+      this.vaccinations = [...vaccinations, ...others];
+    } else {
+      this.vaccinations = vaccinations;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
+  }
+
   getMedications(puppyId?: string): MedicationRecord[] {
     const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
     if (!targetId || this.puppies.length <= 1) return this.medications;
@@ -1267,6 +1291,18 @@ class StorageManager {
     deleteMedicationInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
+  saveMedications(medications: MedicationRecord[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.medications.filter((m) => !this.matchesPuppy(m.puppyId, targetId));
+      this.medications = [...medications, ...others];
+    } else {
+      this.medications = medications;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
+  }
+
   getAppointments(puppyId?: string): VetAppointment[] {
     const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
     if (!targetId || this.puppies.length <= 1) return this.appointments;
@@ -1292,6 +1328,18 @@ class StorageManager {
     this.persistUserCache();
     this.notifyListeners();
     deleteAppointmentInConvex(id, this.currentUserId || undefined).catch(() => {});
+  }
+
+  saveAppointments(appointments: VetAppointment[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.appointments.filter((a) => !this.matchesPuppy(a.puppyId, targetId));
+      this.appointments = [...appointments, ...others];
+    } else {
+      this.appointments = appointments;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
   }
 
   // Expenses (Scoped strictly to active or target puppy)
@@ -1322,6 +1370,18 @@ class StorageManager {
     deleteExpenseInConvex(id, this.currentUserId || undefined).catch(() => {});
   }
 
+  saveExpenses(expenses: ExpenseRecord[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.expenses.filter((e) => !this.matchesPuppy(e.puppyId, targetId));
+      this.expenses = [...expenses, ...others];
+    } else {
+      this.expenses = expenses;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
+  }
+
   // Documents (Scoped strictly to active or target puppy)
   getDocuments(puppyId?: string): DocumentRecord[] {
     const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
@@ -1348,6 +1408,18 @@ class StorageManager {
     this.persistUserCache();
     this.notifyListeners();
     removeDocumentFromConvex(id, this.currentUserId || undefined).catch(() => {});
+  }
+
+  saveDocuments(documents: DocumentRecord[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.documents.filter((d) => !this.matchesPuppy(d.puppyId, targetId));
+      this.documents = [...documents, ...others];
+    } else {
+      this.documents = documents;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
   }
 
   // Behavior (Scoped strictly to active or target puppy)
@@ -1507,6 +1579,18 @@ class StorageManager {
     this.persistUserCache();
     this.notifyListeners();
     deleteJournalEntryInConvex(id, this.currentUserId || undefined).catch(() => {});
+  }
+
+  saveJournalEntries(entries: JournalEntry[], puppyId?: string): void {
+    const targetId = puppyId || this.activePuppyId || this.puppies[0]?.id;
+    if (targetId && this.puppies.length > 1) {
+      const others = this.journal.filter((j) => !this.matchesPuppy(j.puppyId, targetId));
+      this.journal = [...entries, ...others];
+    } else {
+      this.journal = entries;
+    }
+    this.persistUserCache();
+    this.notifyListeners();
   }
 
   // Family

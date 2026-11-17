@@ -14,6 +14,7 @@ import { api } from '../../convex/_generated/api';
 import { PuppyProfile, FamilyMember } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { storage } from '../lib/storage';
 import { copyToClipboard } from '../lib/clipboard';
 
@@ -84,6 +85,20 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'Admin' | 'Member' | 'Walker / Sitter'>('Member');
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Remove Member',
+    onConfirm: () => {},
+  });
 
   const handleSendInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,16 +247,25 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
                 {member.role !== 'Admin' && (
                   <button
                     onClick={() => {
-                      if (!confirm(`Are you sure you want to remove ${member.name} (${member.email}) from family sharing?`)) return;
-                      storage.removeFamilyMember(member.id);
-                      if (user?.id) {
-                        deleteFamilyMemberMutation({ id: member.id, userId: user.id }).catch((err) =>
-                          console.debug('[FamilySharing] deleteFamilyMember note:', err)
-                        );
-                      }
+                      setConfirmDialog({
+                        open: true,
+                        title: 'Remove Family Member?',
+                        description: `Are you sure you want to remove ${member.name} (${member.email}) from family sharing? They will lose access to ${puppy.name}'s profile.`,
+                        confirmLabel: 'Remove Member',
+                        onConfirm: () => {
+                          storage.removeFamilyMember(member.id);
+                          if (user?.id) {
+                            deleteFamilyMemberMutation({ id: member.id, userId: user.id }).catch((err) =>
+                              console.debug('[FamilySharing] deleteFamilyMember note:', err)
+                            );
+                          }
+                          setMembers(prev => prev.filter(m => m.id !== member.id));
+                        }
+                      });
                     }}
-                    className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
                     title="Remove member"
+                    aria-label={`Remove ${member.name}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -380,6 +404,17 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
           </div>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
     </div>
   );
 };

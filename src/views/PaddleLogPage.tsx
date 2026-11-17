@@ -16,6 +16,7 @@ import {
   Globe
 } from 'lucide-react';
 import { copyToClipboard } from '../lib/clipboard';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 export const PaddleLogPage: React.FC = () => {
   const [copiedUrl, setCopiedUrl] = useState(false);
@@ -59,10 +60,14 @@ export const PaddleLogPage: React.FC = () => {
     }
   };
 
-  const handleClear = async () => {
-    if (confirm('Are you sure you want to clear all webhook logs?')) {
-      await clearLogsMutation();
-    }
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const handleClear = () => {
+    setShowClearConfirm(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearLogsMutation();
   };
 
   return (
@@ -320,6 +325,16 @@ export const PaddleLogPage: React.FC = () => {
           )}
         </div>
 
+        {/* Non-blocking Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={showClearConfirm}
+          onClose={() => setShowClearConfirm(false)}
+          onConfirm={handleConfirmClear}
+          title="Clear Webhook Logs?"
+          description="Are you sure you want to permanently clear all Paddle webhook event logs? This cannot be undone."
+          confirmLabel="Clear Logs"
+          isDestructive={true}
+        />
       </div>
     </div>
   );

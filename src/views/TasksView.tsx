@@ -23,6 +23,8 @@ import { playNotificationChime } from '../lib/sound';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastNotification } from '../components/ui/ToastNotification';
 
 interface TasksViewProps {
   puppy: PuppyProfile;
@@ -167,13 +169,54 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
     if (longPressTimer.current) clearTimeout(longPressTimer.current);
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Delete Task',
+    onConfirm: () => {},
+  });
+
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    undoAction?: () => void;
+  }>({
+    open: false,
+    message: '',
+  });
+
   const handleDelete = (taskId: string) => {
     const target = tasks.find(t => t.id === taskId);
-    const label = target ? ` "${target.title}"` : '';
-    if (!confirm(`Are you sure you want to delete task${label}?`)) return;
-    storage.deleteTask(taskId);
-    setTasks([...storage.getTasks(puppy.id)]);
-    setActiveMenuTaskId(null);
+    const label = target ? ` "${target.title}"` : ' this task';
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Routine Task?',
+      description: `Remove${label} from ${puppy.name}'s daily schedule? You can undo this immediately.`,
+      confirmLabel: 'Delete Task',
+      onConfirm: () => {
+        storage.deleteTask(taskId);
+        setTasks([...storage.getTasks(puppy.id)]);
+        setActiveMenuTaskId(null);
+        if (target) {
+          setUndoToast({
+            open: true,
+            message: `Task${label} removed`,
+            undoAction: () => {
+              const current = storage.getTasks(puppy.id);
+              storage.saveTasks([...current, target]);
+              setTasks([...storage.getTasks(puppy.id)]);
+            }
+          });
+        }
+      }
+    });
   };
 
   // Close menu when clicking outside
@@ -517,8 +560,8 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                 </button>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
-                    <h3 className={`text-xs sm:text-sm font-bold text-[#2C211B] break-words line-clamp-1 ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
+                  <div className="flex items-start sm:items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                    <h3 className={`text-xs sm:text-sm font-bold text-[#2C211B] break-words line-clamp-2 leading-snug ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
                       {task.title}
                     </h3>
                     <Badge variant={task.category as any} size="sm">
@@ -526,7 +569,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
                     </Badge>
                   </div>
                   {task.description && (
-                    <p className="text-[11px] sm:text-xs text-[#766A63] mt-0.5 leading-snug line-clamp-1 sm:line-clamp-none">
+                    <p className="text-[11px] sm:text-xs text-[#766A63] mt-0.5 leading-snug line-clamp-2 sm:line-clamp-none">
                       {task.description}
                     </p>
                   )}
@@ -745,7 +788,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Title
             </label>
             <input
@@ -760,7 +803,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Category
               </label>
               <select
@@ -780,7 +823,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Day Period
               </label>
               <select
@@ -798,7 +841,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Time
               </label>
               <input
@@ -810,7 +853,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Duration (min)
               </label>
               <input
@@ -824,7 +867,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Instructions / Notes
             </label>
             <textarea
@@ -846,6 +889,25 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
           </div>
         </form>
       </Modal>
+
+      {/* Non-blocking Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmLabel={confirmDialog.confirmLabel}
+        isDestructive={true}
+      />
+
+      {/* 5-second Undo Toast Notification */}
+      <ToastNotification
+        isOpen={undoToast.open}
+        message={undoToast.message}
+        onClose={() => setUndoToast(prev => ({ ...prev, open: false }))}
+        onUndo={undoToast.undoAction}
+      />
     </div>
   );
 };

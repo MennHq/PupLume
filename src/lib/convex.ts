@@ -21,7 +21,9 @@ const convexUrl =
   import.meta.env.VITE_CONVEX_URL ||
   "https://energetic-partridge-407.convex.cloud";
 
-export const convex = new ConvexReactClient(convexUrl);
+export const convex = new ConvexReactClient(convexUrl, {
+  unsavedChangesWarning: false,
+});
 
 export const CONVEX_DEPLOYMENT =
   import.meta.env.CONVEX_DEPLOYMENT ||

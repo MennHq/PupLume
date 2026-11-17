@@ -17,6 +17,11 @@ if (typeof window !== 'undefined') {
     }
   });
 
+  // Suppress unwanted browser reload blocking dialogs
+  window.addEventListener('beforeunload', (event) => {
+    delete (event as any).returnValue;
+  }, { capture: true });
+
   // Seamless update when service worker installs a new build
   if ('serviceWorker' in navigator) {
     let refreshing = false;
