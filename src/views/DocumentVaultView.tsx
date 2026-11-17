@@ -62,6 +62,13 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
     setFileUrl('');
   };
 
+  const handleQuickStart = (starterTitle: string, starterCategory: DocumentCategory) => {
+    setTitle(starterTitle);
+    setCategory(starterCategory);
+    setNotes(`Official record for ${puppy.name}`);
+    setIsAddOpen(true);
+  };
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -150,6 +157,40 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
           <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsAddOpen(true)}>
             Upload First Document
           </Button>
+
+          <div className="mt-5 pt-4 border-t border-[#E8DDD3]/60 max-w-sm mx-auto">
+            <p className="text-[11px] font-bold text-[#766A63] mb-2.5">Suggested records to keep on hand:</p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleQuickStart('Vaccine Certificate & Rabies Tag', 'vaccination')}
+                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+              >
+                + Vaccine Certificate
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickStart('Microchip Registration Paperwork', 'microchip')}
+                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+              >
+                + Microchip Paperwork
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickStart('Pet Health Insurance Policy', 'insurance')}
+                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+              >
+                + Insurance Policy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickStart('Breeder / Shelter Adoption Agreement', 'adoption')}
+                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+              >
+                + Adoption Contract
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -278,7 +319,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
       <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Upload Document">
         <form onSubmit={handleUpload} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Document Title
             </label>
             <input
@@ -292,7 +333,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Category
             </label>
             <select
@@ -310,7 +351,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Document Notes
             </label>
             <textarea
@@ -323,7 +364,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Upload File / Photo to Cloudinary
             </label>
             <CloudinaryImageUploader

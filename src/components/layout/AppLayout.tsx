@@ -303,13 +303,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
             <button
               onClick={handleOpenNotifications}
-              className="hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
               title="Notifications"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute 1.5 top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center tabular-nums">
                   {unreadNotifsCount}
                 </span>
               )}
@@ -341,7 +341,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-6xl mx-auto w-full px-3 sm:px-8 pt-2.5 sm:pt-5 ${currentView === 'ai' ? 'pb-0 md:pb-4' : 'pb-24 md:pb-8'}`}>
+      <main className={`max-w-6xl mx-auto w-full px-3 sm:px-8 ${
+        currentView === 'ai'
+          ? 'h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col overflow-hidden pt-2 pb-[calc(70px+env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-4.5rem)] md:pb-4 md:pt-4'
+          : 'flex-1 pt-2.5 sm:pt-5 pb-24 md:pb-8'
+      }`}>
         {children}
       </main>
 

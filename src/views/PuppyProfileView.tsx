@@ -1148,7 +1148,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
             {isSlugEditorOpen && (
               <div className="p-4 sm:p-5 bg-white rounded-2xl border-2 border-[#8B5E3C]/30 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div>
-                  <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-[#2C211B] mb-1">
                     Edit URL Slug for {puppy.name}
                   </label>
                   <p className="text-xs text-[#766A63] mb-3">

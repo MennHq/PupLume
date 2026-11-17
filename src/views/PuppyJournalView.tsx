@@ -134,6 +134,13 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
     setPhotoUrl('');
   };
 
+  const handleQuickStart = (starterTitle: string, starterMilestone?: string) => {
+    setTitle(starterTitle);
+    setMilestone(starterMilestone || '');
+    setBody(`Today was a special milestone for ${puppy.name}!`);
+    setIsAddOpen(true);
+  };
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-6">
@@ -175,6 +182,40 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
             <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsAddOpen(true)}>
               Write First Memory
             </Button>
+
+            <div className="mt-5 pt-4 border-t border-[#E8DDD3]/60 max-w-sm mx-auto">
+              <p className="text-[11px] font-bold text-[#766A63] mb-2.5">Memory ideas to start with:</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleQuickStart(`First night sleeping peacefully in crate`, 'Crate Training')}
+                  className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                >
+                  + First Crate Night
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStart(`Mastered the "Sit" command for treats`, 'Training')}
+                  className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                >
+                  + Learned &quot;Sit&quot;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStart(`First adventure walk in the neighborhood`, 'Socialization')}
+                  className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                >
+                  + First Big Walk
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStart(`Celebrated coming home day with ${puppy.name}!`, 'Milestone')}
+                  className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                >
+                  + Gotcha Day!
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           entries.map((entry) => (
@@ -267,7 +308,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Pet Photo / Memory Picture
             </label>
             <CloudinaryImageUploader

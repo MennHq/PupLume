@@ -826,16 +826,22 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
               <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Day Period
               </label>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as DayPeriod)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
-              >
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Evening</option>
-                <option value="night">Night</option>
-              </select>
+              <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3]">
+                {(['morning', 'afternoon', 'evening', 'night'] as DayPeriod[]).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPeriod(p)}
+                    className={`py-1.5 text-[11px] font-bold rounded-lg capitalize transition-all cursor-pointer ${
+                      period === p
+                        ? 'bg-[#8B5E3C] text-white shadow-2xs'
+                        : 'text-[#766A63] hover:text-[#2C211B]'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

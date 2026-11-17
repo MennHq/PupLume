@@ -236,36 +236,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </div>
 
-        {/* Quick Toolbar */}
+        {/* Quick Actions */}
         <div className="flex items-center gap-2 self-end sm:self-auto">
-          <button
-            id="home-search-button"
-            onClick={onOpenSearch}
-            className="sm:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
-            aria-label="Search records"
-          >
-            <Search className="w-4 h-4" />
-          </button>
-
-          <button
-            id="home-notifications-button"
-            onClick={onOpenNotifications}
-            className="sm:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-            {unreadNotifs > 0 && (
-              <span className="absolute 1.5 top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
-                {unreadNotifs}
-              </span>
-            )}
-          </button>
-
           <Button
             variant="outline"
             size="sm"
             onClick={() => onNavigate('recap')}
-            className="text-xs font-semibold flex items-center gap-1 text-[#8B5E3C] hover:bg-[#FFF9F2]"
+            className="text-xs font-semibold flex items-center gap-1.5 text-[#8B5E3C] hover:bg-[#FFF9F2]"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             Recap
@@ -401,7 +378,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
 
             <Badge variant={nextUpTask.category as any} size="sm">
-              {nextUpTask.category.toUpperCase()}
+              {nextUpTask.category.charAt(0).toUpperCase() + nextUpTask.category.slice(1)}
             </Badge>
           </div>
 
@@ -422,7 +399,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 id="next-up-start-lesson-btn"
                 variant="primary"
                 size="sm"
-                leftIcon={<Play className="w-4 h-4 fill-white" />}
+                leftIcon={<Play className="w-4 h-4 fill-white translate-x-0.5" />}
                 onClick={() => {
                   const lessons = storage.getTrainingLessons();
                   const matched = lessons.find(l => 
@@ -584,9 +561,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                           {task.completed && <Check className="w-4 h-4 stroke-[3]" />}
                         </button>
 
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className={`text-xs font-bold text-[#2C211B] truncate ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start sm:items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                            <h4 className={`text-xs font-bold text-[#2C211B] break-words line-clamp-2 leading-snug ${task.completed ? 'line-through text-[#766A63]' : ''}`}>
                               {task.title}
                             </h4>
                             <Badge variant={task.category as any} size="sm">
@@ -594,7 +571,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             </Badge>
                           </div>
                           {task.description && (
-                            <p className="text-[11px] text-[#766A63] truncate mt-0.5">
+                            <p className="text-[11px] text-[#766A63] line-clamp-2 mt-0.5 leading-snug">
                               {task.description}
                             </p>
                           )}
@@ -783,18 +760,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-[#2C211B] mb-1">
-                Period
+                Period of Day
               </label>
-              <select
-                value={newTaskPeriod}
-                onChange={(e) => setNewTaskPeriod(e.target.value as DayPeriod)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
-              >
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Evening</option>
-                <option value="night">Night</option>
-              </select>
+              <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3]">
+                {(['morning', 'afternoon', 'evening', 'night'] as DayPeriod[]).map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    onClick={() => setNewTaskPeriod(period)}
+                    className={`py-1.5 text-[11px] font-bold rounded-lg capitalize transition-all cursor-pointer ${
+                      newTaskPeriod === period
+                        ? 'bg-[#8B5E3C] text-white shadow-2xs'
+                        : 'text-[#766A63] hover:text-[#2C211B]'
+                    }`}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

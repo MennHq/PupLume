@@ -56,8 +56,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           <input
             type="search"
             inputMode="search"
-            name="global_search_term"
-            id="global_search_term"
+            role="searchbox"
+            aria-autocomplete="none"
+            name="q"
+            id="global_search_q"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="none"

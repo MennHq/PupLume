@@ -327,7 +327,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSavePotty} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Event Type
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -359,7 +359,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Location
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -386,7 +386,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Notes (optional)
             </label>
             <input
@@ -422,7 +422,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSaveFood} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Meal
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -444,7 +444,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Amount (Cups)
             </label>
             <input
@@ -458,7 +458,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Food Details
             </label>
             <input
@@ -489,7 +489,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSaveSleep} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Sleep Type
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -515,7 +515,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Duration (Minutes)
             </label>
             <input
@@ -548,7 +548,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
         <form onSubmit={handleSaveWalk} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Minutes
               </label>
               <input
@@ -560,7 +560,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Distance (Miles)
               </label>
               <input
@@ -593,7 +593,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSaveExpense} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Item / Service
             </label>
             <input
@@ -608,7 +608,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Amount ($)
               </label>
               <input
@@ -623,7 +623,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                 Category
               </label>
               <select
@@ -662,7 +662,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSaveNote} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Observation / Milestone
             </label>
             <textarea
@@ -695,7 +695,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
       >
         <form onSubmit={handleSaveMemory} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Memory Photo
             </label>
             <CloudinaryImageUploader
@@ -706,7 +706,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Milestone / Caption
             </label>
             <input
@@ -720,7 +720,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Notes (Optional)
             </label>
             <textarea

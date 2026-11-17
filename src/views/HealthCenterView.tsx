@@ -13,7 +13,11 @@ import {
   Download,
   ExternalLink,
   Edit3,
-  Trash2 
+  Trash2,
+  Share2,
+  Copy,
+  Check,
+  ChevronRight 
 } from 'lucide-react';
 import { 
   PuppyProfile, 
@@ -109,6 +113,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
   const [isAddMedOpen, setIsAddMedOpen] = useState(false);
   const [isAddAptOpen, setIsAddAptOpen] = useState(false);
   const [isAddWeightOpen, setIsAddWeightOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isCopiedSchedule, setIsCopiedSchedule] = useState(false);
 
   // Vet Edit Form
   const [vetClinicInput, setVetClinicInput] = useState(puppy.vetClinic || '');
@@ -401,10 +407,10 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           <Button
             variant="outline"
             size="sm"
-            onClick={handleExportICS}
-            leftIcon={<Download className="w-3.5 h-3.5" />}
+            onClick={() => setIsCalendarModalOpen(true)}
+            leftIcon={<CalendarIcon className="w-3.5 h-3.5" />}
           >
-            Sync to Calendar (.ICS)
+            Sync to Calendar
           </Button>
         </div>
       </div>
@@ -1129,6 +1135,107 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Calendar Sync Options Modal */}
+      <Modal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        title="Sync Puppy Schedule"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-[#766A63]">
+            Export {puppy.name}&apos;s vet appointments, booster deadlines, and daily routine to your phone or desktop calendar.
+          </p>
+
+          <div className="space-y-2.5">
+            {/* Google Calendar Web Option (Zero file downloads, zero security warnings) */}
+            <a
+              href={(() => {
+                const nextApt = appointments.find(a => a.status === 'scheduled');
+                const title = nextApt ? `${nextApt.title} - ${puppy.name}` : `${puppy.name}'s PupLume Routine`;
+                const details = nextApt ? `${nextApt.reason || 'Veterinary care'}. Clinic: ${nextApt.clinic || puppy.vetClinic || 'Vet'}` : `Vaccines and wellness schedule for ${puppy.name}`;
+                const dateClean = nextApt ? nextApt.date.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
+                return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&dates=${dateClean}T090000Z%2F${dateClean}T100000Z`;
+              })()}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setIsCalendarModalOpen(false)}
+              className="p-3.5 rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] hover:border-[#8B5E3C] transition-all flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs">
+                  <ExternalLink className="w-5 h-5 text-[#8B5E3C]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#2C211B] flex items-center gap-1.5">
+                    Google Calendar
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">1-Tap Direct</span>
+                  </h4>
+                  <p className="text-[11px] text-[#766A63]">Opens directly in Google Calendar. No file download.</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#766A63] group-hover:text-[#2C211B] transition-transform group-hover:translate-x-0.5" />
+            </a>
+
+            {/* Universal .ICS file download */}
+            <button
+              type="button"
+              onClick={() => {
+                handleExportICS();
+                setIsCalendarModalOpen(false);
+              }}
+              className="w-full text-left p-3.5 rounded-2xl border border-[#E8DDD3] bg-white hover:bg-[#FFF9F2] hover:border-[#8B5E3C] transition-all flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs">
+                  <Download className="w-5 h-5 text-[#8B5E3C]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#2C211B]">Download .ICS File</h4>
+                  <p className="text-[11px] text-[#766A63]">Universal format for Apple Calendar, Outlook, and Samsung.</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#766A63] group-hover:text-[#2C211B] transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            {/* Quick Copy Schedule */}
+            <button
+              type="button"
+              onClick={() => {
+                const text = appointments.map(a => `${a.date}: ${a.title} at ${a.clinic} (${a.reason})`).join('\n') || `Routine vet care for ${puppy.name}`;
+                navigator.clipboard?.writeText(text);
+                setIsCopiedSchedule(true);
+                setTimeout(() => setIsCopiedSchedule(false), 2000);
+              }}
+              className="w-full text-left p-3.5 rounded-2xl border border-[#E8DDD3] bg-white hover:bg-[#FFF9F2] hover:border-[#8B5E3C] transition-all flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-center text-[#8B5E3C] shadow-2xs">
+                  {isCopiedSchedule ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5 text-[#8B5E3C]" />}
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#2C211B]">
+                    {isCopiedSchedule ? 'Copied to Clipboard!' : 'Copy Schedule Text'}
+                  </h4>
+                  <p className="text-[11px] text-[#766A63]">Copy appointment details to message or email family.</p>
+                </div>
+              </div>
+              {isCopiedSchedule && <span className="text-xs font-bold text-emerald-600">Copied</span>}
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCalendarModalOpen(false)}
+              className="w-full"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Non-blocking Confirm Dialog */}

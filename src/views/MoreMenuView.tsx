@@ -91,7 +91,7 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
           <img
             src={puppy.photoUrl}
             alt={puppy.name}
-            className="w-14 h-14 rounded-2xl object-cover border-2 border-[#8B5E3C]"
+            className="w-14 h-14 rounded-xl object-cover border-2 border-[#8B5E3C]"
           />
           <div>
             <h2 className="text-base font-extrabold text-[#2C211B] flex items-center gap-1.5">
@@ -112,8 +112,8 @@ export const MoreMenuView: React.FC<MoreMenuViewProps> = ({ puppy, onNavigate, o
       {/* PWA Home Screen Installation Card */}
       <div className="bg-gradient-to-br from-[#FFF4E8] to-[#FFF9F2] rounded-3xl border border-[#E8DDD3] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-[#E8DDD3] flex items-center justify-center shadow-xs shrink-0">
-            <img src="/pwa-192x192.png" alt="PupLume PWA" className="w-9 h-9 rounded-xl object-cover" />
+          <div className="w-12 h-12 rounded-xl bg-white border border-[#E8DDD3] flex items-center justify-center shadow-xs shrink-0">
+            <img src="/pwa-192x192.png" alt="PupLume PWA" className="w-9 h-9 rounded-lg object-cover" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">

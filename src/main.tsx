@@ -17,10 +17,15 @@ if (typeof window !== 'undefined') {
     }
   });
 
-  // Suppress unwanted browser reload blocking dialogs
-  window.addEventListener('beforeunload', (event) => {
-    delete (event as any).returnValue;
-  }, { capture: true });
+  // Suppress unwanted browser reload blocking dialogs across any library or background sync
+  const originalAddEventListener = window.addEventListener;
+  window.addEventListener = function (type: string, listener: any, options?: any) {
+    if (type === 'beforeunload') {
+      // Prevent any library (Convex, PostHog, etc.) from registering blocking beforeunload listeners
+      return;
+    }
+    return originalAddEventListener.call(window, type, listener, options);
+  };
 
   // Seamless update when service worker installs a new build
   if ('serviceWorker' in navigator) {

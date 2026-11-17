@@ -68,6 +68,15 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
 
   const totalSpend = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
+  const handleQuickStart = (starterTitle: string, starterAmount: string, starterCategory: ExpenseCategory, starterVendor: string) => {
+    setTitle(starterTitle);
+    setAmount(starterAmount);
+    setCategory(starterCategory);
+    setVendor(starterVendor);
+    setDate(new Date().toISOString().split('T')[0]);
+    setIsAddOpen(true);
+  };
+
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
@@ -243,6 +252,40 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               >
                 Log First Expense
               </Button>
+
+              <div className="mt-5 pt-4 border-t border-[#E8DDD3]/60 max-w-sm mx-auto">
+                <p className="text-[11px] font-bold text-[#766A63] mb-2.5">Or quick-start with a common puppy expense:</p>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStart('Puppy Kibble & Training Treats', '45.00', 'food', 'Petco')}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                  >
+                    + Food & Treats ($45)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStart('First Wellness Exam & Rabies Shot', '85.00', 'vet', 'Vet Clinic')}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                  >
+                    + Vet Checkup ($85)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStart('Training Leash & Collar', '24.00', 'accessories', 'Amazon')}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                  >
+                    + Leash & Collar ($24)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStart('Chew Toys & Teething Ring', '18.50', 'toys', 'Chewy')}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] transition-colors cursor-pointer"
+                  >
+                    + Teething Toys ($18)
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             expenses.map((exp) => (

@@ -508,19 +508,31 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
               Category
             </label>
-            <select
-              value={newSocialCategory}
-              onChange={(e) => setNewSocialCategory(e.target.value as any)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm focus:outline-none focus:border-[#8B5E3C]"
-            >
-              <option value="people">People & Outfits</option>
-              <option value="surfaces">Surfaces & Textures</option>
-              <option value="sounds">Household & City Sounds</option>
-              <option value="environments">Environments & Transport</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'people', label: 'People & Outfits' },
+                { id: 'surfaces', label: 'Surfaces & Textures' },
+                { id: 'sounds', label: 'Household & Sounds' },
+                { id: 'environments', label: 'Places & Transport' }
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setNewSocialCategory(cat.id as any)}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                    newSocialCategory === cat.id
+                      ? 'bg-[#8B5E3C] text-white border-[#8B5E3C] shadow-2xs'
+                      : 'bg-[#FFF9F2] text-[#5F3E29] border-[#E8DDD3] hover:bg-[#F3E7DA]'
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  {newSocialCategory === cat.id && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
+                </button>
+              ))}
+            </div>
           </div>
 
           <Button type="submit" variant="primary" className="w-full">
