@@ -175,10 +175,10 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
         {/* Progress meter */}
         <div className="w-full sm:w-auto bg-white px-3 py-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-[#E8DDD3] shadow-2xs flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:min-w-[130px]">
           <div className="flex sm:flex-col items-center gap-2 sm:gap-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+            <span className="text-[11px] font-bold text-[#766A63]">
               Mastery
             </span>
-            <span className="text-xs sm:text-xl font-black text-[#2C211B] sm:mt-0.5">
+            <span className="text-xs sm:text-xl font-black text-[#2C211B] sm:mt-0.5 tabular-nums">
               {Math.round((masteredCount / lessons.length) * 100)}%
             </span>
           </div>
@@ -225,7 +225,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B5E3C]">
+                <span className="text-[11px] font-bold text-[#8B5E3C]">
                   {lesson.moduleTitle}
                 </span>
                 <span className="text-[11px] text-[#766A63] flex items-center gap-1 font-medium">
@@ -278,7 +278,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
             {/* Goal & Why It Matters */}
             <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-2">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B5E3C]">
+                <span className="text-[11px] font-bold text-[#8B5E3C]">
                   Lesson Objective
                 </span>
                 <p className="text-xs sm:text-sm font-semibold text-[#2C211B] mt-0.5">
@@ -287,7 +287,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
               </div>
 
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                <span className="text-[11px] font-bold text-[#766A63]">
                   Why this matters
                 </span>
                 <p className="text-xs text-[#5F3E29] mt-0.5 leading-relaxed">
@@ -304,7 +304,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="text-2xl sm:text-3xl font-black font-mono text-[#8B5E3C] bg-[#FFF9F2] px-4 py-1.5 rounded-xl border border-[#E8DDD3]">
+                <div className="text-2xl sm:text-3xl font-black font-mono text-[#8B5E3C] bg-[#FFF9F2] px-4 py-1.5 rounded-xl border border-[#E8DDD3] tabular-nums">
                   {formatTimer(timerSeconds)}
                 </div>
 
@@ -312,9 +312,10 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
                   type="button"
                   id="lesson-timer-toggle-btn"
                   onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className="p-2.5 rounded-xl bg-[#8B5E3C] hover:bg-[#5F3E29] text-white transition-colors cursor-pointer"
+                  aria-label={isTimerRunning ? 'Pause timer' : 'Start timer'}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl bg-[#8B5E3C] hover:bg-[#5F3E29] text-white transition-colors cursor-pointer"
                 >
-                  {isTimerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-white" />}
+                  {isTimerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-white translate-x-0.5" />}
                 </button>
 
                 <button
@@ -323,8 +324,9 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
                     setIsTimerRunning(false);
                     setTimerSeconds(activeLesson.durationMin * 60);
                   }}
-                  className="p-2.5 rounded-xl border border-[#E8DDD3] hover:bg-[#F3E7DA] text-[#766A63] transition-colors cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] hover:bg-[#F3E7DA] text-[#766A63] transition-colors cursor-pointer"
                   title="Reset timer"
+                  aria-label="Reset timer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -333,7 +335,7 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
 
             {/* Step-by-Step Instructions */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#2C211B] mb-3">
+              <h4 className="text-xs font-bold text-[#2C211B] mb-3">
                 Step-by-Step Drill
               </h4>
               <div className="space-y-2.5">

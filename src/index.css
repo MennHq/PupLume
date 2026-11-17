@@ -11,6 +11,14 @@
   --text: #2C211B;
   --muted: #766A63;
   --border: #E8DDD3;
+
+  /* Senior UI/UX Dark Mode Elevation Tiers (Surface Lightness Physics) */
+  --elevation-00: #121212; /* Canvas */
+  --elevation-01: #1E1E1E; /* Card surface */
+  --elevation-04: #242424; /* Raised surface */
+  --elevation-08: #2C2C2C; /* Bottom sheets & popups */
+  --elevation-16: #343434; /* Modal dialogs */
+  --elevation-border: rgba(255, 255, 255, 0.08); /* 1px hairline border */
 }
 
 html {
@@ -30,6 +38,7 @@ body {
   touch-action: pan-y;
   overscroll-behavior-x: none;
   font-family: 'Outfit', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
   background-color: #FFF9F2;
   color: #2C211B;
   -webkit-tap-highlight-color: transparent;

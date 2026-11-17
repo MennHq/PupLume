@@ -41,7 +41,7 @@ interface PupLumeSkeletonProps {
 // -------------------------------------------------------------
 export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume Home...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-4xl mx-auto w-full select-none" 
+    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-6xl mx-auto w-full select-none" 
     aria-busy="true" 
     aria-label={label}
   >

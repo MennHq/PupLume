@@ -280,7 +280,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
         >
           <div className="flex-1 pr-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+              <span className="text-[11px] font-bold text-[#766A63]">
                 Primary Veterinarian
               </span>
               <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-1 group-hover:underline">
@@ -298,7 +298,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               <Phone className="w-3 h-3" /> {puppy.vetPhone || 'No phone recorded'}
             </p>
           </div>
-          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
+          <div className="p-2.5 rounded-lg bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
             <Activity className="w-5 h-5" />
           </div>
         </div>
@@ -309,7 +309,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
         >
           <div className="flex-1 pr-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+              <span className="text-[11px] font-bold text-[#766A63]">
                 Pet Insurance & Microchip
               </span>
               <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-1 group-hover:underline">
@@ -327,7 +327,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               Microchip: {puppy.microchipNumber || 'Not recorded'}
             </p>
           </div>
-          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
+          <div className="p-2.5 rounded-lg bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
@@ -360,7 +360,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       {activeTab === 'vaccines' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+            <span className="text-xs font-bold text-[#766A63]">
               Immunization Schedule
             </span>
             <Button
@@ -419,7 +419,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                         storage.deleteVaccination(vac.id);
                         setVaccinations(storage.getVaccinations(puppy.id));
                       }}
-                      className="p-1.5 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
+                      aria-label="Delete record"
                       title="Delete record"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -436,7 +437,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       {activeTab === 'meds' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+            <span className="text-xs font-bold text-[#766A63]">
               Preventatives & Prescriptions
             </span>
             <Button
@@ -466,7 +467,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                   className="p-4 rounded-2xl bg-white border border-[#E8DDD3] shadow-xs flex items-center justify-between gap-3"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 mt-0.5">
+                    <div className="p-2.5 rounded-lg bg-purple-50 text-purple-700 mt-0.5">
                       <Pill className="w-5 h-5" />
                     </div>
                     <div>
@@ -491,7 +492,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                         storage.deleteMedication(med.id);
                         setMedications(storage.getMedications(puppy.id));
                       }}
-                      className="p-1.5 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
+                      aria-label="Delete medication"
                       title="Delete medication"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -508,7 +510,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       {activeTab === 'appointments' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+            <span className="text-xs font-bold text-[#766A63]">
               Upcoming & Past Consultations
             </span>
             <Button
@@ -567,7 +569,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
                           storage.deleteAppointment(apt.id);
                           setAppointments(storage.getAppointments(puppy.id));
                         }}
-                        className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
+                        aria-label="Delete visit"
                         title="Delete visit"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -596,7 +599,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       {activeTab === 'weight' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+            <span className="text-xs font-bold text-[#766A63]">
               Weight Progression Curve
             </span>
             <Button
@@ -610,8 +613,8 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           </div>
 
           <div className="p-6 rounded-2xl bg-white border border-[#E8DDD3] shadow-xs text-center">
-            <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider">Current Weight</span>
-            <div className="text-4xl font-black text-[#2C211B] my-2">
+            <span className="text-xs font-bold text-[#766A63]">Current Weight</span>
+            <div className="text-4xl font-black text-[#2C211B] my-2 tabular-nums">
               {puppy.weightLbs > 0 ? puppy.weightLbs : '—'} <span className="text-xl font-medium text-[#766A63]">lbs</span>
             </div>
             <p className="text-xs text-[#8B5E3C] font-semibold">
@@ -638,7 +641,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isAddVacOpen} onClose={() => setIsAddVacOpen(false)} title="Add Vaccine Record">
         <form onSubmit={handleAddVaccine} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Vaccine Name</label>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">Vaccine Name</label>
             <input
               type="text"
               required
@@ -650,7 +653,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Administered Date</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Administered Date</label>
               <input
                 type="date"
                 value={vacAdminDate}
@@ -659,7 +662,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Next Due Date</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Next Due Date</label>
               <input
                 type="date"
                 value={vacDueDate}
@@ -679,7 +682,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isAddMedOpen} onClose={() => setIsAddMedOpen(false)} title="Add Medication">
         <form onSubmit={handleAddMedication} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Medication Name</label>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">Medication Name</label>
             <input
               type="text"
               required
@@ -691,7 +694,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Dosage</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Dosage</label>
               <input
                 type="text"
                 value={medDosage}
@@ -701,7 +704,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Frequency</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Frequency</label>
               <input
                 type="text"
                 value={medFrequency}
@@ -722,7 +725,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isAddAptOpen} onClose={() => setIsAddAptOpen(false)} title="Schedule Vet Visit">
         <form onSubmit={handleAddAppointment} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Visit Title</label>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">Visit Title</label>
             <input
               type="text"
               required
@@ -734,7 +737,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Date</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Date</label>
               <input
                 type="date"
                 value={aptDate}
@@ -743,7 +746,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Time</label>
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">Time</label>
               <input
                 type="text"
                 value={aptTime}
@@ -754,7 +757,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Reason / Notes</label>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">Reason / Notes</label>
             <textarea
               rows={2}
               value={aptReason}
@@ -774,7 +777,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isAddWeightOpen} onClose={() => setIsAddWeightOpen(false)} title="Update Weight">
         <form onSubmit={handleUpdateWeight} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">Weight (lbs)</label>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">Weight (lbs)</label>
             <input
               type="number"
               step="0.1"
@@ -783,7 +786,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
               required
               value={newWeight}
               onChange={(e) => setNewWeight(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-lg font-bold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-lg font-bold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] tabular-nums"
             />
           </div>
           <div className="flex gap-2 pt-2">
@@ -797,7 +800,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isEditVetOpen} onClose={() => setIsEditVetOpen(false)} title="Primary Veterinarian">
         <form onSubmit={handleSaveVet} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Clinic or Hospital Name
             </label>
             <input
@@ -809,7 +812,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Primary Veterinarian (Doctor Name)
             </label>
             <input
@@ -821,7 +824,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Clinic Phone Number
             </label>
             <input
@@ -847,7 +850,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
       <Modal isOpen={isEditInsuranceOpen} onClose={() => setIsEditInsuranceOpen(false)} title="Pet Insurance & Microchip">
         <form onSubmit={handleSaveInsurance} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Pet Insurance Provider
             </label>
             <input
@@ -859,7 +862,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Policy Number
             </label>
             <input
@@ -871,7 +874,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpd
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Microchip ID / Number
             </label>
             <input

@@ -115,7 +115,7 @@ export const CareMilestonesHub: React.FC<CareMilestonesHubProps> = ({
         {/* Developmental Milestone Stage Header */}
         <div className="bg-gradient-to-br from-[#FFF9F2] to-[#F3E7DA] rounded-2xl border border-[#E8DDD3] p-4 shadow-xs">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-[#8B5E3C] text-white px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-bold bg-[#8B5E3C] text-white px-2.5 py-0.5 rounded-full tabular-nums">
               Week {devStage.weeks} • {devStage.badge}
             </span>
             <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-1">
@@ -150,7 +150,7 @@ export const CareMilestonesHub: React.FC<CareMilestonesHubProps> = ({
                 </p>
               </div>
             </div>
-            <span className="text-xs font-black text-[#245C3C] bg-[#EAF3EE] px-2 py-0.5 rounded-lg border border-[#C8DEC3]">
+            <span className="text-xs font-black text-[#245C3C] bg-[#EAF3EE] px-2 py-0.5 rounded-lg border border-[#C8DEC3] tabular-nums">
               {socialPercent}%
             </span>
           </div>
@@ -195,14 +195,14 @@ export const CareMilestonesHub: React.FC<CareMilestonesHubProps> = ({
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-[#8B5E3C] bg-[#FAF2E4] px-2 py-0.5 rounded-lg border border-[#EBD6C4] flex items-center gap-1">
+            <span className="text-[11px] font-bold text-[#8B5E3C] bg-[#FAF2E4] px-2 py-0.5 rounded-lg border border-[#EBD6C4] flex items-center gap-1 tabular-nums">
               📸 {photos.length}
             </span>
           </div>
 
           {hasCustomPhoto && latestPhoto ? (
             <div className="bg-[#FAF6F0] p-2 rounded-xl border border-[#E8DDD3] shadow-inner group-hover:bg-white transition-colors">
-              <div className="relative rounded-lg overflow-hidden aspect-[16/10]">
+              <div className="relative rounded-md overflow-hidden aspect-[16/10]">
                 <img 
                   src={latestPhoto} 
                   alt={puppy.name} 

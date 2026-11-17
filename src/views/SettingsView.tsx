@@ -305,7 +305,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         {/* User ID Section */}
         <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#2C211B] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#2C211B] flex items-center gap-1.5">
               <Key className="w-3.5 h-3.5 text-[#8B5E3C]" />
               Unique User ID
             </span>
@@ -349,7 +349,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-[#2C211B] mb-2">
             Your Name (Owner)
           </label>
           <div className="flex gap-2 max-w-sm">
@@ -416,7 +416,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
               <div>
                 <h4 className="text-xs font-extrabold text-[#2C211B] flex items-center gap-1.5">
                   Zero-Internet Offline Alarms & App Shortcuts
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-sm">
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-sm">
                     Native PWA
                   </span>
                 </h4>
@@ -769,7 +769,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
 
         {/* 5. Notification Category Toggles */}
         <div className="space-y-2.5 pt-1">
-          <h4 className="text-xs font-bold text-[#766A63] uppercase tracking-wider">
+          <h4 className="text-xs font-bold text-[#766A63]">
             Active Alert Categories
           </h4>
           {[
@@ -895,7 +895,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         </p>
 
         <div>
-          <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-[#2C211B] mb-2">
             Update {puppy.name}&apos;s Primary Photo
           </label>
           <CloudinaryImageUploader

@@ -177,7 +177,8 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
                     storage.deleteJournalEntry(entry.id);
                     setEntries([...storage.getJournal(puppy.id)]);
                   }}
-                  className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
+                  aria-label="Delete memory"
                   title="Delete memory"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -191,7 +192,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
             </p>
 
             {(entry.mediaUrl || (entry as any).photoUrl) && (
-              <div className="rounded-2xl overflow-hidden max-h-64 border border-[#E8DDD3]">
+              <div className="rounded-lg overflow-hidden max-h-64 border border-[#E8DDD3]">
                 <img src={entry.mediaUrl || (entry as any).photoUrl} alt={entry.title} className="w-full h-full object-cover" />
               </div>
             )}
@@ -204,7 +205,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
       <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="New Journal Memory">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Title / Milestone
             </label>
             <input
@@ -218,7 +219,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Milestone Tag (Optional)
             </label>
             <input
@@ -231,7 +232,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               What happened?
             </label>
             <textarea

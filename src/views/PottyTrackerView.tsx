@@ -103,7 +103,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
 
       {/* Quick 1-Tap Logging Bar */}
       <div className="bg-[#FFF9F2] rounded-2xl border border-[#E8DDD3] p-4">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] block mb-3">
+        <span className="text-xs font-bold text-[#8B5E3C] block mb-3">
           1-Tap Quick Action
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -165,11 +165,11 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${hasRecent ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                  <span className="text-[11px] font-bold text-[#766A63]">
                     Next Predicted Window
                   </span>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-[#2C211B] mt-1 font-mono">
+                <div className="text-2xl sm:text-3xl font-black text-[#2C211B] mt-1 font-mono tabular-nums">
                   {hasRecent ? (remainingMin === 0 ? 'Due Now' : `~${remainingMin} min`) : 'Ready to Start'}
                 </div>
                 <p className="text-xs text-[#766A63] mt-1">
@@ -178,7 +178,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                     : `Log ${puppy.name}'s first break to calibrate personalized countdowns.`}
                 </p>
               </div>
-              <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-700">
+              <div className="p-3 rounded-lg bg-emerald-50 text-emerald-700">
                 <Clock className="w-8 h-8" />
               </div>
             </div>
@@ -188,10 +188,10 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
         {/* Success Rate */}
         <div className="p-5 rounded-2xl bg-white border border-[#E8DDD3] shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+            <span className="text-[11px] font-bold text-[#766A63]">
               Reliability Score
             </span>
-            <div className="text-3xl font-black text-[#2C211B] mt-1">
+            <div className="text-3xl font-black text-[#2C211B] mt-1 tabular-nums">
               {totalCount > 0 ? `${successPercentage}%` : '—'}
             </div>
             <p className="text-xs text-[#766A63] mt-1">
@@ -236,7 +236,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-[#2C211B] uppercase">
+                      <h4 className="text-xs font-bold text-[#2C211B] capitalize">
                         {log.type}
                       </h4>
                       <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-white border border-[#E8DDD3] text-[#766A63]">
@@ -253,7 +253,8 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                   <span className="text-xs font-semibold text-[#766A63]">{dateStr}</span>
                   <button
                     onClick={() => handleDeleteLog(log.id)}
-                    className="p-1 text-[#766A63] hover:text-rose-600 transition-colors"
+                    aria-label="Delete log"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -272,7 +273,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
       >
         <form onSubmit={handleCreateLog} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Type
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -284,7 +285,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                     setPottyType(t as any);
                     if (t === 'accident') setLocation('indoor_accident');
                   }}
-                  className={`py-2 text-xs font-bold capitalize rounded-xl border cursor-pointer ${
+                  className={`min-h-[44px] flex items-center justify-center py-2 px-2 text-xs font-bold capitalize rounded-xl border cursor-pointer ${
                     pottyType === t ? 'bg-[#8B5E3C] text-white border-[#8B5E3C]' : 'bg-[#FFF9F2] text-[#2C211B] border-[#E8DDD3]'
                   }`}
                 >
@@ -295,7 +296,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Location
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -308,7 +309,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
                   type="button"
                   key={l.id}
                   onClick={() => setLocation(l.id as any)}
-                  className={`py-2 text-xs font-bold rounded-xl border cursor-pointer ${
+                  className={`min-h-[44px] flex items-center justify-center py-2 px-2 text-xs font-bold rounded-xl border cursor-pointer ${
                     location === l.id ? 'bg-[#5F3E29] text-white border-[#5F3E29]' : 'bg-[#FFF9F2] text-[#2C211B] border-[#E8DDD3]'
                   }`}
                 >
@@ -319,7 +320,7 @@ export const PottyTrackerView: React.FC<PottyTrackerViewProps> = ({ puppy }) => 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Notes
             </label>
             <input

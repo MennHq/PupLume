@@ -35,7 +35,7 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors cursor-pointer select-none rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B5E3C] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none whitespace-nowrap';
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 min-h-[36px] gap-1.5',
+    sm: 'text-xs px-3 py-2 min-h-[44px] gap-1.5',
     md: 'text-sm px-4 py-2.5 min-h-[44px] gap-2',
     lg: 'text-base px-5 py-3 min-h-[50px] gap-2.5 font-semibold',
     icon: 'p-2.5 min-h-[44px] min-w-[44px]'
@@ -47,7 +47,7 @@ export const Button: React.FC<ButtonProps> = ({
     outline: 'border border-[#E8DDD3] text-[#2C211B] bg-white hover:bg-[#FFF9F2] active:bg-[#F3E7DA]',
     ghost: 'text-[#766A63] hover:text-[#2C211B] hover:bg-[#F3E7DA]/50 active:bg-[#F3E7DA]',
     danger: 'bg-[#A45238] text-white hover:bg-[#8C3F24] active:bg-[#73331C]',
-    sage: 'bg-[#A8B59A] text-white hover:bg-[#8F9F80] active:bg-[#788869]',
+    sage: 'bg-[#A8B59A] text-[#1E2B18] font-bold hover:bg-[#97A589] active:bg-[#88967A]',
     peach: 'bg-[#E9B89C] text-[#2C211B] hover:bg-[#DF9E7B] active:bg-[#D58C67]'
   }[variant];
 

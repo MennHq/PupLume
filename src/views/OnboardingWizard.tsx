@@ -141,6 +141,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const [breed, setBreed] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
   const [birthDate, setBirthDate] = useState<string>('');
+  const [birthDateTouched, setBirthDateTouched] = useState(false);
 
   const isBirthDateValid = React.useMemo(() => {
     if (!birthDate) return false;
@@ -507,7 +508,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
             <div className="space-y-4 pt-2">
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   Your Name
                 </label>
                 <input
@@ -520,7 +521,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   What is your puppy&apos;s name?
                 </label>
                 <input
@@ -583,7 +584,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             <div className="space-y-5 pt-2">
               {/* Breed */}
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   Breed
                 </label>
                 <input
@@ -600,7 +601,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                       key={b}
                       type="button"
                       onClick={() => setBreed(b)}
-                      className="px-2.5 py-1 bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#E8DDD3] rounded-lg text-xs font-medium text-[#5F3E29] transition-colors cursor-pointer"
+                      className="px-3 py-1.5 min-h-[36px] bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#E8DDD3] rounded-lg text-xs font-medium text-[#5F3E29] transition-colors cursor-pointer flex items-center justify-center"
                     >
                       {b}
                     </button>
@@ -610,7 +611,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
               {/* Sex Toggle */}
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   Sex
                 </label>
                 <div className="grid grid-cols-2 gap-3 max-w-sm">
@@ -642,7 +643,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               {/* Date of Birth */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-[#2C211B]">
                     Date of Birth
                   </label>
                   <span className="text-[11px] text-[#766A63]">
@@ -655,10 +656,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                     type="date"
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
+                    onBlur={() => setBirthDateTouched(true)}
                     max={new Date().toISOString().split('T')[0]}
-                    className={`w-full p-3.5 bg-[#FAF6F0] border ${birthDate && !isBirthDateValid ? 'border-red-400 focus:ring-red-400' : 'border-[#E8DDD3] focus:ring-[#8B5E3C]'} rounded-2xl text-sm font-semibold text-[#2C211B] focus:outline-none focus:ring-2`}
+                    className={`w-full p-3.5 bg-[#FAF6F0] border ${birthDateTouched && birthDate && !isBirthDateValid ? 'border-red-400 focus:ring-red-400' : 'border-[#E8DDD3] focus:ring-[#8B5E3C]'} rounded-2xl text-sm font-semibold text-[#2C211B] focus:outline-none focus:ring-2`}
                   />
-                  {birthDate && !isBirthDateValid && (
+                  {birthDateTouched && birthDate && !isBirthDateValid && (
                     <span className="text-[11px] font-bold text-red-500 mt-1">Please enter a valid, realistic birth date.</span>
                   )}
                 </div>
@@ -667,7 +669,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               {/* Safety Tag & Emergency Contact Information (Compulsory Phone & Instructions) */}
               <div className="pt-3 border-t border-[#E8DDD3] space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
+                  <span className="text-xs font-black text-[#8B5E3C] flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5" /> Emergency Collar Tag Details
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
@@ -678,7 +680,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 {/* Owner Phone (REQUIRED) */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+                    <label className="block text-xs font-bold text-[#2C211B]">
                       Owner Phone Number <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
                     </label>
                     {phoneValidation.isValid && ownerPhone.trim() && (
@@ -705,7 +707,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 {/* Finder Instructions (REQUIRED) */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+                    <label className="block text-xs font-bold text-[#2C211B]">
                       Instructions for Finder <span className="text-amber-800 text-[10px] font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-md border border-amber-200 ml-1">Required</span>
                     </label>
                     {notesValidation.isValid && emergencyNotes.trim() ? (
@@ -773,6 +775,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                     setStep2Error("Please select or enter your puppy's breed.");
                     return;
                   }
+                  setBirthDateTouched(true);
                   if (!isBirthDateValid) {
                     setStep2Error("Please select a valid birth date.");
                     return;
@@ -1033,7 +1036,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
               {/* Training Focus */}
               <div>
-                <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[#2C211B] mb-1.5">
                   Primary Training Focus
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">

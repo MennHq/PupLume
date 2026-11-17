@@ -51,7 +51,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       </svg>
       {/* Central content */}
       <div className="absolute flex flex-col items-center justify-center text-center">
-        <span className="text-base font-extrabold text-[#2C211B] leading-none">
+        <span className="text-base font-extrabold text-[#2C211B] leading-none tabular-nums">
           {percentage}%
         </span>
         {label && (

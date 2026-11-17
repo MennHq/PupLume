@@ -53,10 +53,8 @@ export const RewardSettingInput: React.FC<RewardSettingInputProps> = ({
     }
   }, [value]);
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextMode = e.target.value as RewardOption;
+  const handleModeSelect = (nextMode: RewardOption) => {
     setMode(nextMode);
-
     if (nextMode === 'offered') {
       onChange('Reward Offered');
     } else if (nextMode === 'none') {
@@ -93,17 +91,46 @@ export const RewardSettingInput: React.FC<RewardSettingInputProps> = ({
         )}
       </div>
 
-      <div className="relative">
-        <select
-          value={mode}
-          onChange={handleSelectChange}
-          className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-[#E8DDD3] bg-white text-xs font-semibold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] focus:ring-1 focus:ring-[#8B5E3C] cursor-pointer transition-all shadow-2xs"
+      {/* Senior UI/UX 1-Tap Segmented Control (Rule 8: 2-4 choices should never be hidden in a dropdown) */}
+      <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#FAF6F0] rounded-xl border border-[#E8DDD3]">
+        <button
+          type="button"
+          onClick={() => handleModeSelect('offered')}
+          className={`min-h-[44px] px-2 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center text-center leading-tight ${
+            mode === 'offered'
+              ? 'bg-[#8B5E3C] text-white shadow-xs'
+              : 'text-[#5F3E29] hover:bg-white/80'
+          }`}
         >
-          <option value="offered">1. Must be some reward</option>
-          <option value="none">2. No reward</option>
-          <option value="custom">3. Custom (enter amount)</option>
-        </select>
-        <ChevronDown className="w-4 h-4 text-[#766A63] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <span>Offered</span>
+          <span className={`text-[9px] font-medium ${mode === 'offered' ? 'text-white/80' : 'text-[#766A63]'}`}>Unspecified</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleModeSelect('none')}
+          className={`min-h-[44px] px-2 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center text-center leading-tight ${
+            mode === 'none'
+              ? 'bg-[#8B5E3C] text-white shadow-xs'
+              : 'text-[#5F3E29] hover:bg-white/80'
+          }`}
+        >
+          <span>No Reward</span>
+          <span className={`text-[9px] font-medium ${mode === 'none' ? 'text-white/80' : 'text-[#766A63]'}`}>Hidden</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleModeSelect('custom')}
+          className={`min-h-[44px] px-2 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center text-center leading-tight ${
+            mode === 'custom'
+              ? 'bg-[#8B5E3C] text-white shadow-xs'
+              : 'text-[#5F3E29] hover:bg-white/80'
+          }`}
+        >
+          <span>Custom $</span>
+          <span className={`text-[9px] font-medium ${mode === 'custom' ? 'text-white/80' : 'text-[#766A63]'}`}>Exact Amount</span>
+        </button>
       </div>
 
       {mode === 'custom' && (

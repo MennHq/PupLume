@@ -125,7 +125,7 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({ isOpen, onClos
         <div className="relative bg-gradient-to-br from-[#8B5E3C] to-[#5F3E29] p-8 text-center text-white">
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer text-white"
+            className="absolute top-4 right-4 min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer text-white"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -144,7 +144,7 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({ isOpen, onClos
         {/* Pricing & Features */}
         <div className="p-6">
           <div className="flex items-baseline justify-center gap-1 mb-6">
-            <span className="text-4xl font-extrabold text-[#2C211B]">$4.99</span>
+            <span className="text-4xl font-extrabold text-[#2C211B] tabular-nums">$4.99</span>
             <span className="text-sm font-semibold text-[#766A63]">/ month</span>
           </div>
 
@@ -174,7 +174,7 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({ isOpen, onClos
             )}
           </Button>
           
-          <p className="text-center text-[11px] text-[#A69B95] mt-4 flex items-center justify-center gap-1.5 font-medium">
+          <p className="text-center text-[11px] text-[#6A6059] mt-4 flex items-center justify-center gap-1.5 font-medium">
             <Shield className="w-3.5 h-3.5 text-emerald-600" /> Secure 256-bit billing powered by Paddle • Cancel anytime
           </p>
         </div>

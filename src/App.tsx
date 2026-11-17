@@ -87,15 +87,20 @@ const MarketingCarousel = () => {
           </p>
         </motion.div>
       </AnimatePresence>
-      <div className="flex gap-3 mt-12">
+      <div className="flex gap-1 mt-10">
         {slides.map((_, i) => (
           <button 
             key={i}
             onClick={() => setActiveIndex(i)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
-              i === activeIndex ? 'bg-white shadow-md scale-125' : 'bg-white/30 hover:bg-white/50'
-            }`}
-          />
+            aria-label={`Go to slide ${i + 1}`}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer -m-2 p-2"
+          >
+            <span
+              className={`w-3 h-3 rounded-full transition-all duration-300 block ${
+                i === activeIndex ? 'bg-white shadow-md scale-125' : 'bg-white/30 hover:bg-white/50'
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>

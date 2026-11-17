@@ -212,11 +212,11 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
         <div className="md:w-7/12 flex flex-col justify-between">
           
           <div className="p-8 px-10 border-b border-[#F5F0EA] flex items-center justify-between">
-            <div className="flex items-center gap-2 text-amber-600 font-bold tracking-widest text-xs uppercase bg-amber-50 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-full">
               <Lock className="w-3.5 h-3.5" />
               <span>Lifetime Access</span>
             </div>
-            <button onClick={onSignOut} className="text-sm font-medium text-[#766A63] hover:text-[#2C211B] transition-colors underline-offset-4 hover:underline">
+            <button onClick={onSignOut} className="min-h-[44px] px-3 flex items-center text-sm font-medium text-[#766A63] hover:text-[#2C211B] transition-colors underline-offset-4 hover:underline cursor-pointer">
               Sign out
             </button>
           </div>
@@ -250,7 +250,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
 
             <div className="bg-[#FFF9F2] p-6 rounded-2xl border border-[#F5F0EA] mb-8">
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-extrabold text-[#2C211B]">$24.99</span>
+                <span className="text-4xl font-extrabold text-[#2C211B] tabular-nums">$24.99</span>
                 <span className="text-[#766A63] font-medium text-sm">one-time payment</span>
               </div>
               <p className="text-sm text-[#766A63] font-medium">No recurring fees. Ever.</p>

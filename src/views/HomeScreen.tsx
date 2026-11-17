@@ -212,7 +212,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <img
               src={puppy.photoUrl}
               alt={puppy.name}
-              className="w-14 h-14 rounded-2xl object-cover border-2 border-[#8B5E3C] shadow-xs group-hover:scale-105 transition-transform"
+              className="w-14 h-14 rounded-xl object-cover border-2 border-[#8B5E3C] shadow-xs group-hover:scale-105 transition-transform"
             />
             <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#8B5E3C] text-white flex items-center justify-center text-[10px] font-bold">
               🐾
@@ -224,11 +224,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B] leading-tight">
                 Good day, {puppy.name}!
               </h1>
-              <span className="text-[11px] font-bold bg-[#F3E7DA] text-[#5F3E29] px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold bg-[#F3E7DA] text-[#5F3E29] px-2 py-0.5 rounded-full tabular-nums">
                 {ageWeeks} wks
               </span>
             </div>
-            <p className="text-xs text-[#766A63] mt-0.5 flex items-center gap-2">
+            <p className="text-xs text-[#766A63] mt-0.5 flex items-center gap-2 tabular-nums">
               <span>{puppy.breed}</span>
               <span>•</span>
               <span>{puppy.weightLbs} lbs</span>
@@ -241,7 +241,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             id="home-search-button"
             onClick={onOpenSearch}
-            className="sm:hidden p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+            className="sm:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
             aria-label="Search records"
           >
             <Search className="w-4 h-4" />
@@ -250,12 +250,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             id="home-notifications-button"
             onClick={onOpenNotifications}
-            className="sm:hidden p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+            className="sm:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadNotifs > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute 1.5 top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
                 {unreadNotifs}
               </span>
             )}
@@ -292,10 +292,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {/* Card 1: Today's Tasks Progress */}
         <div className="bg-white rounded-2xl border border-[#E8DDD3] p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+            <span className="text-[11px] font-bold text-[#766A63]">
               Today's Rhythm
             </span>
-            <h3 className="text-xl font-black text-[#2C211B] mt-0.5">
+            <h3 className="text-xl font-black text-[#2C211B] mt-0.5 tabular-nums">
               {completedCount} <span className="text-xs font-medium text-[#766A63]">/ {totalCount} completed</span>
             </h3>
             <p className={`text-[11px] font-semibold mt-1 ${
@@ -331,7 +331,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${lastPotty ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                  <span className="text-[11px] font-bold text-[#766A63]">
                     Potty Tracking
                   </span>
                 </div>
@@ -364,7 +364,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               className="bg-white rounded-2xl border border-[#E8DDD3] p-4 flex items-center justify-between shadow-xs hover:border-[#8B5E3C]/40 transition-colors cursor-pointer group"
             >
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                <span className="text-[11px] font-bold text-[#766A63]">
                   Vet & Vaccines
                 </span>
                 <h3 className="text-sm font-bold text-[#2C211B] mt-0.5 line-clamp-1">
@@ -391,10 +391,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="bg-gradient-to-br from-[#FFF9F2] to-[#F3E7DA] rounded-3xl border-2 border-[#8B5E3C]/30 p-5 sm:p-6 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#8B5E3C] text-white text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#8B5E3C] text-white text-[11px] font-extrabold">
                 Next Up
               </span>
-              <span className="text-xs font-semibold text-[#5F3E29] flex items-center gap-1">
+              <span className="text-xs font-semibold text-[#5F3E29] flex items-center gap-1 tabular-nums">
                 <Clock className="w-3.5 h-3.5" />
                 {nextUpTask.time} ({nextUpTask.durationMin} min)
               </span>
@@ -478,10 +478,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#2C211B]">
               PupLume Daily AI Insight
             </h4>
-            <span className="text-[10px] text-[#766A63]">Week {ageWeeks} Focus</span>
+            <span className="text-[10px] text-[#766A63] tabular-nums">Week {ageWeeks} Focus</span>
           </div>
           <div className="mt-1">
             {isInsightLoading ? (
@@ -747,7 +747,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       >
         <form onSubmit={handleCreateTask} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Task Title
             </label>
             <input
@@ -762,7 +762,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Category
               </label>
               <select
@@ -782,7 +782,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Period
               </label>
               <select
@@ -800,7 +800,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Time
               </label>
               <input
@@ -812,7 +812,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Duration (min)
               </label>
               <input

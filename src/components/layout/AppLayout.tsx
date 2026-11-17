@@ -201,7 +201,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
               {isPuppyDropdownOpen && (
                 <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_10px_38px_rgba(0,0,0,0.12)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                  <div className="px-3 py-1.5 text-xs font-bold text-[#766A63]">
                     Your Puppies
                   </div>
                   <div className="max-h-60 overflow-y-auto">
@@ -280,20 +280,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={handleOpenSearch}
-              className="hidden sm:flex p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+              className="hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
               title="Search (⌘K)"
+              aria-label="Search"
             >
               <Search className="w-4 h-4" />
             </button>
 
             <button
               onClick={handleOpenNotifications}
-              className="hidden sm:flex p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+              className="hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
               title="Notifications"
+              aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute 1.5 top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center">
                   {unreadNotifsCount}
                 </span>
               )}
@@ -302,7 +304,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             {/* Settings Quick Access Button (Matches Search & Notifications styling) */}
             <button
               onClick={() => onNavigate('settings')}
-              className={`hidden sm:flex p-2.5 rounded-xl border transition-all cursor-pointer group ${
+              className={`hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border transition-all cursor-pointer group ${
                 currentView === 'settings'
                   ? 'border-[#8B5E3C] bg-[#8B5E3C] text-white shadow-2xs'
                   : 'border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29]'
@@ -342,7 +344,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   onNavigate(item.id);
                 }}
                 className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-200 cursor-pointer ${
-                  isActive ? 'text-[#8B5E3C] -translate-y-0.5' : 'text-[#A39B96] hover:text-[#8B5E3C]'
+                  isActive ? 'text-[#8B5E3C] -translate-y-0.5' : 'text-[#6A6059] hover:text-[#8B5E3C]'
                 }`}
               >
                 <div className={`p-1.5 rounded-xl transition-all duration-200 mb-0.5 relative ${

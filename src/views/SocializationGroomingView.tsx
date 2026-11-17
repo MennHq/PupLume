@@ -207,7 +207,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B]">
               Socialization & Grooming
             </h1>
-            <span className="text-xs font-bold bg-[#A8B59A] text-white px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-[#EAF0E6] text-[#24451D] border border-[#C5D8BD] px-2.5 py-0.5 rounded-full">
               Fear-Free Protocol
             </span>
           </div>
@@ -288,7 +288,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
 
               return (
                 <div key={cat} className="bg-white rounded-2xl border border-[#E8DDD3] p-4 shadow-xs">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#8B5E3C] mb-3 capitalize">
+                  <h3 className="text-xs font-bold text-[#8B5E3C] mb-3 capitalize">
                     {cat} Exposure Checklist
                   </h3>
 
@@ -317,7 +317,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
                                 e.stopPropagation();
                                 handleDeleteSocial(item.id, item.name);
                               }}
-                              className="p-1 text-[#766A63] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
                               title="Delete exposure item"
                               aria-label={`Delete ${item.name}`}
                             >
@@ -381,7 +381,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
                     <p className="text-xs text-[#766A63] mt-0.5">
                       Recommended: {item.frequency} • Last Done: <strong>{item.lastDone}</strong>
                     </p>
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.5 rounded-md border border-[#E8DDD3] mt-1.5">
+                    <span className="inline-block text-[10px] font-bold text-[#8B5E3C] bg-[#FFF9F2] px-2 py-0.5 rounded-md border border-[#E8DDD3] mt-1.5 capitalize">
                       Cooperative state: {item.cooperativeLevel}
                     </span>
                   </div>
@@ -398,7 +398,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
                     <button
                       type="button"
                       onClick={() => handleDeleteGrooming(item.id, item.name)}
-                      className="p-2 text-[#766A63] hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-[#766A63] hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
                       title="Delete grooming routine"
                       aria-label={`Delete ${item.name}`}
                     >
@@ -420,7 +420,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
       >
         <form onSubmit={handleAddSocial} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Exposure Item Name
             </label>
             <input
@@ -434,7 +434,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Category
             </label>
             <select
@@ -463,7 +463,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
       >
         <form onSubmit={handleAddGrooming} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Routine Name
             </label>
             <input
@@ -477,7 +477,7 @@ export const SocializationGroomingView: React.FC<SocializationGroomingViewProps>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Frequency (Days)
             </label>
             <input

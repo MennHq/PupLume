@@ -128,7 +128,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#2C211B]">
               Puppy Expense Tracker
             </h1>
-            <span className="text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-[#F3E7DA] text-[#5F3E29] px-2.5 py-0.5 rounded-full tabular-nums">
               ${totalSpend.toFixed(2)} Total
             </span>
           </div>
@@ -183,13 +183,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
           const amount = categoryTotals[cat.id] || 0;
           return (
             <div key={cat.id} className="p-4 rounded-2xl bg-white border border-[#E8DDD3] shadow-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+              <span className="text-[11px] font-bold text-[#766A63]">
                 {cat.label}
               </span>
-              <div className="text-xl font-extrabold text-[#2C211B] mt-1">
+              <div className="text-xl font-extrabold text-[#2C211B] mt-1 tabular-nums">
                 ${amount.toFixed(2)}
               </div>
-              <div className="text-[10px] text-[#766A63] mt-0.5">
+              <div className="text-[10px] text-[#766A63] mt-0.5 tabular-nums">
                 {totalSpend > 0 ? Math.round((amount / totalSpend) * 100) : 0}% of total
               </div>
             </div>
@@ -217,7 +217,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               className="p-3.5 rounded-xl border border-[#E8DDD3] bg-white hover:bg-[#FFF9F2] transition-colors flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#FFF9F2] border border-[#E8DDD3] text-[#8B5E3C]">
+                <div className="p-2 rounded-lg bg-[#FFF9F2] border border-[#E8DDD3] text-[#8B5E3C]">
                   <DollarSign className="w-4 h-4" />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
                     Receipt
                   </a>
                 )}
-                <div className="text-sm font-black text-[#2C211B]">
+                <div className="text-sm font-black text-[#2C211B] tabular-nums">
                   ${exp.amount.toFixed(2)}
                 </div>
                 <button
@@ -250,7 +250,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
                     storage.deleteExpense(exp.id);
                     setExpenses([...storage.getExpenses(puppy.id)]);
                   }}
-                  className="p-1 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 p-2 text-[#766A63] hover:text-rose-600 transition-colors cursor-pointer rounded-lg"
+                  aria-label="Delete expense"
                   title="Delete expense"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -265,7 +266,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
       <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Add Puppy Expense">
         <form onSubmit={handleAddExpense} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Expense Title
             </label>
             <input
@@ -280,7 +281,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Amount ($)
               </label>
               <input
@@ -296,7 +297,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Category
               </label>
               <select
@@ -318,7 +319,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Vendor
               </label>
               <input
@@ -330,7 +331,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ puppy }) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#2C211B] mb-1">
                 Date
               </label>
               <input

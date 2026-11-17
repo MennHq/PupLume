@@ -169,21 +169,21 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
       {/* Role Explanations */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3]">
-          <span className="text-xs font-bold text-[#8B5E3C] uppercase tracking-wider block">Admin</span>
+          <span className="text-xs font-bold text-[#8B5E3C] block">Admin</span>
           <p className="text-xs text-[#766A63] mt-1 leading-relaxed">
             Full access to all health records, expense tracking, AI schedule changes, and member permissions.
           </p>
         </div>
 
         <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3]">
-          <span className="text-xs font-bold text-[#8B5E3C] uppercase tracking-wider block">Family Member</span>
+          <span className="text-xs font-bold text-[#8B5E3C] block">Family Member</span>
           <p className="text-xs text-[#766A63] mt-1 leading-relaxed">
             Can log potty events, feed times, practice training drills, and check off daily tasks.
           </p>
         </div>
 
         <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3]">
-          <span className="text-xs font-bold text-[#8B5E3C] uppercase tracking-wider block">Pet Sitter / Walker</span>
+          <span className="text-xs font-bold text-[#8B5E3C] block">Pet Sitter / Walker</span>
           <p className="text-xs text-[#766A63] mt-1 leading-relaxed">
             Restricted access to daily potty/feed checklists, safety instructions, and vet emergency lines only.
           </p>
@@ -304,7 +304,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
       <Modal isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} title="Invite Caregiver">
         <form onSubmit={handleSendInvite} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Caregiver Name
             </label>
             <input
@@ -318,7 +318,7 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
               Email Address
             </label>
             <input
@@ -332,18 +332,42 @@ export const FamilySharingView: React.FC<FamilySharingViewProps> = ({ puppy }) =
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#2C211B] mb-2">
               Role & Permissions
             </label>
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs focus:outline-none focus:border-[#8B5E3C]"
-            >
-              <option value="Admin">Admin (Full Control)</option>
-              <option value="Member">Family Member (Log Tasks & Potty)</option>
-              <option value="Walker / Sitter">Pet Sitter / Walker (Restricted View)</option>
-            </select>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Role & Permissions">
+              {[
+                { role: 'Admin', label: 'Admin', desc: 'Full Control' },
+                { role: 'Member', label: 'Family Member', desc: 'Log & Habits' },
+                { role: 'Walker / Sitter', label: 'Pet Sitter', desc: 'Restricted' },
+              ].map((item) => {
+                const isSelected = inviteRole === item.role;
+                return (
+                  <button
+                    key={item.role}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setInviteRole(item.role as any)}
+                    className={`min-h-[44px] p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#8B5E3C] bg-[#FFF9F2] ring-1 ring-[#8B5E3C]'
+                        : 'border-[#E8DDD3] bg-white hover:bg-[#FAF6F0]'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-[#2C211B] flex items-center justify-between">
+                      <span>{item.label}</span>
+                      <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                        isSelected ? 'border-[#8B5E3C] bg-[#8B5E3C]' : 'border-[#C8BCB3]'
+                      }`}>
+                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#766A63] block mt-0.5">{item.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex gap-2 pt-2">
