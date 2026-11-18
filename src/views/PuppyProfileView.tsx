@@ -42,10 +42,13 @@ import {
   XCircle,
   BadgeAlert,
   HelpCircle,
-  Loader2
+  Loader2,
+  Plus,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
 import { SmartTagPaywallModal } from '../components/ui/SmartTagPaywallModal';
 import { MissingPupFlyerModal } from '../components/ui/MissingPupFlyerModal';
@@ -87,9 +90,16 @@ const triggerMarketingSiteInstantUpdate = async (slug: string) => {
 interface PuppyProfileViewProps {
   puppy: PuppyProfile;
   onUpdatePuppy: (updated: PuppyProfile, customToast?: string | false) => void;
+  onSwitchPuppy?: (puppyId: string) => void;
+  onOpenNewPuppyWizard?: () => void;
 }
 
-export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpdatePuppy }) => {
+export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ 
+  puppy, 
+  onUpdatePuppy,
+  onSwitchPuppy,
+  onOpenNewPuppyWizard
+}) => {
   const { user } = useUser();
   // Convex mutations & queries
   const unlockSmartTagPassMutation = useMutation(api.puppies.unlockSmartTagPass);
@@ -109,6 +119,18 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     isEmergency: false, 
     title: '' 
   });
+
+  // Multi-Pet Pack Manager state
+  const [allPuppies, setAllPuppies] = useState<PuppyProfile[]>(() => storage.getPuppies());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [puppyToDelete, setPuppyToDelete] = useState<PuppyProfile | null>(null);
+
+  useEffect(() => {
+    setAllPuppies(storage.getPuppies());
+    return storage.subscribe(() => {
+      setAllPuppies([...storage.getPuppies()]);
+    });
+  }, [puppy.id]);
 
   // Search Engine Indexing (SEO) State
   const [allowIndexing, setAllowIndexing] = useState<boolean>(puppy.allowSearchIndexing !== false);
@@ -319,6 +341,16 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     if (ok) {
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2500);
+    }
+  };
+
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const handleCopyText = async (text: string, label: string) => {
+    nativeBridge.haptics.light();
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedField(label);
+      setTimeout(() => setCopiedField(null), 2500);
     }
   };
 
@@ -702,8 +734,88 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
     }
   };
 
+  const handleDeletePuppy = () => {
+    if (!puppyToDelete) return;
+    storage.deletePuppy(puppyToDelete.id);
+    setDeleteConfirmOpen(false);
+    const remaining = storage.getPuppies();
+    if (remaining.length > 0) {
+      onSwitchPuppy?.(remaining[0].id);
+    }
+    onUpdatePuppy(storage.getActivePuppy() || remaining[0], `Removed ${puppyToDelete.name} from your pack.`);
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-6 px-1 sm:px-4">
+
+      {/* PUP PACK SELECTOR & MANAGER (Case 37: Multi-Pet Architecture) */}
+      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B5E3C]">Multi-Pet Manager</span>
+            <h2 className="text-sm sm:text-base font-extrabold text-[#2C211B] flex items-center gap-1.5">
+              <Dog className="w-4 h-4 text-[#8B5E3C]" />
+              Your Puppies ({allPuppies.length})
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenNewPuppyWizard?.()}
+            className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Puppy</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {allPuppies.map((p) => {
+            const isSelected = p.id === puppy.id;
+            return (
+              <div
+                key={p.id}
+                onClick={() => {
+                  if (!isSelected) onSwitchPuppy?.(p.id);
+                }}
+                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                  isSelected
+                    ? 'bg-[#FFF9F2] border-[#8B5E3C] ring-2 ring-[#8B5E3C]/20 shadow-xs'
+                    : 'bg-white border-[#E8DDD3] hover:border-[#8B5E3C]/50 hover:bg-[#FAF6F0]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <img
+                    src={p.photoUrl}
+                    alt={p.name}
+                    className="w-10 h-10 rounded-xl object-cover border border-[#8B5E3C]/30 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-[#2C211B] truncate flex items-center gap-1.5">
+                      {p.name}
+                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#8B5E3C]" />}
+                    </h4>
+                    <p className="text-[11px] text-[#766A63] truncate">
+                      {p.breed} • {p.weightLbs} lbs
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {isSelected ? (
+                    <span className="px-2 py-0.5 rounded-md bg-[#8B5E3C] text-white text-[10px] font-bold">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-[#8B5E3C] hover:underline">
+                      Switch
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Global Success / Notice Banners */}
       {slugSuccessMessage && (
@@ -926,126 +1038,151 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         </button>
       </div>
 
-      {/* TAB 1: VERIFIED PET PASSPORT & CARE DOSSIER */}
+      {/* TAB 1: VERIFIED PET DOSSIER & IDENTITY (Case 37 Grouped List Architecture) */}
       {activeTab === 'passport' && (
-        <div className="bg-[#FFFDF9] rounded-3xl border border-[#E8DDD3] p-5 sm:p-7 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDD3] pb-4">
+        <div className="space-y-4">
+          {/* Section Header with Action */}
+          <div className="flex items-center justify-between px-1">
             <div>
-              <div className="flex items-center gap-2">
-                <Dog className="w-5 h-5 text-[#8B5E3C]" />
-                <h3 className="text-base sm:text-lg font-black text-[#2C211B] font-brand">
-                  Verified Pet Dossier &amp; Care Details
-                </h3>
-              </div>
-              <p className="text-xs text-[#766A63] mt-0.5">
-                Essential identity, health formula, temperament, and attending vet records.
-              </p>
+              <h3 className="text-sm font-extrabold text-[#2C211B] flex items-center gap-1.5">
+                <Dog className="w-4 h-4 text-[#8B5E3C]" />
+                Verified Pet Dossier & Identity
+              </h3>
+              <p className="text-[11px] text-[#766A63]">Essential identity traits, feeding formula, and official records</p>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditOpen(true)}
               leftIcon={<Edit3 className="w-3.5 h-3.5 text-[#8B5E3C]" />}
-              className="text-xs font-bold bg-white rounded-xl shadow-2xs hover:bg-[#FAF6F0] self-start sm:self-auto"
+              className="text-xs font-bold bg-white rounded-xl shadow-2xs hover:bg-[#FAF6F0]"
             >
               Edit Details
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Temperament & Personality */}
-            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                  <Smile className="w-4 h-4" /> Temperament &amp; Traits
-                </span>
+          {/* Group 1: Core Physical Identity */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] overflow-hidden shadow-xs divide-y divide-[#E8DDD3]/60">
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Breed</span>
               </div>
-              <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-                {puppy.temperament ? (
-                  <span className="italic font-medium">&ldquo;{puppy.temperament}&rdquo;</span>
-                ) : (
-                  <span className="text-[#766A63] italic">No temperament notes recorded. Tap &quot;Edit Details&quot; to describe personality.</span>
-                )}
-              </p>
+              <span className="text-xs font-bold text-[#2C211B]">{puppy.breed}</span>
             </div>
 
-            {/* Nutrition & Diet Formula */}
-            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                  <Heart className="w-4 h-4 text-rose-500" /> Nutrition &amp; Diet Formula
-                </span>
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Calendar className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Birthday & Age</span>
               </div>
-              <p className="text-xs sm:text-sm text-[#2C211B] leading-relaxed">
-                {puppy.dietaryRestrictions || (
-                  <span className="text-[#766A63] italic">No dietary restrictions or food formula recorded.</span>
-                )}
-              </p>
-              {puppy.favoriteTreat && (
-                <p className="text-xs text-[#5F3E29] font-medium pt-2 border-t border-[#E8DDD3]/60 flex items-center gap-1.5">
-                  <span>🍖 Favorite Reward:</span>
-                  <strong className="text-[#2C211B]">{puppy.favoriteTreat}</strong>
-                </p>
-              )}
+              <div className="text-right">
+                <span className="text-xs font-bold text-[#2C211B]">{puppy.birthDate || 'Not recorded'}</span>
+                <span className="text-[11px] text-[#8B5E3C] font-semibold block">{ageDisplay}</span>
+              </div>
             </div>
 
-            {/* Primary Veterinary Clinic */}
-            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                  <Stethoscope className="w-4 h-4 text-[#8B5E3C]" /> Primary Veterinary Clinic
-                </span>
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Award className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Sex & Weight</span>
               </div>
-              {puppy.vetClinic || puppy.vetPhone || puppy.vetName ? (
-                <div className="space-y-1.5 text-xs">
-                  <h4 className="font-bold text-[#2C211B]">{puppy.vetClinic || 'Clinic not specified'}</h4>
-                  {puppy.vetName && <p className="text-[#5F3E29]">Attending Vet: {puppy.vetName}</p>}
-                  {puppy.vetPhone && (
-                    <a
-                      href={`tel:${puppy.vetPhone}`}
-                      className="text-xs font-bold text-[#8B5E3C] hover:underline flex items-center gap-1 pt-1"
-                    >
-                      <Phone className="w-3.5 h-3.5" /> Call Clinic: {puppy.vetPhone}
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs text-[#766A63] italic">No veterinary clinic added yet.</p>
-              )}
+              <span className="text-xs font-bold text-[#2C211B] font-mono tabular-nums">
+                {puppy.sex === 'male' ? 'Male (Boy)' : 'Female (Girl)'} • {puppy.weightLbs} lbs
+              </span>
             </div>
 
-            {/* Official Identification & Policy */}
-            <div className="bg-[#FAF6F0] rounded-2xl p-4 sm:p-5 border border-[#E8DDD3] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-amber-500" /> Official Identification &amp; Policy
-                </span>
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Smile className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Temperament</span>
               </div>
-              <div className="space-y-2 text-xs text-[#2C211B]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#766A63]">Microchip RFID:</span>
-                  <strong className="font-mono">{puppy.microchipNumber || 'Not recorded'}</strong>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#766A63]">Insurance Provider:</span>
-                  <strong>{puppy.insuranceProvider || 'Not recorded'}</strong>
-                </div>
-                {puppy.insurancePolicyNumber && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#766A63]">Policy Number:</span>
-                    <strong className="font-mono">{puppy.insurancePolicyNumber}</strong>
-                  </div>
+              <span className="text-xs font-medium text-[#2C211B] max-w-[200px] sm:max-w-xs text-right truncate">
+                {puppy.temperament ? `“${puppy.temperament}”` : 'Not recorded'}
+              </span>
+            </div>
+          </div>
+
+          {/* Group 2: Nutrition, Care & Rewards */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] overflow-hidden shadow-xs divide-y divide-[#E8DDD3]/60">
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Favorite Reward / Treat</span>
+              </div>
+              <span className="text-xs font-bold text-[#2C211B]">{puppy.favoriteTreat || 'None recorded'}</span>
+            </div>
+
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Dietary Restrictions & Allergies</span>
+              </div>
+              <span className="text-xs font-medium text-[#2C211B] max-w-[200px] sm:max-w-xs text-right truncate">
+                {puppy.dietaryRestrictions || puppy.allergies || 'None recorded'}
+              </span>
+            </div>
+          </div>
+
+          {/* Group 3: Veterinary & Official Credentials */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] overflow-hidden shadow-xs divide-y divide-[#E8DDD3]/60">
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Stethoscope className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Primary Clinic</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-[#2C211B] block">{puppy.vetClinic || 'Not set'}</span>
+                {puppy.vetPhone && (
+                  <a href={`tel:${puppy.vetPhone}`} className="text-[11px] font-bold text-[#8B5E3C] hover:underline">
+                    {puppy.vetPhone}
+                  </a>
                 )}
-                <div className="flex items-center justify-between pt-1.5 border-t border-[#E8DDD3]/60">
-                  <span className="text-[#766A63]">Passport Serial:</span>
-                  <strong className="font-mono text-[#8B5E3C]">{passportSerial}</strong>
-                </div>
               </div>
+            </div>
+
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Microchip RFID</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-[#2C211B]">{puppy.microchipNumber || 'Pending'}</span>
+                {puppy.microchipNumber && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(puppy.microchipNumber || '', 'chip')}
+                    className="p-1 text-[#766A63] hover:text-[#8B5E3C] cursor-pointer"
+                    title="Copy Microchip"
+                  >
+                    {copiedField === 'chip' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Award className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Pet Insurance</span>
+              </div>
+              <span className="text-xs font-bold text-[#2C211B]">
+                {puppy.insuranceProvider ? `${puppy.insuranceProvider}${puppy.insurancePolicyNumber ? ` (${puppy.insurancePolicyNumber})` : ''}` : 'Not recorded'}
+              </span>
+            </div>
+
+            <div className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-[#FFF9F2]/50 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+                <span className="text-xs font-semibold text-[#766A63]">Digital Passport Serial</span>
+              </div>
+              <span className="text-xs font-mono font-bold text-[#8B5E3C]">{passportSerial}</span>
             </div>
           </div>
         </div>
       )}
+
+
 
       {/* TAB 2: SMART TAG & CUSTOM QR HUB */}
       {activeTab === 'collar' && (
@@ -1433,6 +1570,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
         </div>
       )}
 
+
+
       {/* TAB 3: SAFETY, LOST MODE & EMERGENCY CONTACTS */}
       {activeTab === 'safety' && (
         <div className="space-y-5">
@@ -1634,6 +1773,37 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({ puppy, onUpd
           </div>
         </div>
       )}
+
+      {/* CASE 37 STEP 4: ISOLATE DESTRUCTIVE ACTIONS AT BOTTOM */}
+      {allPuppies.length > 1 && (
+        <div className="pt-6 border-t border-[#E8DDD3]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#766A63]">
+          <div>
+            <h4 className="font-bold text-[#2C211B]">Danger Zone</h4>
+            <p>Remove {puppy.name} from your multi-pet household pack.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPuppyToDelete(puppy);
+              setDeleteConfirmOpen(true);
+            }}
+            className="px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold transition-colors cursor-pointer text-xs"
+          >
+            Remove {puppy.name} from Pack
+          </button>
+        </div>
+      )}
+
+      {/* Non-blocking Confirm Dialog for Pet Deletion */}
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeletePuppy}
+        title={`Remove ${puppyToDelete?.name || 'Puppy'}?`}
+        description={`Are you sure you want to remove ${puppyToDelete?.name || 'this puppy'} from your pack? This will permanently delete their health records and routine data from your device.`}
+        confirmLabel="Yes, Remove Puppy"
+        isDestructive={true}
+      />
 
       {/* MODAL 1: CONFIRMATION FOR SLUG CHANGE (WARNING ABOUT PRINTED QR COLLAR) */}
       <Modal

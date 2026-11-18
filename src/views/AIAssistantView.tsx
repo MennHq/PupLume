@@ -485,7 +485,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
         }}
         autoComplete="off"
         data-form-type="other"
-        className="relative flex items-center gap-2 mt-1 shrink-0"
+        className="relative flex items-center gap-2 mt-1 mb-1 pb-1 sm:pb-0 shrink-0"
       >
         <input
           type="text"

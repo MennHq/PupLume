@@ -203,10 +203,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               {isPuppyDropdownOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] sm:bg-transparent"
+                    className="fixed inset-0 z-40 bg-black/20 sm:bg-transparent"
                     onClick={() => setIsPuppyDropdownOpen(false)}
                   />
-                  <div className="fixed inset-x-4 top-16 sm:top-auto sm:inset-auto sm:absolute sm:left-0 sm:mt-2 w-auto sm:w-64 max-w-sm mx-auto sm:mx-0 bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_12px_36px_rgba(0,0,0,0.18)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_12px_36px_rgba(0,0,0,0.14)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3.5 py-1.5 text-xs font-bold text-[#766A63] flex items-center justify-between">
                       <span>Your Puppies</span>
                       <button
@@ -343,7 +343,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       {/* Main Content Area */}
       <main className={`max-w-6xl mx-auto w-full px-3 sm:px-8 ${
         currentView === 'ai'
-          ? 'h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col overflow-hidden pt-2 pb-[calc(70px+env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-4.5rem)] md:pb-4 md:pt-4'
+          ? 'h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col overflow-hidden pt-2 pb-[calc(78px+env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-4.5rem)] md:pb-4 md:pt-4'
           : 'flex-1 pt-2.5 sm:pt-5 pb-24 md:pb-8'
       }`}>
         {children}

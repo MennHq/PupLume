@@ -1033,6 +1033,12 @@ export default function App() {
                 showToast(customToast || `🐾 ${updated.name}'s profile updated in database!`);
               }
             }}
+            onSwitchPuppy={(newId) => {
+              storage.setActivePuppyId(newId);
+              const p = storage.getActivePuppy();
+              if (p) setPuppy(p);
+            }}
+            onOpenNewPuppyWizard={() => setCurrentView('onboarding')}
           />
         </Suspense>
       )}
