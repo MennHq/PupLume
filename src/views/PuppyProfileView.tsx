@@ -44,8 +44,26 @@ import {
   HelpCircle,
   Loader2,
   Plus,
-  ChevronRight
+  ChevronRight,
+  Palette,
+  Type,
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Link as LinkIcon,
+  ShoppingBag,
+  BookOpen,
+  Eye,
+  EyeOff
 } from 'lucide-react';
+import { 
+  PUP_PAGE_THEMES, 
+  PUP_PAGE_FONTS, 
+  DEFAULT_LINK_CATEGORIES 
+} from '../lib/pupThemeEngine';
+import { PupLinkTreeCard } from '../components/common/PupLinkTreeCard';
+import { PupCustomLink, PupPageTheme, PupPageFont } from '../types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -107,7 +125,163 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
   const updateIndexingMutation = useMutation(api.puppies.updateSearchEngineIndexing);
 
   // Active view tab state
-  const [activeTab, setActiveTab] = useState<'passport' | 'collar' | 'safety'>('passport');
+  const [activeTab, setActiveTab] = useState<'passport' | 'collar' | 'safety' | 'studio'>('passport');
+
+  // Studio & Link Tree Customization State (Unslop Engine)
+  const [studioTheme, setStudioTheme] = useState<PupPageTheme>(() => puppy.pageTheme || 'warm_editorial');
+  const [studioFont, setStudioFont] = useState<PupPageFont>(() => puppy.pageFont || 'jakarta');
+  const [studioHeadline, setStudioHeadline] = useState<string>(() => puppy.pageHeadline || '');
+  const [studioBio, setStudioBio] = useState<string>(() => puppy.pageBio || '');
+  const [studioLinks, setStudioLinks] = useState<PupCustomLink[]>(() => {
+    if (puppy.customLinks && puppy.customLinks.length > 0) {
+      return puppy.customLinks;
+    }
+    return [
+      {
+        id: 'link-starter-ig',
+        title: `${puppy.name}'s Instagram Adventure`,
+        url: puppy.ownerInstagram ? `https://instagram.com/${puppy.ownerInstagram.replace('@', '')}` : 'https://instagram.com',
+        subtitle: 'Photos, park runs & daily life',
+        category: 'social',
+        highlight: true,
+        badgeText: 'Official'
+      },
+      {
+        id: 'link-starter-gear',
+        title: 'Favorite Chews & Gear',
+        url: 'https://puplume.pet/gear',
+        subtitle: 'The toys & treats I love most',
+        category: 'gear',
+        highlight: false,
+        badgeText: 'Verified'
+      }
+    ];
+  });
+
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<PupCustomLink | null>(null);
+  const [linkTitleInput, setLinkTitleInput] = useState('');
+  const [linkUrlInput, setLinkUrlInput] = useState('');
+  const [linkSubtitleInput, setLinkSubtitleInput] = useState('');
+  const [linkCategoryInput, setLinkCategoryInput] = useState<'social' | 'gear' | 'service' | 'story' | 'custom'>('social');
+  const [linkHighlightInput, setLinkHighlightInput] = useState(false);
+  const [linkBadgeTextInput, setLinkBadgeTextInput] = useState('');
+  const [isSavingStudio, setIsSavingStudio] = useState(false);
+  const [studioSuccessMessage, setStudioSuccessMessage] = useState<string | null>(null);
+  const [showLivePhoneMockup, setShowLivePhoneMockup] = useState(true);
+
+  // Link CRUD Handlers
+  const handleOpenAddLink = () => {
+    setEditingLink(null);
+    setLinkTitleInput('');
+    setLinkUrlInput('');
+    setLinkSubtitleInput('');
+    setLinkCategoryInput('social');
+    setLinkHighlightInput(false);
+    setLinkBadgeTextInput('');
+    setIsLinkModalOpen(true);
+  };
+
+  const handleOpenEditLink = (link: PupCustomLink) => {
+    setEditingLink(link);
+    setLinkTitleInput(link.title);
+    setLinkUrlInput(link.url);
+    setLinkSubtitleInput(link.subtitle || '');
+    setLinkCategoryInput(link.category || 'social');
+    setLinkHighlightInput(Boolean(link.highlight));
+    setLinkBadgeTextInput(link.badgeText || '');
+    setIsLinkModalOpen(true);
+  };
+
+  const handleSaveLink = () => {
+    if (!linkTitleInput.trim() || !linkUrlInput.trim()) {
+      alert('Please provide both a Title and a valid URL.');
+      return;
+    }
+
+    let cleanUrl = linkUrlInput.trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+
+    if (editingLink) {
+      setStudioLinks((prev) =>
+        prev.map((l) =>
+          l.id === editingLink.id
+            ? {
+                ...l,
+                title: linkTitleInput.trim(),
+                url: cleanUrl,
+                subtitle: linkSubtitleInput.trim() || undefined,
+                category: linkCategoryInput,
+                highlight: linkHighlightInput,
+                badgeText: linkBadgeTextInput.trim() || undefined,
+              }
+            : l
+        )
+      );
+    } else {
+      const newLink: PupCustomLink = {
+        id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        title: linkTitleInput.trim(),
+        url: cleanUrl,
+        subtitle: linkSubtitleInput.trim() || undefined,
+        category: linkCategoryInput,
+        highlight: linkHighlightInput,
+        badgeText: linkBadgeTextInput.trim() || undefined,
+      };
+      setStudioLinks((prev) => [...prev, newLink]);
+    }
+
+    setIsLinkModalOpen(false);
+  };
+
+  const handleDeleteLink = (id: string) => {
+    nativeBridge.haptics.light();
+    setStudioLinks((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const handleMoveLink = (index: number, direction: 'up' | 'down') => {
+    nativeBridge.haptics.light();
+    setStudioLinks((prev) => {
+      const copy = [...prev];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= copy.length) return prev;
+      const temp = copy[index];
+      copy[index] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
+  };
+
+  const handleSaveStudioSettings = async () => {
+    nativeBridge.haptics.light();
+    setIsSavingStudio(true);
+    setStudioSuccessMessage(null);
+    try {
+      const updated: PuppyProfile = {
+        ...puppy,
+        pageTheme: studioTheme,
+        pageFont: studioFont,
+        pageHeadline: studioHeadline.trim() || undefined,
+        pageBio: studioBio.trim() || undefined,
+        customLinks: studioLinks,
+      };
+
+      storage.savePuppy(updated);
+      await syncPuppyToConvex(updated);
+      await triggerMarketingSiteInstantUpdate(activeSlug);
+
+      onUpdatePuppy(updated, '✨ Page Studio settings & Link Tree published!');
+      setStudioSuccessMessage('✓ Theme, fonts & links synced live to database & public URL!');
+      setTimeout(() => setStudioSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error('Failed to save studio settings:', err);
+      setStudioSuccessMessage('Saved locally. Database sync queued.');
+    } finally {
+      setIsSavingStudio(false);
+    }
+  };
 
   // Modals state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -312,6 +486,13 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
 
       if (puppy.communicationLinks && puppy.communicationLinks.length > 0) {
         setCommunicationLinks(puppy.communicationLinks);
+      }
+      setStudioTheme(puppy.pageTheme || 'warm_editorial');
+      setStudioFont(puppy.pageFont || 'jakarta');
+      setStudioHeadline(puppy.pageHeadline || '');
+      setStudioBio(puppy.pageBio || '');
+      if (puppy.customLinks && puppy.customLinks.length > 0) {
+        setStudioLinks(puppy.customLinks);
       }
       const localPass = typeof window !== 'undefined' 
         ? localStorage.getItem(`puplume_smart_tag_pass_${puppy.id}`) === 'true' 
@@ -985,21 +1166,22 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       </div>
 
       {/* SECTION NAV: SLEEK SEGMENTED CONTROL TABS */}
-      <div className="bg-[#F5EDE4] p-1.5 rounded-2xl border border-[#E8DDD3] shadow-2xs flex items-center gap-1.5">
+      <div className="bg-[#F5EDE4] p-1.5 rounded-2xl border border-[#E8DDD3] shadow-2xs flex items-center gap-1 sm:gap-1.5 overflow-x-auto">
         <button
           type="button"
           onClick={() => {
             nativeBridge.haptics.light();
             setActiveTab('passport');
           }}
-          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'passport'
               ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
               : 'text-[#766A63] hover:text-[#2C211B]'
           }`}
         >
-          <Dog className="w-4 h-4 text-[#8B5E3C]" />
-          <span>Passport &amp; Care</span>
+          <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+          <span className="hidden sm:inline">Passport &amp; Care</span>
+          <span className="sm:hidden">Passport</span>
         </button>
 
         <button
@@ -1008,14 +1190,15 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
             nativeBridge.haptics.light();
             setActiveTab('collar');
           }}
-          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'collar'
               ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
               : 'text-[#766A63] hover:text-[#2C211B]'
           }`}
         >
-          <QrCode className="w-4 h-4 text-[#8B5E3C]" />
-          <span>Smart Tag &amp; QR</span>
+          <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+          <span className="hidden sm:inline">Smart Tag &amp; QR</span>
+          <span className="sm:hidden">Tag &amp; QR</span>
         </button>
 
         <button
@@ -1024,17 +1207,35 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
             nativeBridge.haptics.light();
             setActiveTab('safety');
           }}
-          className={`flex-1 py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'safety'
               ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
               : 'text-[#766A63] hover:text-[#2C211B]'
           }`}
         >
-          <AlertTriangle className={`w-4 h-4 ${isLost ? 'text-rose-600 animate-pulse' : 'text-[#8B5E3C]'}`} />
-          <span>Safety &amp; Contacts</span>
+          <AlertTriangle className={`w-4 h-4 shrink-0 ${isLost ? 'text-rose-600 animate-pulse' : 'text-[#8B5E3C]'}`} />
+          <span className="hidden sm:inline">Safety &amp; Contacts</span>
+          <span className="sm:hidden">Safety</span>
           {isLost && (
             <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
           )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            nativeBridge.haptics.light();
+            setActiveTab('studio');
+          }}
+          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+            activeTab === 'studio'
+              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
+              : 'text-[#766A63] hover:text-[#2C211B]'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-[#8B5E3C] shrink-0" />
+          <span className="hidden sm:inline">Page Studio &amp; Links</span>
+          <span className="sm:hidden">Studio</span>
         </button>
       </div>
 
@@ -1774,6 +1975,480 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
         </div>
       )}
 
+      {/* TAB 4: PAGE STUDIO & LINK TREE (UNSLOP ENGINE) */}
+      {activeTab === 'studio' && (
+        <div className="space-y-6">
+          {/* Section Header with Quick Link */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+            <div>
+              <h3 className="text-base font-black text-[#2C211B] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#8B5E3C]" />
+                Page Studio &amp; Link Tree
+              </h3>
+              <p className="text-xs text-[#766A63] mt-0.5">
+                Customize {puppy.name}&apos;s public page. Premium themes, Google fonts, custom links, and live mobile preview.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF6F0] border border-[#E8DDD3] text-[#8B5E3C] text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-transform active:scale-[0.98] cursor-pointer"
+              >
+                <span>View Public Page</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveStudioSettings}
+                disabled={isSavingStudio}
+                leftIcon={isSavingStudio ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                className="text-xs font-bold shadow-xs"
+              >
+                {isSavingStudio ? 'Saving...' : 'Save & Publish'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Success / Feedback Notification */}
+          {studioSuccessMessage && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{studioSuccessMessage}</span>
+            </div>
+          )}
+
+          {/* ================================================================= */}
+          {/* SECTION 1: CREATIVE THEME SYSTEM (UNSLOP PALETTE) */}
+          {/* ================================================================= */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] p-5 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-[#8B5E3C]" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#2C211B]">
+                  1. Creative Theme &amp; Atmosphere
+                </h4>
+              </div>
+              <span className="text-[11px] text-[#766A63] font-medium">4 Handcrafted Palettes</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(Object.keys(PUP_PAGE_THEMES) as PupPageTheme[]).map((themeKey) => {
+                const t = PUP_PAGE_THEMES[themeKey];
+                const isSelected = studioTheme === themeKey;
+
+                return (
+                  <button
+                    key={themeKey}
+                    type="button"
+                    onClick={() => {
+                      nativeBridge.haptics.light();
+                      setStudioTheme(themeKey);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-3 cursor-pointer ${
+                      isSelected
+                        ? 'border-[#8B5E3C] bg-[#FFF9F2] shadow-xs ring-2 ring-[#8B5E3C]/20'
+                        : 'border-[#E8DDD3] hover:border-[#8B5E3C]/50 bg-white hover:bg-[#FAF6F0]/40'
+                    }`}
+                  >
+                    {/* Visual Color Swatch */}
+                    <div 
+                      className="w-10 h-10 rounded-xl shrink-0 border border-black/10 shadow-2xs flex items-center justify-center font-bold text-xs"
+                      style={{ backgroundColor: t.previewBg, color: t.previewAccent }}
+                    >
+                      <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: t.previewAccent }} />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-black text-[#2C211B]">{t.name}</span>
+                        {isSelected && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-[#8B5E3C] text-white text-[10px] font-black uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[#766A63] mt-0.5 font-medium truncate">
+                        {t.tagline}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* SECTION 2: GOOGLE FONTS (SIL OFL 100% FREE COMMERCIAL) */}
+          {/* ================================================================= */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] p-5 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Type className="w-4 h-4 text-[#8B5E3C]" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#2C211B]">
+                  2. Google Font Typography (Free Commercial)
+                </h4>
+              </div>
+              <span className="text-[11px] text-[#766A63] font-medium">5 Curated Typefaces</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {(Object.keys(PUP_PAGE_FONTS) as PupPageFont[]).map((fontKey) => {
+                const f = PUP_PAGE_FONTS[fontKey];
+                const isSelected = studioFont === fontKey;
+
+                return (
+                  <button
+                    key={fontKey}
+                    type="button"
+                    onClick={() => {
+                      nativeBridge.haptics.light();
+                      setStudioFont(fontKey);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                      isSelected
+                        ? 'border-[#8B5E3C] bg-[#FFF9F2] shadow-xs ring-2 ring-[#8B5E3C]/20'
+                        : 'border-[#E8DDD3] hover:border-[#8B5E3C]/40 bg-white hover:bg-[#FAF6F0]/40'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#8B5E3C]">
+                        {f.category}
+                      </span>
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                      )}
+                    </div>
+                    <div className="text-sm font-bold text-[#2C211B] truncate">
+                      {f.name}
+                    </div>
+                    <div className={`text-xs mt-1 text-[#766A63] truncate ${f.headingClass}`}>
+                      {puppy.name}&apos;s Passport 🐾
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* SECTION 3: EDITORIAL HEADLINE & PUBLIC STORY */}
+          {/* ================================================================= */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2">
+              <Edit3 className="w-4 h-4 text-[#8B5E3C]" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#2C211B]">
+                3. Editorial Tagline &amp; Public Bio
+              </h4>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#2C211B] mb-1">
+                  Public Headline / Catchphrase
+                </label>
+                <input
+                  type="text"
+                  value={studioHeadline}
+                  onChange={(e) => setStudioHeadline(e.target.value)}
+                  placeholder={`e.g. Seattle's Adventure Golden Retriever 🌲`}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-white text-xs font-medium text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] shadow-2xs"
+                />
+                <p className="text-[11px] text-[#766A63] mt-1">
+                  Displays in large styled text beneath {puppy.name}&apos;s name.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#2C211B] mb-1">
+                  Public Story / Bio
+                </label>
+                <textarea
+                  rows={3}
+                  value={studioBio}
+                  onChange={(e) => setStudioBio(e.target.value)}
+                  placeholder={`e.g. Park enthusiast, fetch champion, and treat connoisseur. Check out my gear and socials below!`}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-white text-xs font-medium text-[#2C211B] focus:outline-none focus:border-[#8B5E3C] shadow-2xs resize-none"
+                />
+                <p className="text-[11px] text-[#766A63] mt-1">
+                  A personal note, funny personality traits, or intro for visitors and finders.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* SECTION 4: THE PUPPY LINK TREE BUILDER */}
+          {/* ================================================================= */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4 text-[#8B5E3C]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2C211B]">
+                    4. Puppy Link Tree ({studioLinks.length})
+                  </h4>
+                </div>
+                <p className="text-[11px] text-[#766A63] mt-0.5">
+                  Add socials, favorite gear, emergency vet portals, or rescue stories.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddLink}
+                className="px-3.5 py-2 rounded-xl bg-[#8B5E3C] hover:bg-[#6D492F] text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-transform active:scale-[0.98] cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Link</span>
+              </button>
+            </div>
+
+            {/* List of Custom Links */}
+            {studioLinks.length === 0 ? (
+              <div className="p-8 text-center border-2 border-dashed border-[#E8DDD3] rounded-2xl space-y-2">
+                <LinkIcon className="w-8 h-8 text-[#8B5E3C]/40 mx-auto" />
+                <h5 className="text-xs font-bold text-[#2C211B]">No links in {puppy.name}&apos;s link tree</h5>
+                <p className="text-[11px] text-[#766A63] max-w-sm mx-auto">
+                  Add their Instagram page, TikTok, favorite dog chews, or direct care links.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenAddLink}
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#8B5E3C] hover:underline cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Create first link</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {studioLinks.map((link, idx) => (
+                  <div
+                    key={link.id}
+                    className="p-3 rounded-xl border border-[#E8DDD3] bg-[#FAF6F0]/40 flex items-center justify-between gap-3 hover:bg-white hover:border-[#8B5E3C]/40 transition-colors shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Drag / Reorder Controls */}
+                      <div className="flex flex-col gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveLink(idx, 'up')}
+                          disabled={idx === 0}
+                          className="p-1 rounded text-[#766A63] hover:text-[#2C211B] disabled:opacity-20 cursor-pointer"
+                          title="Move link up"
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveLink(idx, 'down')}
+                          disabled={idx === studioLinks.length - 1}
+                          className="p-1 rounded text-[#766A63] hover:text-[#2C211B] disabled:opacity-20 cursor-pointer"
+                          title="Move link down"
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      {/* Link Info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-[#2C211B] truncate">
+                            {link.title}
+                          </span>
+                          {link.highlight && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 text-[9px] font-black uppercase tracking-wider">
+                              ★ {link.badgeText || 'Featured'}
+                            </span>
+                          )}
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-[#E8DDD3]/60 text-[#766A63] capitalize">
+                            {link.category || 'custom'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-[#766A63] mt-0.5 truncate font-mono">
+                          <span className="truncate">{link.url}</span>
+                          {link.subtitle && (
+                            <>
+                              <span>•</span>
+                              <span className="font-sans truncate">{link.subtitle}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Edit & Delete Controls */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditLink(link)}
+                        className="p-1.5 rounded-lg border border-[#E8DDD3] bg-white text-[#766A63] hover:text-[#2C211B] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+                        title="Edit Link"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteLink(link.id)}
+                        className="p-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                        title="Delete Link"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ================================================================= */}
+          {/* SECTION 5: LIVE INTERACTIVE PHONE MOCKUP PREVIEW */}
+          {/* ================================================================= */}
+          <div className="bg-white rounded-2xl border border-[#E8DDD3] p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#8B5E3C]" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#2C211B]">
+                  5. Real-Time Phone Preview
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLivePhoneMockup(!showLivePhoneMockup)}
+                className="text-xs font-bold text-[#8B5E3C] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                {showLivePhoneMockup ? (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>Hide Preview</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Show Preview</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {showLivePhoneMockup && (
+              <div className="flex justify-center p-4 sm:p-6 bg-[#FAF6F0]/60 rounded-2xl border border-[#E8DDD3]/80">
+                {/* Mobile Phone Mockup Chassis */}
+                <div className="w-full max-w-[340px] rounded-[36px] border-[8px] border-[#2C211B] shadow-[0_20px_50px_rgba(44,33,27,0.25)] overflow-hidden bg-white">
+                  {/* Dynamic Island / Speaker Notch */}
+                  <div className="bg-[#2C211B] h-5 w-full flex items-center justify-center">
+                    <div className="w-20 h-3 rounded-full bg-black/60 flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-900/60 ml-8" />
+                    </div>
+                  </div>
+
+                  {/* Phone Screen Rendering Active Theme */}
+                  {(() => {
+                    const previewTheme = PUP_PAGE_THEMES[studioTheme] || PUP_PAGE_THEMES.warm_editorial;
+                    const previewFont = PUP_PAGE_FONTS[studioFont] || PUP_PAGE_FONTS.jakarta;
+
+                    return (
+                      <div className={`p-4 space-y-3.5 max-h-[520px] overflow-y-auto ${previewTheme.backgroundClass} ${previewFont.bodyClass}`}>
+                        {/* Mini Hero Card */}
+                        <div className={`${previewTheme.cardClass} rounded-2xl p-4 text-center space-y-2`}>
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden mx-auto border-2 border-white/20 shadow-xs">
+                            <img
+                              src={photoUrl || puppy.photoUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400"}
+                              alt={puppy.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <div>
+                            <h4 className={`${previewFont.headingClass} text-xl font-black ${previewTheme.textPrimary}`}>
+                              {puppy.name}
+                            </h4>
+                            {studioHeadline ? (
+                              <p className={`text-[11px] font-semibold italic ${previewTheme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'}`}>
+                                &ldquo;{studioHeadline}&rdquo;
+                              </p>
+                            ) : null}
+                            <p className={`text-[11px] ${previewTheme.textSecondary} mt-0.5`}>
+                              {puppy.breed} • {ageDisplay}
+                            </p>
+                          </div>
+
+                          {studioBio ? (
+                            <p className={`text-[10px] ${previewTheme.textSecondary} leading-relaxed line-clamp-3`}>
+                              {studioBio}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        {/* Mini Call & SMS Buttons */}
+                        <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
+                          <div className={`p-2 rounded-xl text-center shadow-xs ${previewTheme.accentButtonClass}`}>
+                            📞 Call Owner
+                          </div>
+                          <div className={`p-2 rounded-xl text-center shadow-xs ${previewTheme.secondaryButtonClass}`}>
+                            💬 Send SMS
+                          </div>
+                        </div>
+
+                        {/* Mini Link Tree Cards */}
+                        <div className="space-y-2">
+                          <span className={`text-[9px] font-extrabold uppercase tracking-wider block ${previewTheme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'}`}>
+                            Curated Links ({studioLinks.length})
+                          </span>
+                          {studioLinks.map((link) => (
+                            <PupLinkTreeCard
+                              key={link.id}
+                              link={link}
+                              themeId={studioTheme}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ================================================================= */}
+          {/* SAVE & PUBLISH ACTION BAR */}
+          {/* ================================================================= */}
+          <div className="bg-[#FAF6F0] rounded-2xl border border-[#E8DDD3] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+            <div className="text-center sm:text-left">
+              <h5 className="text-xs font-black text-[#2C211B]">
+                Ready to publish {puppy.name}&apos;s redesigned page?
+              </h5>
+              <p className="text-[11px] text-[#766A63] mt-0.5">
+                Updates {publicUrl} immediately with your selected theme, fonts, and links.
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={handleSaveStudioSettings}
+              disabled={isSavingStudio}
+              leftIcon={
+                isSavingStudio ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )
+              }
+              className="w-full sm:w-auto text-xs font-black px-6 shadow-sm cursor-pointer"
+            >
+              {isSavingStudio ? 'Publishing to Cloud...' : 'Publish to Public URL'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* CASE 37 STEP 4: ISOLATE DESTRUCTIVE ACTIONS AT BOTTOM */}
       {allPuppies.length > 1 && (
         <div className="pt-6 border-t border-[#E8DDD3]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#766A63]">
@@ -2105,6 +2780,119 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
         title={shareModalConfig.title}
         isEmergency={shareModalConfig.isEmergency}
       />
+
+      {/* MODAL 7: ADD / EDIT CUSTOM LINK (LINK TREE STUDIO) */}
+      <Modal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        title={editingLink ? 'Edit Link' : 'Add Link to Tree'}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
+              Link Title *
+            </label>
+            <input
+              type="text"
+              value={linkTitleInput}
+              onChange={(e) => setLinkTitleInput(e.target.value)}
+              placeholder="e.g. Follow my Instagram Reels"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs font-semibold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
+              Destination URL *
+            </label>
+            <input
+              type="text"
+              value={linkUrlInput}
+              onChange={(e) => setLinkUrlInput(e.target.value)}
+              placeholder="e.g. https://instagram.com/graxzo"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs font-mono text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
+              Subtitle / Description (Optional)
+            </label>
+            <input
+              type="text"
+              value={linkSubtitleInput}
+              onChange={(e) => setLinkSubtitleInput(e.target.value)}
+              placeholder="e.g. Daily park runs & puppy tricks"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] mb-1">
+              Category
+            </label>
+            <select
+              value={linkCategoryInput}
+              onChange={(e) => setLinkCategoryInput(e.target.value as any)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs font-bold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            >
+              <option value="social">Social &amp; Media (Instagram, TikTok, YouTube)</option>
+              <option value="gear">Favorite Treats &amp; Gear</option>
+              <option value="service">Care &amp; Vet Portals</option>
+              <option value="story">Story &amp; Pedigree</option>
+              <option value="custom">Custom Destination</option>
+            </select>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#E8DDD3] space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={linkHighlightInput}
+                onChange={(e) => setLinkHighlightInput(e.target.checked)}
+                className="w-4 h-4 rounded text-[#8B5E3C] focus:ring-[#8B5E3C]"
+              />
+              <span className="text-xs font-bold text-[#2C211B]">
+                Feature this link with animated glow badge
+              </span>
+            </label>
+
+            {linkHighlightInput && (
+              <div>
+                <label className="block text-[11px] font-bold text-[#766A63] mb-1">
+                  Custom Badge Label (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={linkBadgeTextInput}
+                  onChange={(e) => setLinkBadgeTextInput(e.target.value)}
+                  placeholder="e.g. 20% Off Treats, Most Watched, New"
+                  className="w-full px-3 py-1.5 rounded-lg border border-[#E8DDD3] bg-white text-xs font-bold text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsLinkModalOpen(false)}
+              className="flex-1 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSaveLink}
+              className="flex-1 font-bold text-xs"
+            >
+              {editingLink ? 'Save Changes' : 'Add Link'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   );

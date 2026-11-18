@@ -22,6 +22,9 @@ import { storage } from '../lib/storage';
 import { copyToClipboard } from '../lib/clipboard';
 import { ShareModal } from '../components/common/ShareModal';
 import { PupLumeLogo } from '../components/common/PupLumeLogo';
+import { PUP_PAGE_THEMES, PUP_PAGE_FONTS } from '../lib/pupThemeEngine';
+import { PupLinkTreeCard } from '../components/common/PupLinkTreeCard';
+import { PupCustomLink, PupPageTheme, PupPageFont } from '../types';
 import { COMMUNICATION_PLATFORMS, getPlatformFaviconUrl } from '../lib/communicationPlatforms';
 
 interface ErrorBoundaryProps {
@@ -140,6 +143,13 @@ const PublicPupSafetyContent: React.FC = () => {
       ownerWhatsApp: localPup.ownerWhatsApp,
       ownerTelegram: localPup.ownerTelegram,
       ownerSlack: localPup.ownerSlack,
+      pageTheme: localPup.pageTheme,
+      pageFont: localPup.pageFont,
+      pageHeadline: localPup.pageHeadline,
+      pageBio: localPup.pageBio,
+      pageAccentColor: localPup.pageAccentColor,
+      customLinks: localPup.customLinks,
+      pageConfig: localPup.pageConfig,
     } : null
   );
 
@@ -214,6 +224,63 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
     );
   }
 
+  // Active theme and typography configuration
+  const activeThemeKey = (activePup.pageTheme && PUP_PAGE_THEMES[activePup.pageTheme as keyof typeof PUP_PAGE_THEMES]) 
+    ? (activePup.pageTheme as PupPageTheme) 
+    : 'warm_editorial';
+  const theme = PUP_PAGE_THEMES[activeThemeKey] || PUP_PAGE_THEMES.warm_editorial;
+
+  const activeFontKey = (activePup.pageFont && PUP_PAGE_FONTS[activePup.pageFont as keyof typeof PUP_PAGE_FONTS])
+    ? (activePup.pageFont as PupPageFont)
+    : 'jakarta';
+  const font = PUP_PAGE_FONTS[activeFontKey] || PUP_PAGE_FONTS.jakarta;
+
+  // Viral Cheer / Send Treat Counter
+  const [treatCount, setTreatCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`puplume_treats_${activePup._id || activePup.slug || activePup.name}`);
+      return saved ? parseInt(saved, 10) : 48;
+    }
+    return 48;
+  });
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
+
+  const handleSendTreat = () => {
+    setTreatCount((c) => {
+      const next = c + 1;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`puplume_treats_${activePup._id || activePup.slug || activePup.name}`, next.toString());
+      }
+      return next;
+    });
+    setShowHeartBurst(true);
+    setTimeout(() => setShowHeartBurst(false), 1200);
+  };
+
+  // Curated Link Tree Links (Custom links with automatic graceful starters)
+  const effectiveCustomLinks: PupCustomLink[] = (activePup.customLinks && activePup.customLinks.length > 0)
+    ? activePup.customLinks
+    : [
+        {
+          id: 'starter-social',
+          title: `Follow ${activePup.name}'s Daily Adventures`,
+          subtitle: 'Reels, photos & puppy updates',
+          url: activePup.ownerInstagram ? `https://instagram.com/${activePup.ownerInstagram.replace('@', '')}` : 'https://instagram.com',
+          category: 'social',
+          highlight: true,
+          badgeText: 'Official'
+        },
+        {
+          id: 'starter-gear',
+          title: `${activePup.name}'s Recommended Puppy Gear`,
+          subtitle: 'Harness, training treats & favorite toys',
+          url: 'https://puplume.pet/gear',
+          category: 'gear',
+          highlight: false,
+          badgeText: 'Verified'
+        }
+      ];
+
   const handleCopyText = async (text: string, label: string) => {
     const ok = await copyToClipboard(text);
     if (ok) {
@@ -280,7 +347,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
     `PL-${(activePup._id || activePup.slug || '985').toString().slice(-6).toUpperCase()}-PUP`;
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] text-[#1C140E] flex flex-col items-center selection:bg-[#8B5E3C] selection:text-white">
+    <div className={`min-h-screen ${theme.backgroundClass} ${font.bodyClass} flex flex-col items-center transition-colors duration-300 selection:bg-[#8B5E3C] selection:text-white`}>
       
       {/* Top Banner: Emergency or Clean Brand Header */}
       {isEmergency ? (
@@ -289,7 +356,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             <div className="flex items-center gap-2.5">
               <span className="w-3 h-3 rounded-full bg-white animate-ping shrink-0" />
               <AlertTriangle className="w-5 h-5 text-amber-300 shrink-0" />
-              <span className="text-xs sm:text-sm font-black tracking-wide uppercase">
+              <span className="text-xs sm:text-sm font-black tracking-wide uppercase font-sans">
                 MISSING PUPPY ALERT • PLEASE HELP REUNITE
               </span>
             </div>
@@ -302,7 +369,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
               }
               const label = lower.includes('reward') ? raw.toUpperCase() : `${raw.toUpperCase()} REWARD`;
               return (
-                <span className="px-2.5 py-1 bg-amber-400 text-amber-950 text-xs font-black rounded-lg shrink-0 shadow-xs uppercase tracking-wider">
+                <span className="px-2.5 py-1 bg-amber-400 text-amber-950 text-xs font-black rounded-lg shrink-0 shadow-xs uppercase tracking-wider font-sans">
                   ★ {label}
                 </span>
               );
@@ -310,11 +377,11 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
           </div>
         </div>
       ) : (
-        <header className="w-full bg-white/90 backdrop-blur-md border-b border-[#EFE8E1] sticky top-0 z-40">
+        <header className={`w-full ${theme.isDark ? 'bg-[#141210]/90 border-white/10 text-white' : 'bg-white/90 border-[#EFE8E1] text-[#1C140E]'} backdrop-blur-md border-b sticky top-0 z-40 transition-colors duration-300`}>
           <div className="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2.5 select-none">
               <PupLumeLogo size="sm" showBackground={false} />
-              <span className="text-[10px] font-extrabold tracking-widest uppercase text-[#8B5E3C] bg-[#FAF6F0] px-2.5 py-1 rounded-full border border-[#EFE8E1]">
+              <span className={`text-[10px] font-extrabold tracking-widest uppercase ${theme.isDark ? 'text-[#E5C378] bg-[#221F1C] border-white/10' : 'text-[#8B5E3C] bg-[#FAF6F0] border-[#EFE8E1]'} px-2.5 py-1 rounded-full border`}>
                 Digital Pet Passport
               </span>
             </div>
@@ -327,7 +394,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
               </div>
               <button
                 onClick={() => setIsShareOpen(true)}
-                className="px-2.5 py-1 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#EFE8E1] transition-transform active:scale-[0.97] cursor-pointer flex items-center gap-1 text-xs font-bold shadow-2xs"
+                className={`px-2.5 py-1 rounded-xl ${theme.isDark ? 'bg-[#221F1C] text-[#E5C378] border-white/10 hover:bg-[#2C2723]' : 'bg-[#FAF6F0] hover:bg-[#F3E7DA] text-[#8B5E3C] border-[#EFE8E1]'} border transition-transform active:scale-[0.97] cursor-pointer flex items-center gap-1 text-xs font-bold shadow-2xs`}
                 title="Share this puppy profile"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -342,16 +409,19 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
       <main className="w-full max-w-xl px-4 py-5 sm:py-6 space-y-4 mb-16">
         
         {/* ================================================================= */}
-        {/* PASSPORT HERO CARD */}
+        {/* PASSPORT HERO CARD (UNSLOP THEME & TYPOGRAPHY) */}
         {/* ================================================================= */}
-        <div className="bg-white rounded-[28px] border border-[#EFE8E1] p-6 sm:p-7 shadow-[0_4px_24px_rgba(44,33,27,0.04)] relative overflow-hidden">
-          {/* Subtle Guilloche Watermark Motif */}
-          <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full border-[10px] border-[#FAF6F0] pointer-events-none" />
+        <div className={`${theme.cardClass} rounded-[28px] p-6 sm:p-7 relative overflow-hidden transition-all duration-300`}>
+          {/* Subtle Ambient Radial Highlight */}
+          <div 
+            className="absolute -top-12 -right-12 w-44 h-44 rounded-full border-[10px] opacity-20 pointer-events-none" 
+            style={{ borderColor: theme.previewAccent }} 
+          />
 
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
             {/* Puppy Photo Frame */}
             <div className="relative shrink-0">
-              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 border-[#8B5E3C]/25 shadow-sm relative bg-[#FAF6F0]">
+              <div className={`w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 shadow-sm relative ${theme.isDark ? 'border-[#E5C378]/30 bg-[#221F1C]' : 'border-[#8B5E3C]/25 bg-[#FAF6F0]'}`}>
                 <img
                   src={activePup.photoUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400"}
                   alt={activePup.name}
@@ -360,7 +430,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
               </div>
 
               {/* Verified Tag Medallion */}
-              <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 border border-emerald-600">
+              <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 border border-emerald-600 font-sans">
                 <ShieldCheck className="w-3 h-3 text-emerald-300" />
                 <span>Verified Tag</span>
               </div>
@@ -369,62 +439,76 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             {/* Canine Identity Information */}
             <div className="flex-1 text-center sm:text-left space-y-2">
               <div className="flex items-center justify-center sm:justify-between gap-2">
-                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-[#8B5E3C]">
+                <span className={`text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} font-sans`}>
                   Official Passport • {activePup.slug ? activePup.slug.toUpperCase() : "PL-PUP"}
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-black text-[#1C140E] tracking-tight leading-none">
+              <h1 className={`${font.headingClass} text-4xl sm:text-5xl font-black ${theme.textPrimary} tracking-tight leading-none`}>
                 {activePup.name}
               </h1>
 
+              {/* Custom Headline / Tagline if set */}
+              {activePup.pageHeadline && (
+                <p className={`text-sm sm:text-base font-semibold italic ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'}`}>
+                  &ldquo;{activePup.pageHeadline}&rdquo;
+                </p>
+              )}
+
               {/* Breed, Age, Weight, Sex */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-[#52433D] pt-0.5">
-                <span className="bg-[#FAF6F0] border border-[#EFE8E1] px-2.5 py-0.5 rounded-lg text-[#2C211B] font-bold">
+              <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold ${theme.textSecondary} pt-0.5 font-sans`}>
+                <span className={`${theme.isDark ? 'bg-[#26221D] border-white/10 text-white' : 'bg-[#FAF6F0] border-[#EFE8E1] text-[#2C211B]'} border px-2.5 py-0.5 rounded-lg font-bold`}>
                   {activePup.breed || "Canine"}
                 </span>
                 {ageString && (
                   <>
-                    <span className="text-[#C4B7AC]">•</span>
+                    <span className="opacity-40">•</span>
                     <span>{ageString}</span>
                   </>
                 )}
                 {activePup.weightLbs && (
                   <>
-                    <span className="text-[#C4B7AC]">•</span>
+                    <span className="opacity-40">•</span>
                     <span>{activePup.weightLbs} lbs</span>
                   </>
                 )}
                 {activePup.sex && (
                   <>
-                    <span className="text-[#C4B7AC]">•</span>
+                    <span className="opacity-40">•</span>
                     <span className="capitalize">{activePup.sex}</span>
                   </>
                 )}
               </div>
 
+              {/* Custom Pet Bio if set */}
+              {activePup.pageBio && (
+                <p className={`text-xs sm:text-sm ${theme.textSecondary} font-normal pt-1 leading-relaxed`}>
+                  {activePup.pageBio}
+                </p>
+              )}
+
               {/* Temperament Note */}
-              {activePup.temperament && (
-                <p className="text-xs sm:text-sm text-[#52433D] font-medium pt-1 leading-relaxed">
-                  🐾 <span className="font-bold text-[#2C211B]">Temperament:</span> {activePup.temperament}
+              {activePup.temperament && !activePup.pageBio && (
+                <p className={`text-xs sm:text-sm ${theme.textSecondary} font-medium pt-1 leading-relaxed`}>
+                  🐾 <span className={`font-bold ${theme.textPrimary}`}>Temperament:</span> {activePup.temperament}
                 </p>
               )}
 
               {/* Microchip Quick Copy */}
               <div className="pt-2 flex items-center justify-center sm:justify-start gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1] text-xs font-mono text-[#2C211B]">
-                  <span className="text-[10px] font-sans font-extrabold uppercase text-[#8B5E3C]">Microchip:</span>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono ${theme.isDark ? 'bg-[#221F1C] border-white/10 text-white' : 'bg-[#FAF6F0] border-[#EFE8E1] text-[#2C211B]'}`}>
+                  <span className={`text-[10px] font-sans font-extrabold uppercase ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'}`}>Microchip:</span>
                   <span className="font-bold">{microchipSerial}</span>
                 </div>
                 <button
                   onClick={() => handleCopyText(microchipSerial, 'microchip')}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#EFE8E1] hover:bg-[#FAF6F0] text-[#766A63] hover:text-[#1C140E] transition-transform active:scale-[0.97] text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                  className={`px-2.5 py-1.5 rounded-xl border ${theme.isDark ? 'border-white/10 hover:bg-white/10 text-[#C7BEAF]' : 'border-[#EFE8E1] hover:bg-[#FAF6F0] text-[#766A63]'} transition-transform active:scale-[0.97] text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer font-sans`}
                   title="Copy Microchip Serial"
                 >
                   {copiedField === 'microchip' ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">Copied!</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-400">Copied!</span>
                     </>
                   ) : (
                     <>
@@ -443,14 +527,14 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         {/* ================================================================= */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-[#8B5E3C]" />
+            <h2 className={`text-xs font-extrabold uppercase tracking-wider ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} flex items-center gap-1.5 font-sans`}>
+              <Phone className="w-3.5 h-3.5" />
               Direct Emergency Contacts
             </h2>
-            <span className="text-[11px] text-[#766A63] font-medium">Tap to connect directly</span>
+            <span className={`text-[11px] ${theme.textMuted} font-medium font-sans`}>Tap to connect directly</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-sans">
             {/* Primary Call Owner Button */}
             {ownerPhoneNumber ? (
               <a
@@ -458,14 +542,14 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
                 className={`p-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2.5 shadow-sm transition-transform active:scale-[0.98] cursor-pointer ${
                   isEmergency
                     ? "bg-[#DC2626] hover:bg-[#B91C1C] text-white"
-                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    : theme.accentButtonClass
                 }`}
               >
                 <Phone className="w-5 h-5 shrink-0" />
                 <span>Call Owner ({ownerPhoneNumber})</span>
               </a>
             ) : (
-              <div className="p-4 rounded-2xl bg-white border border-[#EFE8E1] text-[#766A63] font-bold text-xs text-center flex items-center justify-center">
+              <div className={`p-4 rounded-2xl ${theme.cardClass} ${theme.textMuted} font-bold text-xs text-center flex items-center justify-center`}>
                 Owner phone not public • See vet details below
               </div>
             )}
@@ -474,7 +558,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             {ownerPhoneNumber ? (
               <a
                 href={`sms:${ownerPhoneNumber}?&body=${encodeURIComponent(`Hi! I found ${activePup.name}. They are safe with me right now.`)}`}
-                className="p-4 rounded-2xl bg-[#8B5E3C] hover:bg-[#6D492F] text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-sm transition-transform active:scale-[0.98] cursor-pointer"
+                className={`p-4 rounded-2xl ${theme.secondaryButtonClass} font-black text-sm flex items-center justify-center gap-2.5 shadow-sm transition-transform active:scale-[0.98] cursor-pointer`}
               >
                 <MessageCircle className="w-5 h-5 shrink-0" />
                 <span>Send SMS Message</span>
@@ -482,7 +566,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             ) : (
               <button
                 onClick={() => setIsShareOpen(true)}
-                className="p-4 rounded-2xl bg-white border border-[#EFE8E1] hover:bg-[#FAF6F0] text-[#1C140E] font-bold text-xs flex items-center justify-center gap-2 transition-transform active:scale-[0.98] cursor-pointer"
+                className={`p-4 rounded-2xl ${theme.cardClass} hover:opacity-90 ${theme.textPrimary} font-bold text-xs flex items-center justify-center gap-2 transition-transform active:scale-[0.98] cursor-pointer`}
               >
                 <Share2 className="w-4 h-4 text-[#8B5E3C]" />
                 <span>Share Profile Link</span>
@@ -491,14 +575,14 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
           </div>
 
           {/* ONE-TAP GPS LOCATION SHARING */}
-          <div className="bg-white rounded-2xl border border-[#EFE8E1] p-4 shadow-2xs">
+          <div className={`${theme.cardClass} rounded-2xl p-4 shadow-2xs font-sans`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="text-center sm:text-left">
-                <div className="text-xs font-bold text-[#1C140E] flex items-center justify-center sm:justify-start gap-1.5">
-                  <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+                <div className={`text-xs font-bold ${theme.textPrimary} flex items-center justify-center sm:justify-start gap-1.5`}>
+                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
                   <span>Send Live GPS Pin to Owner</span>
                 </div>
-                <p className="text-[11px] text-[#766A63] mt-0.5">
+                <p className={`text-[11px] ${theme.textMuted} mt-0.5`}>
                   Instantly sends your exact Google Maps pin via SMS so the owner can navigate straight to you.
                 </p>
               </div>
@@ -528,7 +612,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             </div>
 
             {locationStatus === 'success' && locationLink && (
-              <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between gap-2">
+              <div className="mt-3 p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-400 flex items-center justify-between gap-2">
                 <span className="truncate text-[11px] font-mono">{locationLink}</span>
                 <button
                   onClick={() => handleCopyText(locationLink, 'gps')}
@@ -540,7 +624,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             )}
 
             {locationStatus === 'error' && (
-              <p className="mt-2 text-[11px] text-red-600">
+              <p className="mt-2 text-[11px] text-red-500">
                 Could not retrieve GPS. Please check location permissions in your browser.
               </p>
             )}
@@ -548,15 +632,68 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         </div>
 
         {/* ================================================================= */}
+        {/* VIRAL CHEER & TREAT MICRO-INTERACTION (MARKETING MECHANIC) */}
+        {/* ================================================================= */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={handleSendTreat}
+            className={`w-full py-3.5 px-4 rounded-2xl border font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] cursor-pointer shadow-xs font-sans ${
+              theme.isDark 
+                ? 'bg-[#181614] hover:bg-[#221F1C] border-white/10 text-[#E5C378]' 
+                : 'bg-white hover:bg-[#FFFDF9] border-[#E8DDD3] text-[#8B5E3C]'
+            }`}
+          >
+            <span className="text-base sm:text-lg animate-bounce">🦴</span>
+            <span>Send {activePup.name} a Treat</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black font-mono ${
+              theme.isDark ? 'bg-[#E5C378]/20 text-[#E5C378]' : 'bg-[#FAF6F0] text-[#8B5E3C]'
+            }`}>
+              {treatCount} treats sent!
+            </span>
+            {showHeartBurst && (
+              <span className="absolute right-4 animate-ping text-rose-500 font-black text-sm">
+                ❤️ +1
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* ================================================================= */}
+        {/* THE PUPPY LINK TREE SECTION (NON-STATIC, DYNAMIC LINKS) */}
+        {/* ================================================================= */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className={`text-xs font-black uppercase tracking-wider ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} flex items-center gap-1.5 font-sans`}>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{activePup.name}&apos;s Curated Link Tree</span>
+            </h2>
+            <span className={`text-[11px] ${theme.textMuted} font-medium font-sans`}>
+              {effectiveCustomLinks.length} destinations
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {effectiveCustomLinks.map((link) => (
+              <PupLinkTreeCard
+                key={link.id}
+                link={link}
+                themeId={activeThemeKey}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ================================================================= */}
         {/* EMERGENCY MEDICAL & HANDLING NOTES */}
         {/* ================================================================= */}
         {activePup.emergencyNotes && (
-          <div className="bg-amber-50/90 border border-amber-300/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1.5">
-            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wide">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1.5 font-sans">
+            <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wide">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>Critical Health &amp; Handling Instructions</span>
             </div>
-            <p className="text-xs sm:text-sm text-amber-950 leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-amber-600 dark:text-amber-200 leading-relaxed font-medium">
               {activePup.emergencyNotes}
             </p>
           </div>
@@ -565,10 +702,10 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
         {/* ================================================================= */}
         {/* VET & HEALTH RECORDS SHEET */}
         {/* ================================================================= */}
-        <div className="bg-white rounded-[24px] border border-[#EFE8E1] p-5 sm:p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#FAF6F0] pb-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#8B5E3C] flex items-center gap-1.5">
-              <Stethoscope className="w-4 h-4 text-[#8B5E3C]" />
+        <div className={`${theme.cardClass} rounded-[24px] p-5 sm:p-6 shadow-2xs space-y-4 font-sans`}>
+          <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
+            <h3 className={`text-xs font-black uppercase tracking-wider ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} flex items-center gap-1.5`}>
+              <Stethoscope className="w-4 h-4" />
               Medical &amp; Veterinary Records
             </h3>
             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -578,59 +715,59 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Primary Vet Clinic */}
-            <div className="p-3.5 rounded-2xl bg-[#FAF6F0]/80 border border-[#EFE8E1] space-y-1">
-              <div className="text-[10px] font-extrabold uppercase text-[#8B5E3C] tracking-wider">
+            <div className={`p-3.5 rounded-2xl ${theme.isDark ? 'bg-white/5 border border-white/8' : 'bg-[#FAF6F0]/80 border border-[#EFE8E1]'} space-y-1`}>
+              <div className={`text-[10px] font-extrabold uppercase ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} tracking-wider`}>
                 Primary Vet Clinic
               </div>
-              <div className="text-xs font-black text-[#1C140E]">
+              <div className={`text-xs font-black ${theme.textPrimary}`}>
                 {activePup.vetClinic || activePup.vetName || "Emergency Animal Hospital"}
               </div>
               {activePup.vetPhone ? (
                 <a
                   href={`tel:${activePup.vetPhone}`}
-                  className="inline-flex items-center gap-1 text-xs font-black text-emerald-700 hover:underline pt-0.5"
+                  className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 hover:underline pt-0.5"
                 >
                   <Phone className="w-3 h-3" /> {activePup.vetPhone}
                 </a>
               ) : (
-                <div className="text-[11px] text-[#766A63]">24/7 Animal Emergency Care</div>
+                <div className={`text-[11px] ${theme.textMuted}`}>24/7 Animal Emergency Care</div>
               )}
             </div>
 
             {/* Backup Family Contact */}
             {activePup.emergencyContactPhone ? (
-              <div className="p-3.5 rounded-2xl bg-[#FAF6F0]/80 border border-[#EFE8E1] space-y-1">
-                <div className="text-[10px] font-extrabold uppercase text-[#8B5E3C] tracking-wider">
+              <div className={`p-3.5 rounded-2xl ${theme.isDark ? 'bg-white/5 border border-white/8' : 'bg-[#FAF6F0]/80 border border-[#EFE8E1]'} space-y-1`}>
+                <div className={`text-[10px] font-extrabold uppercase ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} tracking-wider`}>
                   Backup Emergency Contact
                 </div>
-                <div className="text-xs font-black text-[#1C140E]">
+                <div className={`text-xs font-black ${theme.textPrimary}`}>
                   {activePup.emergencyContactName || "Trusted Family / Friend"}
                 </div>
                 <a
                   href={`tel:${activePup.emergencyContactPhone}`}
-                  className="inline-flex items-center gap-1 text-xs font-black text-emerald-700 hover:underline pt-0.5"
+                  className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 hover:underline pt-0.5"
                 >
                   <Phone className="w-3 h-3" /> {activePup.emergencyContactPhone}
                 </a>
               </div>
             ) : (
-              <div className="p-3.5 rounded-2xl bg-[#FAF6F0]/80 border border-[#EFE8E1] space-y-1">
-                <div className="text-[10px] font-extrabold uppercase text-[#8B5E3C] tracking-wider">
+              <div className={`p-3.5 rounded-2xl ${theme.isDark ? 'bg-white/5 border border-white/8' : 'bg-[#FAF6F0]/80 border border-[#EFE8E1]'} space-y-1`}>
+                <div className={`text-[10px] font-extrabold uppercase ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} tracking-wider`}>
                   Microchip Database
                 </div>
-                <div className="text-xs font-black text-[#1C140E]">Universal Scanner Compatible</div>
-                <div className="text-[11px] text-[#766A63]">Registered nationwide with ISO 11784</div>
+                <div className={`text-xs font-black ${theme.textPrimary}`}>Universal Scanner Compatible</div>
+                <div className={`text-[11px] ${theme.textMuted}`}>Registered nationwide with ISO 11784</div>
               </div>
             )}
           </div>
 
           {/* Allergies & Dietary Restrictions */}
           {(activePup.allergies || activePup.dietaryRestrictions) && (
-            <div className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200/80 space-y-1">
-              <div className="text-[10px] font-extrabold uppercase text-rose-800 tracking-wider flex items-center gap-1">
-                <Heart className="w-3 h-3 text-rose-600" /> Allergies &amp; Diet Notes
+            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 space-y-1">
+              <div className="text-[10px] font-extrabold uppercase text-rose-500 tracking-wider flex items-center gap-1">
+                <Heart className="w-3 h-3 text-rose-500" /> Allergies &amp; Diet Notes
               </div>
-              <p className="text-xs text-rose-950 font-medium leading-relaxed">
+              <p className="text-xs text-rose-600 dark:text-rose-200 font-medium leading-relaxed">
                 {activePup.allergies && <span>Allergies: {activePup.allergies}. </span>}
                 {activePup.dietaryRestrictions && <span>Diet: {activePup.dietaryRestrictions}</span>}
               </p>
@@ -665,8 +802,8 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
             if (effectiveLinks.length === 0) return null;
 
             return (
-              <div className="pt-2 border-t border-[#FAF6F0]">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#8B5E3C] block mb-2">
+              <div className="pt-2 border-t border-black/5 dark:border-white/5">
+                <span className={`text-[11px] font-extrabold uppercase tracking-wider ${theme.isDark ? 'text-[#E5C378]' : 'text-[#8B5E3C]'} block mb-2`}>
                   Alternate Direct Channels:
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -690,7 +827,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
                         href={targetUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#EFE8E1] bg-[#FAF6F0] hover:bg-[#F3E7DA] text-xs font-bold text-[#1C140E] transition-colors"
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.isDark ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-[#EFE8E1] bg-[#FAF6F0] hover:bg-[#F3E7DA] text-[#1C140E]'} text-xs font-bold transition-colors`}
                       >
                         <img
                           src={faviconUrl}
@@ -710,19 +847,44 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
           })()}
         </div>
 
+        {/* ================================================================= */}
+        {/* VIRAL SMART TAG CALLOUT (UNSLOP CONVERSION CARD) */}
+        {/* ================================================================= */}
+        <div className={`${theme.cardClass} rounded-[24px] p-5 text-center space-y-3 relative overflow-hidden font-sans`}>
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto text-xl border border-amber-500/20 shadow-2xs">
+            🐾
+          </div>
+          <div className="space-y-1">
+            <h4 className={`text-sm font-black ${theme.textPrimary}`}>
+              Loved meeting {activePup.name}?
+            </h4>
+            <p className={`text-xs ${theme.textSecondary} max-w-sm mx-auto leading-relaxed`}>
+              Create a verified digital pet passport, link tree, and emergency QR collar tag for your puppy on PupLume.
+            </p>
+          </div>
+          <a
+            href="/"
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all active:scale-[0.98] shadow-sm cursor-pointer ${theme.accentButtonClass}`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Build Your Dog&apos;s Link Tree &amp; Passport</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
         {/* Footer */}
-        <div className="pt-4 pb-8 text-center space-y-2 border-t border-[#EFE8E1]">
-          <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#766A63]">
+        <div className={`pt-4 pb-8 text-center space-y-2 border-t ${theme.borderClass} font-sans`}>
+          <div className={`flex items-center justify-center gap-2 text-xs font-bold ${theme.textMuted}`}>
             <Dog className="w-4 h-4 text-[#8B5E3C]" />
             <span>Powered by PupLume Smart Collar Network</span>
           </div>
-          <p className="text-[11px] text-[#8B7C73] max-w-sm mx-auto">
-            Free public emergency pet identification system. Helping reunite lost puppies with their families quickly and safely.
+          <p className={`text-[11px] ${theme.textMuted} max-w-sm mx-auto`}>
+            Free public emergency pet identification &amp; link tree system. Helping reunite lost puppies with their families quickly and safely.
           </p>
           <div className="pt-2">
             <a
               href="/"
-              className="text-xs font-bold text-[#8B5E3C] hover:text-[#5F3E29] hover:underline"
+              className={`text-xs font-bold ${theme.isDark ? 'text-[#E5C378] hover:underline' : 'text-[#8B5E3C] hover:underline'}`}
             >
               Are you the owner? Open PupLume App &rarr;
             </a>

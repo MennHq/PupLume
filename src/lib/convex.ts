@@ -93,6 +93,13 @@ export async function syncPuppyToConvex(
     ownerTelegram: puppy.ownerTelegram,
     ownerSlack: puppy.ownerSlack,
     communicationLinks: puppy.communicationLinks,
+    pageTheme: puppy.pageTheme,
+    pageFont: puppy.pageFont,
+    pageHeadline: puppy.pageHeadline,
+    pageBio: puppy.pageBio,
+    pageAccentColor: puppy.pageAccentColor,
+    customLinks: puppy.customLinks,
+    pageConfig: puppy.pageConfig,
   };
   return runWithOfflineQueue("puppies:savePuppy", payload, () =>
     convex.mutation(api.puppies.savePuppy, payload)

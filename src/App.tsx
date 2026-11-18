@@ -784,7 +784,7 @@ export default function App() {
     dietaryRestrictions: 'Salmon & sweet potato diet',
     hasSmartTagPass: true,
     microchipNumber: 'PL-GRXZ-981-PUP',
-    petInsuranceProvider: 'Trupanion Pet Health',
+    insuranceProvider: 'Trupanion Pet Health',
     createdAt: new Date().toISOString()
   };
 

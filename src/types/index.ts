@@ -36,6 +36,42 @@ export interface PuppyProfile {
   ownerTelegram?: string;
   ownerSlack?: string;
   communicationLinks?: CommunicationLinkItem[];
+  // Unslop Link Tree & Customization Engine
+  customLinks?: PupCustomLink[];
+  pageTheme?: PupPageTheme;
+  pageFont?: PupPageFont;
+  pageHeadline?: string;
+  pageBio?: string;
+  pageAccentColor?: string;
+  pageConfig?: PupPageCustomization;
+}
+
+export type PupPageTheme = 'luxe_obsidian' | 'warm_editorial' | 'minimal_clean' | 'sunset_amber';
+export type PupPageFont = 'jakarta' | 'outfit' | 'inter' | 'fraunces' | 'space_grotesk';
+
+export interface PupCustomLink {
+  id: string;
+  title: string;
+  url: string;
+  category?: 'social' | 'gear' | 'story' | 'service' | 'custom';
+  icon?: string;
+  subtitle?: string;
+  highlight?: boolean;
+  badgeText?: string;
+  clicks?: number;
+}
+
+export interface PupPageCustomization {
+  theme: PupPageTheme;
+  font: PupPageFont;
+  headline?: string;
+  bio?: string;
+  accentColor?: string;
+  customLinks?: PupCustomLink[];
+  showRescueActions?: boolean;
+  showMedicalVault?: boolean;
+  showLinkTree?: boolean;
+  showHighlights?: boolean;
 }
 
 export interface CommunicationLinkItem {
