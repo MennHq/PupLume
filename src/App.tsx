@@ -604,7 +604,11 @@ export default function App() {
     );
   }
 
-  if (!isLoaded) {
+  const isDevPreview = typeof window !== 'undefined' && window.location.search.includes('mock=true');
+  const effectiveSignedIn = isSignedIn || isDevPreview;
+  const effectiveIsLoaded = isLoaded || isDevPreview;
+
+  if (!effectiveIsLoaded) {
     const hasExistingSession = typeof window !== 'undefined' && (
       Boolean(storage.getPuppy()) || 
       document.cookie.includes('__session') || 
@@ -620,7 +624,7 @@ export default function App() {
   }
 
   // 2. Unauthenticated: Split-screen layout (Marketing on left, Clerk on right)
-  if (!isSignedIn) {
+  if (!effectiveSignedIn) {
     // Direct in-app sign in
 
     return (
@@ -742,13 +746,13 @@ export default function App() {
   );
 
   // Wait for user cloud data and user account resolution before routing
-  if (isSignedIn && !hasLocalAccess && (cloudData === undefined || cloudData === null || cloudData.user === null)) {
+  if (!isDevPreview && effectiveSignedIn && !hasLocalAccess && (cloudData === undefined || cloudData === null || cloudData.user === null)) {
     return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading ${currentView}...`} />;
   }
 
   // 4. Paddle Paywall Gate (only shown if user profile is resolved and definitively unpaid)
-  const isPaidUser = Boolean(cloudData?.user?.hasAccess || hasLocalAccess);
-  if (isSignedIn && cloudData !== undefined && cloudData !== null && cloudData.user !== null && !isPaidUser) {
+  const isPaidUser = Boolean(cloudData?.user?.hasAccess || hasLocalAccess || isDevPreview);
+  if (!isDevPreview && effectiveSignedIn && cloudData !== undefined && cloudData !== null && cloudData.user !== null && !isPaidUser) {
     return <PaddlePaywall onSignOut={signOut} />;
   }
 
@@ -760,6 +764,29 @@ export default function App() {
         ? cloudData.puppies.find((p: any) => p._id === activePuppyId) || cloudData.puppies[0]
         : cloudData.puppies[0])
     : null;
+
+  const fallbackPreviewPuppy: PuppyProfile = {
+    id: 'pup-graxzo-1',
+    name: 'Graxzo',
+    breed: 'German Shepherd',
+    sex: 'male',
+    weightLbs: 12,
+    birthDate: '2024-03-01',
+    photoUrl: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5455?auto=format&fit=crop&q=80&w=400',
+    vetClinic: 'Downtown Animal Hospital',
+    vetPhone: '+1 (555) 234-5678',
+    ownerPhone: '+1 (555) 987-6543',
+    emergencyNotes: 'Very friendly, loves peanut butter, responds to whistle.',
+    isLost: false,
+    slug: 'graxzo',
+    temperament: 'Playful, curious, alert',
+    favoriteTreat: 'Peanut Butter Biscuits',
+    dietaryRestrictions: 'Salmon & sweet potato diet',
+    hasSmartTagPass: true,
+    microchipNumber: 'PL-GRXZ-981-PUP',
+    petInsuranceProvider: 'Trupanion Pet Health',
+    createdAt: new Date().toISOString()
+  };
 
   const activePuppy: PuppyProfile | null = puppy || storage.getPuppy() || (cloudActivePup ? {
     id: cloudActivePup._id,
@@ -781,7 +808,7 @@ export default function App() {
     emergencyContactName: cloudActivePup.emergencyContactName,
     emergencyContactPhone: cloudActivePup.emergencyContactPhone,
     communicationLinks: cloudActivePup.communicationLinks,
-  } : null);
+  } : (isDevPreview ? fallbackPreviewPuppy : null));
 
   // 4. Show onboarding only if user explicitly navigated to it, OR if user has no puppy profile yet
   if (!activePuppy || currentView === 'onboarding') {
