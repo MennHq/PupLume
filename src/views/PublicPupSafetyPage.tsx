@@ -224,16 +224,16 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any }> = ({ puppy: activePup
     );
   }
 
-  // Active theme and typography configuration
+  // Active theme and typography configuration (PupLume Brand Standard)
   const activeThemeKey = (activePup.pageTheme && PUP_PAGE_THEMES[activePup.pageTheme as keyof typeof PUP_PAGE_THEMES]) 
     ? (activePup.pageTheme as PupPageTheme) 
-    : 'warm_editorial';
-  const theme = PUP_PAGE_THEMES[activeThemeKey] || PUP_PAGE_THEMES.warm_editorial;
+    : 'puplume_classic';
+  const theme = PUP_PAGE_THEMES[activeThemeKey] || PUP_PAGE_THEMES.puplume_classic;
 
   const activeFontKey = (activePup.pageFont && PUP_PAGE_FONTS[activePup.pageFont as keyof typeof PUP_PAGE_FONTS])
     ? (activePup.pageFont as PupPageFont)
-    : 'jakarta';
-  const font = PUP_PAGE_FONTS[activeFontKey] || PUP_PAGE_FONTS.jakarta;
+    : 'grandstander';
+  const font = PUP_PAGE_FONTS[activeFontKey] || PUP_PAGE_FONTS.grandstander;
 
   // Viral Cheer / Send Treat Counter
   const [treatCount, setTreatCount] = useState<number>(() => {

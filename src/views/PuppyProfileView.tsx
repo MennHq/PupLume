@@ -60,6 +60,8 @@ import {
 import { 
   PUP_PAGE_THEMES, 
   PUP_PAGE_FONTS, 
+  AVAILABLE_PUP_THEMES,
+  AVAILABLE_PUP_FONTS,
   DEFAULT_LINK_CATEGORIES 
 } from '../lib/pupThemeEngine';
 import { PupLinkTreeCard } from '../components/common/PupLinkTreeCard';
@@ -127,9 +129,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
   // Active view tab state
   const [activeTab, setActiveTab] = useState<'passport' | 'collar' | 'safety' | 'studio'>('passport');
 
-  // Studio & Link Tree Customization State (Unslop Engine)
-  const [studioTheme, setStudioTheme] = useState<PupPageTheme>(() => puppy.pageTheme || 'warm_editorial');
-  const [studioFont, setStudioFont] = useState<PupPageFont>(() => puppy.pageFont || 'jakarta');
+  // Studio & Link Tree Customization State (PupLume Brand Standard)
+  const [studioTheme, setStudioTheme] = useState<PupPageTheme>(() => puppy.pageTheme || 'puplume_classic');
+  const [studioFont, setStudioFont] = useState<PupPageFont>(() => puppy.pageFont || 'grandstander');
   const [studioHeadline, setStudioHeadline] = useState<string>(() => puppy.pageHeadline || '');
   const [studioBio, setStudioBio] = useState<string>(() => puppy.pageBio || '');
   const [studioLinks, setStudioLinks] = useState<PupCustomLink[]>(() => {
@@ -487,8 +489,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       if (puppy.communicationLinks && puppy.communicationLinks.length > 0) {
         setCommunicationLinks(puppy.communicationLinks);
       }
-      setStudioTheme(puppy.pageTheme || 'warm_editorial');
-      setStudioFont(puppy.pageFont || 'jakarta');
+      setStudioTheme(puppy.pageTheme || 'puplume_classic');
+      setStudioFont(puppy.pageFont || 'grandstander');
       setStudioHeadline(puppy.pageHeadline || '');
       setStudioBio(puppy.pageBio || '');
       if (puppy.customLinks && puppy.customLinks.length > 0) {
@@ -2035,7 +2037,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(Object.keys(PUP_PAGE_THEMES) as PupPageTheme[]).map((themeKey) => {
+              {AVAILABLE_PUP_THEMES.map((themeKey) => {
                 const t = PUP_PAGE_THEMES[themeKey];
                 const isSelected = studioTheme === themeKey;
 
@@ -2091,11 +2093,11 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                   2. Google Font Typography (Free Commercial)
                 </h4>
               </div>
-              <span className="text-[11px] text-[#766A63] font-medium">5 Curated Typefaces</span>
+              <span className="text-[11px] text-[#766A63] font-medium">4 Authentic Brand Fonts</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {(Object.keys(PUP_PAGE_FONTS) as PupPageFont[]).map((fontKey) => {
+              {AVAILABLE_PUP_FONTS.map((fontKey) => {
                 const f = PUP_PAGE_FONTS[fontKey];
                 const isSelected = studioFont === fontKey;
 
@@ -2348,8 +2350,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
 
                   {/* Phone Screen Rendering Active Theme */}
                   {(() => {
-                    const previewTheme = PUP_PAGE_THEMES[studioTheme] || PUP_PAGE_THEMES.warm_editorial;
-                    const previewFont = PUP_PAGE_FONTS[studioFont] || PUP_PAGE_FONTS.jakarta;
+                    const previewTheme = PUP_PAGE_THEMES[studioTheme] || PUP_PAGE_THEMES.puplume_classic;
+                    const previewFont = PUP_PAGE_FONTS[studioFont] || PUP_PAGE_FONTS.grandstander;
 
                     return (
                       <div className={`p-4 space-y-3.5 max-h-[520px] overflow-y-auto ${previewTheme.backgroundClass} ${previewFont.bodyClass}`}>

@@ -21,10 +21,10 @@ interface PupLinkTreeCardProps {
 
 export const PupLinkTreeCard: React.FC<PupLinkTreeCardProps> = ({ 
   link, 
-  themeId = 'warm_editorial',
+  themeId = 'puplume_classic',
   onClick 
 }) => {
-  const theme = PUP_PAGE_THEMES[themeId] || PUP_PAGE_THEMES.warm_editorial;
+  const theme = PUP_PAGE_THEMES[themeId] || PUP_PAGE_THEMES.puplume_classic;
 
   const getCategoryIcon = () => {
     switch (link.category) {

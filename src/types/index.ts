@@ -46,8 +46,23 @@ export interface PuppyProfile {
   pageConfig?: PupPageCustomization;
 }
 
-export type PupPageTheme = 'luxe_obsidian' | 'warm_editorial' | 'minimal_clean' | 'sunset_amber';
-export type PupPageFont = 'jakarta' | 'outfit' | 'inter' | 'fraunces' | 'space_grotesk';
+export type PupPageTheme = 
+  | 'puplume_classic' 
+  | 'puplume_sage' 
+  | 'puplume_peach' 
+  | 'puplume_midnight'
+  | 'warm_editorial'
+  | 'luxe_obsidian'
+  | 'minimal_clean'
+  | 'sunset_amber';
+
+export type PupPageFont = 
+  | 'grandstander' 
+  | 'outfit' 
+  | 'jakarta' 
+  | 'inter'
+  | 'fraunces'
+  | 'space_grotesk';
 
 export interface PupCustomLink {
   id: string;

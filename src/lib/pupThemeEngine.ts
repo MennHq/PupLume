@@ -21,88 +21,182 @@ export interface ThemeDefinition {
   linkHoverSheen: string;
 }
 
+// -------------------------------------------------------------
+// PupLume Authentic Brand Themes
+// Rooted in PupLume's warm cream (#FFF9F2), baked clay (#8B5E3C),
+// organic sage (#3D5A40), and soft peach (#E07A5F) identity.
+// -------------------------------------------------------------
 export const PUP_PAGE_THEMES: Record<PupPageTheme, ThemeDefinition> = {
-  luxe_obsidian: {
-    id: 'luxe_obsidian',
-    name: 'Luxe Obsidian',
-    tagline: 'Titanium noir & champagne gold',
-    previewBg: '#121110',
-    previewAccent: '#E5C378',
-    isDark: true,
-    backgroundClass: 'bg-[#0E0D0C] text-[#FDFCFB]',
-    textPrimary: 'text-[#FDFCFB]',
-    textSecondary: 'text-[#C7BEAF]',
-    textMuted: 'text-[#877E71]',
-    cardClass: 'bg-[#181614]/95 border border-white/12 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)]',
-    cardSubtleClass: 'bg-[#221F1C]/90 border border-white/8',
-    accentButtonClass: 'bg-[#E5C378] text-[#141210] hover:bg-[#D4AF37] shadow-md shadow-[#E5C378]/15',
-    secondaryButtonClass: 'bg-white/10 text-white hover:bg-white/15 border border-white/15',
-    pillTagClass: 'bg-[#26221D] text-[#E5C378] border border-[#E5C378]/30',
-    borderClass: 'border-white/10',
-    scrimGradient: 'from-transparent via-black/40 to-black/90',
-    linkHoverSheen: 'hover:border-[#E5C378]/60 hover:shadow-[0_4px_20px_rgba(229,195,120,0.12)]'
-  },
-  warm_editorial: {
-    id: 'warm_editorial',
-    name: 'Warm Editorial',
-    tagline: 'Heritage cream & rich espresso roast',
-    previewBg: '#FAF6F0',
+  puplume_classic: {
+    id: 'puplume_classic',
+    name: 'PupLume Signature',
+    tagline: 'Warm cream, baked clay & emerald seal',
+    previewBg: '#FFF9F2',
     previewAccent: '#8B5E3C',
     isDark: false,
-    backgroundClass: 'bg-[#FAF6F0] text-[#1C140E]',
-    textPrimary: 'text-[#1C140E]',
+    backgroundClass: 'bg-[#FFF9F2] text-[#2C211B]',
+    textPrimary: 'text-[#2C211B]',
     textSecondary: 'text-[#5F4E44]',
-    textMuted: 'text-[#8C7A70]',
-    cardClass: 'bg-white border border-[#EFE8E1] shadow-[0_8px_30px_rgba(44,33,27,0.04)]',
-    cardSubtleClass: 'bg-[#FAF6F0]/80 border border-[#EFE8E1]',
-    accentButtonClass: 'bg-[#8B5E3C] text-white hover:bg-[#6D492F] shadow-sm shadow-[#8B5E3C]/20',
-    secondaryButtonClass: 'bg-[#FAF6F0] text-[#8B5E3C] hover:bg-[#F3E7DA] border border-[#EFE8E1]',
-    pillTagClass: 'bg-[#FFF9F2] text-[#8B5E3C] border border-[#E8DDD3]',
-    borderClass: 'border-[#EFE8E1]',
-    scrimGradient: 'from-transparent via-black/30 to-black/80',
-    linkHoverSheen: 'hover:border-[#8B5E3C]/50 hover:shadow-[0_4px_20px_rgba(139,94,60,0.08)]'
+    textMuted: 'text-[#766A63]',
+    cardClass: 'bg-white border border-[#E8DDD3] shadow-[0_8px_30px_rgba(44,33,27,0.04)]',
+    cardSubtleClass: 'bg-[#FFFDF9] border border-[#E8DDD3]',
+    accentButtonClass: 'bg-[#8B5E3C] text-white hover:bg-[#5F3E29] shadow-sm shadow-[#8B5E3C]/25',
+    secondaryButtonClass: 'bg-[#FFF9F2] text-[#8B5E3C] hover:bg-[#F3E7DA] border border-[#E8DDD3]',
+    pillTagClass: 'bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3]',
+    borderClass: 'border-[#E8DDD3]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#8B5E3C] hover:shadow-[0_4px_20px_rgba(139,94,60,0.12)]'
+  },
+  puplume_sage: {
+    id: 'puplume_sage',
+    name: 'PupLume Meadow Sage',
+    tagline: 'Fresh organic sage, meadow grass & earthy cream',
+    previewBg: '#F4F7F2',
+    previewAccent: '#3D5A40',
+    isDark: false,
+    backgroundClass: 'bg-[#F4F7F2] text-[#1E2922]',
+    textPrimary: 'text-[#1E2922]',
+    textSecondary: 'text-[#3F4F45]',
+    textMuted: 'text-[#6A7B70]',
+    cardClass: 'bg-white border border-[#D8E2D6] shadow-[0_8px_30px_rgba(61,90,64,0.04)]',
+    cardSubtleClass: 'bg-[#F8FAF7] border border-[#D8E2D6]',
+    accentButtonClass: 'bg-[#3D5A40] text-white hover:bg-[#2C4230] shadow-sm shadow-[#3D5A40]/25',
+    secondaryButtonClass: 'bg-[#F4F7F2] text-[#3D5A40] hover:bg-[#EAF0E8] border border-[#D8E2D6]',
+    pillTagClass: 'bg-[#EAF0E8] text-[#3D5A40] border border-[#D8E2D6]',
+    borderClass: 'border-[#D8E2D6]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#3D5A40] hover:shadow-[0_4px_20px_rgba(61,90,64,0.12)]'
+  },
+  puplume_peach: {
+    id: 'puplume_peach',
+    name: 'PupLume Golden Peach',
+    tagline: 'Sunny golden peach, honey apricot & warm clay',
+    previewBg: '#FFF8F3',
+    previewAccent: '#E07A5F',
+    isDark: false,
+    backgroundClass: 'bg-[#FFF8F3] text-[#2D1B14]',
+    textPrimary: 'text-[#2D1B14]',
+    textSecondary: 'text-[#624033]',
+    textMuted: 'text-[#916B5C]',
+    cardClass: 'bg-white border border-[#F5DDD0] shadow-[0_8px_30px_rgba(224,122,95,0.05)]',
+    cardSubtleClass: 'bg-[#FFFDFB] border border-[#F5DDD0]',
+    accentButtonClass: 'bg-[#E07A5F] text-white hover:bg-[#C9654C] shadow-sm shadow-[#E07A5F]/25',
+    secondaryButtonClass: 'bg-[#FFF8F3] text-[#E07A5F] hover:bg-[#FDECE4] border border-[#F5DDD0]',
+    pillTagClass: 'bg-[#FDECE4] text-[#E07A5F] border border-[#F5DDD0]',
+    borderClass: 'border-[#F5DDD0]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#E07A5F] hover:shadow-[0_4px_20px_rgba(224,122,95,0.12)]'
+  },
+  puplume_midnight: {
+    id: 'puplume_midnight',
+    name: 'PupLume Midnight Pup',
+    tagline: 'Tactile dark canvas with warm caramel & cream',
+    previewBg: '#181513',
+    previewAccent: '#D4A373',
+    isDark: true,
+    backgroundClass: 'bg-[#181513] text-[#F9F6F0]',
+    textPrimary: 'text-[#F9F6F0]',
+    textSecondary: 'text-[#D4C8B8]',
+    textMuted: 'text-[#8C8276]',
+    cardClass: 'bg-[#221E1B] border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.4)]',
+    cardSubtleClass: 'bg-[#2A2522] border border-white/8',
+    accentButtonClass: 'bg-[#D4A373] text-[#181513] hover:bg-[#C59262] shadow-sm shadow-[#D4A373]/20',
+    secondaryButtonClass: 'bg-white/10 text-white hover:bg-white/15 border border-white/10',
+    pillTagClass: 'bg-[#2E2824] text-[#D4A373] border border-white/10',
+    borderClass: 'border-white/10',
+    scrimGradient: 'from-transparent via-black/40 to-black/90',
+    linkHoverSheen: 'hover:border-[#D4A373] hover:shadow-[0_4px_20px_rgba(212,163,115,0.15)]'
+  },
+
+  // Backward-compatible aliases mapped to PupLume brand tokens
+  warm_editorial: {
+    id: 'warm_editorial',
+    name: 'PupLume Signature',
+    tagline: 'Warm cream, baked clay & emerald seal',
+    previewBg: '#FFF9F2',
+    previewAccent: '#8B5E3C',
+    isDark: false,
+    backgroundClass: 'bg-[#FFF9F2] text-[#2C211B]',
+    textPrimary: 'text-[#2C211B]',
+    textSecondary: 'text-[#5F4E44]',
+    textMuted: 'text-[#766A63]',
+    cardClass: 'bg-white border border-[#E8DDD3] shadow-[0_8px_30px_rgba(44,33,27,0.04)]',
+    cardSubtleClass: 'bg-[#FFFDF9] border border-[#E8DDD3]',
+    accentButtonClass: 'bg-[#8B5E3C] text-white hover:bg-[#5F3E29] shadow-sm shadow-[#8B5E3C]/25',
+    secondaryButtonClass: 'bg-[#FFF9F2] text-[#8B5E3C] hover:bg-[#F3E7DA] border border-[#E8DDD3]',
+    pillTagClass: 'bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3]',
+    borderClass: 'border-[#E8DDD3]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#8B5E3C] hover:shadow-[0_4px_20px_rgba(139,94,60,0.12)]'
+  },
+  luxe_obsidian: {
+    id: 'luxe_obsidian',
+    name: 'PupLume Midnight Pup',
+    tagline: 'Tactile dark canvas with warm caramel & cream',
+    previewBg: '#181513',
+    previewAccent: '#D4A373',
+    isDark: true,
+    backgroundClass: 'bg-[#181513] text-[#F9F6F0]',
+    textPrimary: 'text-[#F9F6F0]',
+    textSecondary: 'text-[#D4C8B8]',
+    textMuted: 'text-[#8C8276]',
+    cardClass: 'bg-[#221E1B] border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.4)]',
+    cardSubtleClass: 'bg-[#2A2522] border border-white/8',
+    accentButtonClass: 'bg-[#D4A373] text-[#181513] hover:bg-[#C59262] shadow-sm shadow-[#D4A373]/20',
+    secondaryButtonClass: 'bg-white/10 text-white hover:bg-white/15 border border-white/10',
+    pillTagClass: 'bg-[#2E2824] text-[#D4A373] border border-white/10',
+    borderClass: 'border-white/10',
+    scrimGradient: 'from-transparent via-black/40 to-black/90',
+    linkHoverSheen: 'hover:border-[#D4A373] hover:shadow-[0_4px_20px_rgba(212,163,115,0.15)]'
   },
   minimal_clean: {
     id: 'minimal_clean',
-    name: 'Minimalist Clean',
-    tagline: 'Nordic pearl white & crisp slate',
-    previewBg: '#F8F9FA',
-    previewAccent: '#09090B',
+    name: 'PupLume Signature',
+    tagline: 'Warm cream, baked clay & emerald seal',
+    previewBg: '#FFF9F2',
+    previewAccent: '#8B5E3C',
     isDark: false,
-    backgroundClass: 'bg-[#F8F9FA] text-[#09090B]',
-    textPrimary: 'text-[#09090B]',
-    textSecondary: 'text-[#475569]',
-    textMuted: 'text-[#94A3B8]',
-    cardClass: 'bg-white border border-slate-200/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)]',
-    cardSubtleClass: 'bg-slate-50 border border-slate-200',
-    accentButtonClass: 'bg-[#09090B] text-white hover:bg-slate-800 shadow-sm shadow-black/15',
-    secondaryButtonClass: 'bg-white text-[#09090B] hover:bg-slate-100 border border-slate-200',
-    pillTagClass: 'bg-slate-100 text-slate-800 border border-slate-200',
-    borderClass: 'border-slate-200',
-    scrimGradient: 'from-transparent via-black/30 to-black/80',
-    linkHoverSheen: 'hover:border-slate-400 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]'
+    backgroundClass: 'bg-[#FFF9F2] text-[#2C211B]',
+    textPrimary: 'text-[#2C211B]',
+    textSecondary: 'text-[#5F4E44]',
+    textMuted: 'text-[#766A63]',
+    cardClass: 'bg-white border border-[#E8DDD3] shadow-[0_8px_30px_rgba(44,33,27,0.04)]',
+    cardSubtleClass: 'bg-[#FFFDF9] border border-[#E8DDD3]',
+    accentButtonClass: 'bg-[#8B5E3C] text-white hover:bg-[#5F3E29] shadow-sm shadow-[#8B5E3C]/25',
+    secondaryButtonClass: 'bg-[#FFF9F2] text-[#8B5E3C] hover:bg-[#F3E7DA] border border-[#E8DDD3]',
+    pillTagClass: 'bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3]',
+    borderClass: 'border-[#E8DDD3]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#8B5E3C] hover:shadow-[0_4px_20px_rgba(139,94,60,0.12)]'
   },
   sunset_amber: {
     id: 'sunset_amber',
-    name: 'Sunset Amber',
-    tagline: 'Warm terracotta clay & desert caramel',
-    previewBg: '#FAF4ED',
-    previewAccent: '#C85A17',
+    name: 'PupLume Golden Peach',
+    tagline: 'Sunny golden peach, honey apricot & warm clay',
+    previewBg: '#FFF8F3',
+    previewAccent: '#E07A5F',
     isDark: false,
-    backgroundClass: 'bg-[#FAF4ED] text-[#2E180E]',
-    textPrimary: 'text-[#2E180E]',
-    textSecondary: 'text-[#6B4226]',
-    textMuted: 'text-[#9E6B47]',
-    cardClass: 'bg-white border border-[#F2DECE] shadow-[0_6px_24px_rgba(200,90,23,0.05)]',
-    cardSubtleClass: 'bg-[#FDF7F2] border border-[#F2DECE]',
-    accentButtonClass: 'bg-[#C85A17] text-white hover:bg-[#A8480F] shadow-sm shadow-[#C85A17]/20',
-    secondaryButtonClass: 'bg-[#FDF7F2] text-[#C85A17] hover:bg-[#F9ECE0] border border-[#F2DECE]',
-    pillTagClass: 'bg-[#FFF5ED] text-[#C85A17] border border-[#F5D8C2]',
-    borderClass: 'border-[#F2DECE]',
-    scrimGradient: 'from-transparent via-black/30 to-black/80',
-    linkHoverSheen: 'hover:border-[#C85A17]/50 hover:shadow-[0_4px_20px_rgba(200,90,23,0.1)]'
+    backgroundClass: 'bg-[#FFF8F3] text-[#2D1B14]',
+    textPrimary: 'text-[#2D1B14]',
+    textSecondary: 'text-[#624033]',
+    textMuted: 'text-[#916B5C]',
+    cardClass: 'bg-white border border-[#F5DDD0] shadow-[0_8px_30px_rgba(224,122,95,0.05)]',
+    cardSubtleClass: 'bg-[#FFFDFB] border border-[#F5DDD0]',
+    accentButtonClass: 'bg-[#E07A5F] text-white hover:bg-[#C9654C] shadow-sm shadow-[#E07A5F]/25',
+    secondaryButtonClass: 'bg-[#FFF8F3] text-[#E07A5F] hover:bg-[#FDECE4] border border-[#F5DDD0]',
+    pillTagClass: 'bg-[#FDECE4] text-[#E07A5F] border border-[#F5DDD0]',
+    borderClass: 'border-[#F5DDD0]',
+    scrimGradient: 'from-transparent via-black/20 to-black/70',
+    linkHoverSheen: 'hover:border-[#E07A5F] hover:shadow-[0_4px_20px_rgba(224,122,95,0.12)]'
   }
 };
+
+export const AVAILABLE_PUP_THEMES: PupPageTheme[] = [
+  'puplume_classic',
+  'puplume_sage',
+  'puplume_peach',
+  'puplume_midnight'
+];
 
 export interface FontDefinition {
   id: PupPageFont;
@@ -110,51 +204,68 @@ export interface FontDefinition {
   sample: string;
   headingClass: string;
   bodyClass: string;
-  category: 'Modern Sans' | 'Geometric' | 'Editorial Serif' | 'Neo-Grotesque' | 'Tech Mono-Sans';
+  category: 'PupLume Signature' | 'PupLume UI' | 'Modern Geometric' | 'Precision Sans';
 }
 
 export const PUP_PAGE_FONTS: Record<PupPageFont, FontDefinition> = {
-  jakarta: {
-    id: 'jakarta',
-    name: 'Plus Jakarta Sans',
-    sample: 'Agile & Contemporary Luxury',
-    headingClass: "font-['Plus_Jakarta_Sans',sans-serif] tracking-tight",
-    bodyClass: "font-['Plus_Jakarta_Sans',sans-serif]",
-    category: 'Modern Sans'
+  grandstander: {
+    id: 'grandstander',
+    name: 'Grandstander',
+    sample: 'PupLume Brand Signature Face',
+    headingClass: "font-['Grandstander',cursive] font-bold tracking-tight",
+    bodyClass: "font-['Outfit',sans-serif]",
+    category: 'PupLume Signature'
   },
   outfit: {
     id: 'outfit',
     name: 'Outfit',
-    sample: 'Geometric, Friendly & Warm',
-    headingClass: "font-['Outfit',sans-serif] tracking-tight",
+    sample: 'Warm, Friendly & Clean UI',
+    headingClass: "font-['Outfit',sans-serif] font-bold tracking-tight",
     bodyClass: "font-['Outfit',sans-serif]",
-    category: 'Geometric'
+    category: 'PupLume UI'
   },
-  fraunces: {
-    id: 'fraunces',
-    name: 'Fraunces Editorial',
-    sample: 'Heritage Canine Elegance',
-    headingClass: "font-['Fraunces',serif] font-black tracking-tight",
+  jakarta: {
+    id: 'jakarta',
+    name: 'Plus Jakarta Sans',
+    sample: 'Contemporary Geometric Sans',
+    headingClass: "font-['Plus_Jakarta_Sans',sans-serif] font-bold tracking-tight",
     bodyClass: "font-['Plus_Jakarta_Sans',sans-serif]",
-    category: 'Editorial Serif'
+    category: 'Modern Geometric'
   },
   inter: {
     id: 'inter',
     name: 'Inter',
-    sample: 'Surgical & Ultra-Clean',
-    headingClass: "font-['Inter',sans-serif] font-black tracking-tight",
+    sample: 'Minimalist Precision UI',
+    headingClass: "font-['Inter',sans-serif] font-bold tracking-tight",
     bodyClass: "font-['Inter',sans-serif]",
-    category: 'Neo-Grotesque'
+    category: 'Precision Sans'
+  },
+
+  // Backward-compatible aliases
+  fraunces: {
+    id: 'fraunces',
+    name: 'Grandstander',
+    sample: 'PupLume Brand Signature Face',
+    headingClass: "font-['Grandstander',cursive] font-bold tracking-tight",
+    bodyClass: "font-['Outfit',sans-serif]",
+    category: 'PupLume Signature'
   },
   space_grotesk: {
     id: 'space_grotesk',
-    name: 'Space Grotesk',
-    sample: 'Modern Digital Monospace Accent',
-    headingClass: "font-['Space_Grotesk',sans-serif] font-bold tracking-tight",
+    name: 'Plus Jakarta Sans',
+    sample: 'Contemporary Geometric Sans',
+    headingClass: "font-['Plus_Jakarta_Sans',sans-serif] font-bold tracking-tight",
     bodyClass: "font-['Plus_Jakarta_Sans',sans-serif]",
-    category: 'Tech Mono-Sans'
+    category: 'Modern Geometric'
   }
 };
+
+export const AVAILABLE_PUP_FONTS: PupPageFont[] = [
+  'grandstander',
+  'outfit',
+  'jakarta',
+  'inter'
+];
 
 export const DEFAULT_LINK_CATEGORIES = [
   { id: 'social', label: 'Social & Media', icon: 'Share2' },
