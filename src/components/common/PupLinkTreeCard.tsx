@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ExternalLink, 
   ChevronRight, 
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { PupCustomLink, PupPageTheme } from '../../types';
 import { PUP_PAGE_THEMES } from '../../lib/pupThemeEngine';
+import { getFaviconCandidates, extractHostname } from '../../lib/faviconExtractor';
 
 interface PupLinkTreeCardProps {
   link: PupCustomLink;
@@ -26,31 +27,60 @@ export const PupLinkTreeCard: React.FC<PupLinkTreeCardProps> = ({
 }) => {
   const theme = PUP_PAGE_THEMES[themeId] || PUP_PAGE_THEMES.puplume_classic;
 
-  const getCategoryIcon = () => {
+  // Resolve favicon candidate chain
+  const candidates = useMemo(() => {
+    return getFaviconCandidates(link.url, link.icon);
+  }, [link.url, link.icon]);
+
+  const [candidateIndex, setCandidateIndex] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasFailedAll, setHasFailedAll] = useState(false);
+
+  // Reset state if URL changes
+  useEffect(() => {
+    setCandidateIndex(0);
+    setIsLoaded(false);
+    setHasFailedAll(false);
+  }, [link.url, link.icon]);
+
+  const currentSrc = candidates[candidateIndex] || null;
+  const isDataSvg = currentSrc?.startsWith('data:image/svg+xml');
+
+  // Semantic category fallback icon (used "until you fetch" or on complete fallback)
+  const renderCategoryIcon = () => {
     switch (link.category) {
       case 'gear':
-        return <ShoppingBag className="w-4 h-4" />;
+        return <ShoppingBag className="w-5 h-5 text-amber-700 dark:text-amber-300" />;
       case 'service':
-        return <Stethoscope className="w-4 h-4" />;
+        return <Stethoscope className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />;
       case 'story':
-        return <BookOpen className="w-4 h-4" />;
+        return <BookOpen className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />;
       case 'social':
-        return <Share2 className="w-4 h-4" />;
+        return <Share2 className="w-5 h-5 text-rose-700 dark:text-rose-300" />;
       default:
-        return <Link2 className="w-4 h-4" />;
+        return <Link2 className="w-5 h-5 text-[#8B5E3C] dark:text-[#E5C378]" />;
     }
   };
 
-  const getFaviconUrl = (url: string) => {
-    try {
-      const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
-      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
-    } catch {
-      return null;
+  const handleImageError = () => {
+    if (candidateIndex + 1 < candidates.length) {
+      setCandidateIndex((prev) => prev + 1);
+    } else {
+      setHasFailedAll(true);
     }
   };
 
-  const favicon = getFaviconUrl(link.url);
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    // Reject Google's generic fallback 16x16 globe icon
+    if (img.naturalWidth <= 16 && img.naturalHeight <= 16 && currentSrc?.includes('gstatic.com')) {
+      handleImageError();
+      return;
+    }
+    setIsLoaded(true);
+  };
+
+  const hostname = useMemo(() => extractHostname(link.url), [link.url]);
 
   return (
     <a
@@ -61,7 +91,7 @@ export const PupLinkTreeCard: React.FC<PupLinkTreeCardProps> = ({
       className={`group relative w-full p-4 rounded-2xl flex items-center justify-between gap-3.5 transition-all duration-200 cursor-pointer overflow-hidden active:scale-[0.98] ${
         theme.isDark 
           ? 'bg-[#181614]/90 hover:bg-[#201D1A] border border-white/10 hover:border-[#E5C378]/50 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
-          : 'bg-white hover:bg-[#FFFDF9] border border-[#EFE8E1] hover:border-[#8B5E3C]/40 shadow-[0_2px_12px_rgba(44,33,27,0.03)] hover:shadow-[0_6px_20px_rgba(44,33,27,0.06)]'
+          : 'bg-white hover:bg-[#FFFDF9] border border-[#E8DDD3] hover:border-[#8B5E3C]/40 shadow-[0_2px_12px_rgba(44,33,27,0.03)] hover:shadow-[0_6px_20px_rgba(44,33,27,0.06)]'
       }`}
     >
       {/* Subtle Ambient Hover Glow */}
@@ -70,23 +100,31 @@ export const PupLinkTreeCard: React.FC<PupLinkTreeCardProps> = ({
       }`} />
 
       <div className="flex items-center gap-3.5 min-w-0 flex-1 relative z-10">
-        {/* Leading Icon / Favicon Frame */}
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105 shadow-2xs ${
+        {/* Leading Icon / 100% Extracted Favicon Frame */}
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105 shadow-2xs relative overflow-hidden ${
           theme.isDark 
             ? 'bg-[#26221D] border-white/10 text-[#E5C378]' 
             : 'bg-[#FAF6F0] border-[#E8DDD3] text-[#8B5E3C]'
         }`}>
-          {favicon ? (
+          {/* 1. Category Fallback / Placeholder (Always rendered "until you fetch" or if failed) */}
+          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+            (isLoaded || isDataSvg) && !hasFailedAll ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}>
+            {renderCategoryIcon()}
+          </div>
+
+          {/* 2. Extracted Favicon Image (Smoothly fades in once loaded) */}
+          {currentSrc && !hasFailedAll && (
             <img 
-              src={favicon} 
-              alt="" 
-              className="w-5 h-5 object-contain rounded-xs"
-              onError={(e) => {
-                (e.currentTarget as HTMLElement).style.display = 'none';
-              }} 
+              key={currentSrc}
+              src={currentSrc} 
+              alt={hostname || 'link favicon'}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              className={`w-6 h-6 object-contain rounded-md relative z-10 transition-all duration-300 ${
+                (isLoaded || isDataSvg) ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`} 
             />
-          ) : (
-            getCategoryIcon()
           )}
         </div>
 

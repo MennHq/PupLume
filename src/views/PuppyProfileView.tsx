@@ -64,6 +64,7 @@ import {
   AVAILABLE_PUP_FONTS,
   DEFAULT_LINK_CATEGORIES 
 } from '../lib/pupThemeEngine';
+import { getFaviconCandidates, extractHostname } from '../lib/faviconExtractor';
 import { PupLinkTreeCard } from '../components/common/PupLinkTreeCard';
 import { PupCustomLink, PupPageTheme, PupPageFont } from '../types';
 import { Button } from '../components/ui/Button';
@@ -2814,6 +2815,44 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
               placeholder="e.g. https://instagram.com/graxzo"
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-xs font-mono text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
             />
+            {linkUrlInput.trim() && (
+              <div className="mt-2 p-2.5 rounded-xl bg-white border border-[#E8DDD3] flex items-center gap-2.5 shadow-2xs">
+                {(() => {
+                  const previewCandidates = getFaviconCandidates(linkUrlInput);
+                  const previewSrc = previewCandidates[0] || null;
+                  const host = extractHostname(linkUrlInput);
+                  return (
+                    <>
+                      <div className="w-8 h-8 rounded-lg bg-[#FAF6F0] border border-[#E8DDD3] flex items-center justify-center shrink-0 overflow-hidden">
+                        {previewSrc ? (
+                          <img 
+                            src={previewSrc} 
+                            alt="" 
+                            className="w-5 h-5 object-contain"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <LinkIcon className="w-4 h-4 text-[#8B5E3C]" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[11px] font-black text-[#2C211B] truncate">
+                            100% Favicon Extracted
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-[#766A63] font-mono truncate">
+                          {host || 'Ready to fetch'}
+                        </p>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           <div>
