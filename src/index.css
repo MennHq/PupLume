@@ -172,3 +172,57 @@ span[skullet-bar].skullet-deep {
   will-change: transform !important;
   pointer-events: none !important;
 }
+
+/* ==============================================================
+ * PupLume Digital Pet Passport & Google Wallet 3D Pass Engine
+ * ============================================================== */
+
+/* Clean Boop Particle Pop */
+@keyframes boopPop {
+  0% { opacity: 0; transform: translateY(0) scale(0.6) rotate(0deg); }
+  30% { opacity: 1; transform: translateY(-16px) scale(1.2) rotate(-8deg); }
+  100% { opacity: 0; transform: translateY(-44px) scale(0.8) rotate(12deg); }
+}
+.boop-burst {
+  animation: boopPop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Subtle live pulse indicator */
+@keyframes pulseSoft {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.6; }
+}
+.pulse-dot {
+  animation: pulseSoft 2s infinite ease-in-out;
+}
+
+/* Google Wallet Card 3D Flip */
+.wallet-perspective {
+  perspective: 1000px;
+}
+.wallet-card-inner {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.wallet-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.wallet-front, .wallet-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.wallet-back {
+  transform: rotateY(180deg);
+}
+
+/* Bespoke Passport Clean Shadows */
+.shadow-clean {
+  box-shadow: 0 4px 20px -2px rgba(44, 33, 27, 0.05);
+}
+.shadow-subtle {
+  box-shadow: 0 1px 3px rgba(44, 33, 27, 0.03);
+}
+.shadow-modal {
+  box-shadow: 0 25px 50px -12px rgba(44, 33, 27, 0.25);
+}
+

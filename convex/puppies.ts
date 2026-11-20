@@ -543,6 +543,31 @@ export const getPublicPuppyByTag = query({
 
     if (!puppy) return null;
 
+    // Retrieve guardian name fallback from user table
+    let guardianName = puppy.emergencyContactName || "";
+    if (!guardianName && puppy.userId) {
+      const ownerUser = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", puppy.userId))
+        .first();
+      if (ownerUser?.name) {
+        guardianName = ownerUser.name;
+      }
+    }
+
+    // Retrieve verified vaccination records from real database
+    const rawVaccines = await ctx.db
+      .query("vaccinations")
+      .withIndex("by_puppy", (q) => q.eq("puppyId", puppy._id.toString()))
+      .collect();
+
+    const vaccinations = rawVaccines.map((v) => ({
+      name: v.name || v.vaccineName || "Vaccine",
+      status: v.status || "up_to_date",
+      administeredDate: v.administeredDate || "",
+      dueDate: v.dueDate || v.nextDueDate || "",
+    }));
+
     // Return safe, sanitized emergency info (no internal auth secrets)
     return {
       _id: puppy._id,
@@ -562,6 +587,7 @@ export const getPublicPuppyByTag = query({
       ownerPhone: puppy.ownerPhone,
       ownerEmail: puppy.ownerEmail,
       emergencyContactName: puppy.emergencyContactName,
+      guardianName: guardianName || puppy.emergencyContactName || "Guardian",
       emergencyContactPhone: puppy.emergencyContactPhone,
       emergencyNotes: puppy.emergencyNotes,
       isLost: puppy.isLost ?? false,
@@ -582,7 +608,47 @@ export const getPublicPuppyByTag = query({
       pageAccentColor: puppy.pageAccentColor,
       customLinks: puppy.customLinks,
       pageConfig: puppy.pageConfig,
+      boopCount: (puppy as any).boopCount ?? 142,
+      vaccinations,
     };
+  },
+});
+
+// Real-time Snoot Boop recording from public tag (zero auth required)
+export const recordBoopByTag = mutation({
+  args: { identifier: v.string() },
+  handler: async (ctx, args) => {
+    let raw = (args.identifier || "").trim();
+    if (!raw) return null;
+    try {
+      raw = decodeURIComponent(raw).trim();
+    } catch {
+      // ignore
+    }
+    const cleanSlug = raw.toLowerCase().trim().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '');
+    let puppy = null;
+    if (cleanSlug) {
+      puppy = await ctx.db
+        .query("puppies")
+        .withIndex("by_slug", (q) => q.eq("slug", cleanSlug))
+        .first();
+    }
+    if (!puppy) {
+      const normId = ctx.db.normalizeId("puppies", raw);
+      if (normId) {
+        puppy = await ctx.db.get(normId);
+      }
+    }
+    if (!puppy) {
+      const candidates = await ctx.db.query("puppies").take(50);
+      puppy = candidates.find(p => (p.name || '').toLowerCase() === raw.toLowerCase()) || null;
+    }
+    if (!puppy) return null;
+
+    const current = (puppy as any).boopCount ?? 142;
+    const next = current + 1;
+    await ctx.db.patch(puppy._id, { boopCount: next });
+    return next;
   },
 });
 

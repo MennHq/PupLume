@@ -131,6 +131,7 @@ export default defineSchema({
       clickCount: v.optional(v.number()),
     }))),
     pageConfig: v.optional(v.any()),
+    boopCount: v.optional(v.number()),
   }).index("by_user", ["userId"])
     .index("by_slug", ["slug"])
     .index("by_user_name", ["userId", "name"]),

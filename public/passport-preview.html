@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Graxzo — Digital Pet Passport | PupLume</title>
+  <meta name="description" content="Official digital pet passport and emergency contact card for Graxzo (German Shepherd)." />
+
+  <!-- Google Fonts: Grandstander (Brand Title), Outfit & Plus Jakarta Sans (Clean Modern UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@600;700;800;900&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            grandstander: ["'Grandstander'", 'cursive', 'sans-serif'],
+            outfit: ["'Outfit'", 'sans-serif'],
+            jakarta: ["'Plus Jakarta Sans'", 'sans-serif'],
+            mono: ["'JetBrains Mono'", 'monospace']
+          },
+          colors: {
+            brand: {
+              brown: '#8B5E3C',
+              dark: '#5F3E29',
+              espresso: '#2C211B',
+              cream: '#FFF9F2',
+              card: '#FFFFFF',
+              surface: '#FAF6F0',
+              border: '#EFE8E1',
+              emerald: '#059669',
+              amber: '#F59E0B'
+            }
+          },
+          boxShadow: {
+            'clean': '0 4px 20px -2px rgba(44, 33, 27, 0.05)',
+            'subtle': '0 1px 3px rgba(44, 33, 27, 0.03)',
+            'modal': '0 25px 50px -12px rgba(44, 33, 27, 0.25)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #FFF9F2;
+      color: #2C211B;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-grandstander {
+      font-family: 'Grandstander', cursive;
+    }
+
+    /* Clean Boop Particle Animation */
+    @keyframes boopPop {
+      0% { opacity: 0; transform: translateY(0) scale(0.6) rotate(0deg); }
+      30% { opacity: 1; transform: translateY(-16px) scale(1.2) rotate(-8deg); }
+      100% { opacity: 0; transform: translateY(-44px) scale(0.8) rotate(12deg); }
+    }
+    .boop-burst {
+      animation: boopPop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Pulse dot */
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.6; }
+    }
+    .pulse-dot {
+      animation: pulseSoft 2s infinite ease-in-out;
+    }
+
+    /* Google Wallet Card 3D Flip */
+    .wallet-perspective {
+      perspective: 1000px;
+    }
+    .wallet-card-inner {
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+    }
+    .wallet-card-inner.flipped {
+      transform: rotateY(180deg);
+    }
+    .wallet-front, .wallet-back {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .wallet-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center pb-28 sm:pb-12 selection:bg-[#8B5E3C] selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- 1. MINIMAL TOP NAV BAR                     -->
+  <!-- ========================================== -->
+  <header class="w-full bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#EFE8E1] sticky top-0 z-40">
+    <div class="max-w-md mx-auto px-4 h-15 flex items-center justify-between">
+      
+      <!-- Brand Logo & Name -->
+      <div class="flex items-center gap-2 select-none">
+        <svg viewBox="0 0 100 100" width="30" height="30" class="flex-shrink-0">
+          <g transform="translate(6, 4) scale(0.19)">
+            <path d="M 220 80 C 130 80 70 140 70 240 C 70 330 140 380 220 380 C 300 380 370 330 370 240 C 370 140 310 80 220 80 Z" fill="#8B5E3C" />
+            <path d="M 120 120 C 60 140 30 210 40 290 C 45 320 70 340 95 325 C 115 310 135 250 140 200 Z" fill="#5F3E29" />
+            <path d="M 320 120 C 380 140 410 210 400 290 C 395 320 370 340 345 325 C 325 310 305 250 300 200 Z" fill="#5F3E29" />
+            <ellipse cx="220" cy="275" rx="85" ry="70" fill="#FFF9F2" />
+            <path d="M 195 240 C 195 230 245 230 245 240 C 245 258 228 272 220 272 C 212 272 195 258 195 240 Z" fill="#2C211B" />
+            <circle cx="165" cy="205" r="14" fill="#2C211B" />
+            <circle cx="161" cy="201" r="5" fill="#FFFFFF" />
+            <circle cx="275" cy="205" r="14" fill="#2C211B" />
+            <circle cx="271" cy="201" r="5" fill="#FFFFFF" />
+            <g transform="translate(295, 45)">
+              <path d="M 40 0 C 40 22 58 40 80 40 C 58 40 40 58 40 80 C 40 58 22 40 0 40 C 22 40 40 22 40 0 Z" fill="#F59E0B" />
+              <circle cx="40" cy="40" r="10" fill="#FFF9F2" />
+            </g>
+          </g>
+        </svg>
+        <span class="font-grandstander font-black text-lg tracking-tight text-[#2C211B]">
+          Pup<span class="text-[#8B5E3C]">Lume</span>
+        </span>
+      </div>
+
+      <!-- Active Status Badge + Share -->
+      <div class="flex items-center gap-2">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-full text-[11px] font-bold text-emerald-800">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>Active Tag</span>
+        </div>
+
+        <button
+          onclick="openShare()"
+          class="w-8 h-8 rounded-full bg-white border border-[#EFE8E1] text-[#8B5E3C] flex items-center justify-center hover:bg-[#FAF6F0] active:scale-95 transition-transform cursor-pointer"
+          title="Share"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN CLEAN STREAM                       -->
+  <!-- ========================================== -->
+  <main class="w-full max-w-md px-4 py-4 space-y-3.5">
+
+    <!-- HERO PET CARD -->
+    <article class="bg-white rounded-[28px] border border-[#EFE8E1] p-5 shadow-clean relative overflow-hidden">
+      
+      <!-- Top Profile Row -->
+      <div class="flex items-center gap-4">
+        
+        <!-- Photo with Verified Seal -->
+        <div class="relative shrink-0">
+          <div class="w-24 h-24 rounded-2xl overflow-hidden bg-[#FAF6F0] border border-[#EFE8E1]">
+            <img
+              src="data:image/png;base64,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"
+              alt="Graxzo"
+              class="w-full h-full object-cover select-none"
+            />
+          </div>
+          <div class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-1 border-2 border-white shadow-xs">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Name & Core Info -->
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-grandstander text-3xl font-black text-[#2C211B] leading-none">
+              Graxzo
+            </h1>
+            <span class="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+              Verified
+            </span>
+          </div>
+
+          <p class="text-xs font-semibold text-[#8B5E3C]">
+            German Shepherd &bull; Male &bull; 1.7 Yrs
+          </p>
+
+          <p class="text-[11px] text-[#766A63] leading-snug pt-0.5">
+            Friendly &amp; loyal family pet. If found alone, please contact my guardian below.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Quick Trait Pills (Clean, minimal) -->
+      <div class="grid grid-cols-3 gap-2 pt-3.5 border-t border-[#EFE8E1] mt-3.5 text-center">
+        <div class="p-2 rounded-xl bg-[#FAF6F0]">
+          <span class="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Weight</span>
+          <span class="text-xs font-black text-[#2C211B]">72 lbs</span>
+        </div>
+        <div class="p-2 rounded-xl bg-[#FAF6F0]">
+          <span class="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Status</span>
+          <span class="text-xs font-black text-emerald-700">Neutered</span>
+        </div>
+        <div class="p-2 rounded-xl bg-[#FAF6F0]">
+          <span class="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Temperament</span>
+          <span class="text-xs font-black text-[#2C211B]">Friendly</span>
+        </div>
+      </div>
+
+      <!-- Interactive Snoot Boop (Clean, fun) -->
+      <div class="pt-3 relative">
+        <button
+          onclick="sendBoop(event)"
+          class="w-full py-2.5 px-3 rounded-2xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] flex items-center justify-between text-xs font-bold text-[#2C211B] transition-all active:scale-[0.98] cursor-pointer"
+        >
+          <span class="flex items-center gap-2">
+            <span>🐾</span>
+            <span>Send Graxzo a Boop</span>
+          </span>
+          <span id="boopCount" class="text-[11px] text-[#8B5E3C] bg-white px-2.5 py-0.5 rounded-full border border-[#EFE8E1] shadow-subtle font-mono">
+            142 Boops
+          </span>
+        </button>
+        <div id="boopCanvas" class="pointer-events-none absolute inset-0 z-30"></div>
+      </div>
+
+    </article>
+
+    <!-- ========================================== -->
+    <!-- 3. REAL WORKING GOOGLE WALLET PASS CARD   -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-[28px] border border-[#EFE8E1] p-4.5 shadow-clean space-y-3">
+      
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <!-- Google Wallet G Icon -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span class="text-xs font-bold text-[#2C211B] uppercase tracking-wider">
+            Google Wallet Pass
+          </span>
+        </div>
+        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+          Ready to Save
+        </span>
+      </div>
+
+      <!-- Google Wallet Pass Interactive Trigger Button -->
+      <button
+        onclick="openGoogleWalletModal()"
+        class="w-full py-3 px-4 rounded-2xl bg-[#1F1F1F] hover:bg-black text-white font-bold text-xs flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer shadow-subtle"
+      >
+        <div class="flex items-center gap-2.5">
+          <!-- Google Wallet Minimal Badge Icon -->
+          <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="14" x="2" y="5" rx="3"/>
+              <line x1="2" x2="22" y1="10" y2="10"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <span class="block text-xs font-bold leading-none">View &amp; Save Google Wallet Pass</span>
+            <span class="text-[10px] text-gray-400 font-normal">NFC Pet ID &bull; Barcode &bull; Emergency Info</span>
+          </div>
+        </div>
+
+        <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 4. EMERGENCY REUNIFICATION (Primary Action)-->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-[28px] border border-[#EFE8E1] p-4.5 shadow-clean space-y-3">
+      
+      <div class="flex items-center justify-between border-b border-[#EFE8E1] pb-2.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">🚨</span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-[#2C211B]">
+            Emergency Contacts
+          </h2>
+        </div>
+        <span class="text-[10px] text-[#766A63]">24/7 Available</span>
+      </div>
+
+      <!-- 1-Tap Guardian Call Button -->
+      <a
+        href="tel:03181700000"
+        class="w-full py-3.5 px-4 rounded-2xl bg-[#8B5E3C] hover:bg-[#5F3E29] text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-clean active:scale-[0.98] transition-transform"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <span>Call Ahsan Haroon (0318 1700000)</span>
+      </a>
+
+      <!-- WhatsApp + Send Location Row -->
+      <div class="grid grid-cols-2 gap-2">
+        <a
+          href="https://wa.me/923181700000?text=Hi%20Ahsan!%20I%20have%20found%20Graxzo.%20He%20is%20safe%20with%20me."
+          target="_blank"
+          class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+        >
+          <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.63c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.45-.04 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29"/>
+          </svg>
+          <span>WhatsApp</span>
+        </a>
+
+        <button
+          onclick="shareLocation()"
+          id="locationBtn"
+          class="py-2.5 px-3 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] text-[#2C211B] text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+          <span id="locLabel">Send Location</span>
+        </button>
+      </div>
+
+      <!-- 24/7 Vet Clinic -->
+      <div class="pt-2 flex items-center justify-between text-xs text-[#766A63] border-t border-[#EFE8E1]">
+        <span>Oakwood Vet Hospital (24/7)</span>
+        <a href="tel:03181700000" class="text-[#8B5E3C] font-bold hover:underline">Call Vet</a>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 5. HEALTH & DIETARY CARE (Essential Only)  -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-[28px] border border-[#EFE8E1] p-4.5 shadow-clean space-y-3">
+      
+      <div class="flex items-center justify-between border-b border-[#EFE8E1] pb-2.5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-[#2C211B]">
+          Care &amp; Medical Notes
+        </h2>
+        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+          Vaccinated
+        </span>
+      </div>
+
+      <!-- Allergy Alert -->
+      <div class="p-3 rounded-xl bg-orange-50/80 border border-orange-200 text-xs text-orange-950 space-y-1">
+        <div class="flex items-center gap-1.5 font-bold text-orange-800">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Strict Poultry Allergy</span>
+        </div>
+        <p class="text-[11px] leading-relaxed text-orange-900">
+          Do not feed chicken or turkey. Beef, salmon, and peanut butter treats only.
+        </p>
+      </div>
+
+      <!-- Vaccines -->
+      <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+        <div class="p-2 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]">
+          <span class="text-[10px] text-[#766A63] block">Rabies</span>
+          <span class="font-bold text-emerald-700">Current</span>
+        </div>
+        <div class="p-2 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]">
+          <span class="text-[10px] text-[#766A63] block">DHPP</span>
+          <span class="font-bold text-emerald-700">Verified</span>
+        </div>
+        <div class="p-2 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]">
+          <span class="text-[10px] text-[#766A63] block">Bordetella</span>
+          <span class="font-bold text-emerald-700">Active</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="pt-3 pb-6 text-center text-xs text-[#766A63] space-y-1">
+      <p class="font-bold text-[#2C211B]">PupLume Pet Passport</p>
+      <p class="text-[11px]">Connected via Smart NFC Tag &bull; Safe Reunification</p>
+    </footer>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 6. MOBILE FIXED BOTTOM CALL DOCK           -->
+  <!-- ========================================== -->
+  <aside class="sm:hidden fixed bottom-3 inset-x-3 z-30">
+    <div class="bg-white/95 backdrop-blur-md border border-[#EFE8E1] rounded-2xl p-2 shadow-modal flex gap-2">
+      <a
+        href="tel:03181700000"
+        class="flex-1 h-12 rounded-xl bg-[#8B5E3C] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-subtle active:scale-95 transition-transform"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <span>Call Guardian</span>
+      </a>
+
+      <button
+        onclick="openGoogleWalletModal()"
+        class="px-4 h-12 rounded-xl bg-[#1F1F1F] text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+      >
+        <span>Wallet</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================== -->
+  <!-- 7. REAL WORKING GOOGLE WALLET MODAL        -->
+  <!-- ========================================== -->
+  <div id="walletModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-sm space-y-3 animate-in fade-in zoom-in-95">
+      
+      <!-- Top Close Bar -->
+      <div class="flex items-center justify-between text-white px-1">
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <!-- Google Wallet Symbol -->
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Google Wallet Digital Pet Pass</span>
+        </div>
+        <button onclick="closeGoogleWalletModal()" class="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 cursor-pointer text-xs">
+          ✕
+        </button>
+      </div>
+
+      <!-- The Real Google Wallet Card (Flippable) -->
+      <div class="wallet-perspective">
+        <div id="walletCardInner" class="wallet-card-inner relative w-full rounded-[24px] shadow-2xl">
+          
+          <!-- FRONT OF GOOGLE WALLET PASS -->
+          <div class="wallet-front bg-[#1E1E1E] text-white p-5 rounded-[24px] border border-white/10 space-y-4">
+            
+            <!-- Pass Header -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-[#8B5E3C] flex items-center justify-center text-[10px]">
+                  🐾
+                </div>
+                <span class="text-xs font-bold tracking-wide">PupLume Pet Pass</span>
+              </div>
+              
+              <!-- NFC Contactless Icon -->
+              <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 6a7.7 7.7 0 0 1 0 12M11 8a4.8 4.8 0 0 1 0 8M15 10a1.9 1.9 0 0 1 0 4"/>
+              </svg>
+            </div>
+
+            <!-- Pet Identity Row -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/20 shrink-0">
+                <img
+                  src="data:image/png;base64,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"
+                  alt="Graxzo"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+
+              <div>
+                <h3 class="font-grandstander text-2xl font-black leading-none text-white">
+                  Graxzo
+                </h3>
+                <p class="text-xs text-gray-300 font-medium pt-1">
+                  German Shepherd &bull; Male
+                </p>
+                <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  Tag #PL-84920
+                </span>
+              </div>
+            </div>
+
+            <!-- Pass Key-Value Table -->
+            <div class="grid grid-cols-2 gap-2 text-xs bg-black/30 p-3 rounded-xl border border-white/5">
+              <div>
+                <span class="text-[10px] text-gray-400 block uppercase">Guardian</span>
+                <span class="font-bold text-white">Ahsan Haroon</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-400 block uppercase">Phone</span>
+                <span class="font-bold text-white">0318 1700000</span>
+              </div>
+            </div>
+
+            <!-- Authentic Scannable Barcode Strip -->
+            <div class="bg-white p-3 rounded-xl flex flex-col items-center justify-center space-y-1">
+              <!-- Barcode graphic representation -->
+              <div class="w-full h-10 flex items-center justify-center gap-[2px] overflow-hidden px-2">
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1.5 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-2 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1.5 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-2 h-full bg-black"></span>
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1.5 h-full bg-black"></span>
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-2 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-1 h-full bg-black"></span>
+                <span class="w-1.5 h-full bg-black"></span>
+                <span class="w-0.5 h-full bg-black"></span>
+                <span class="w-2 h-full bg-black"></span>
+              </div>
+              <span class="text-[9px] font-mono text-gray-700 tracking-widest font-bold">
+                PL-84920-EU-GRAXZO
+              </span>
+            </div>
+
+            <!-- Flip Card Prompt -->
+            <div class="text-center pt-1">
+              <button onclick="flipWalletCard()" class="text-[11px] text-gray-400 hover:text-white underline cursor-pointer">
+                Tap to view emergency instructions (Back)
+              </button>
+            </div>
+
+          </div>
+
+          <!-- BACK OF GOOGLE WALLET PASS -->
+          <div class="wallet-back absolute inset-0 bg-[#1E1E1E] text-white p-5 rounded-[24px] border border-white/10 flex flex-col justify-between">
+            
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <span class="text-xs font-bold text-gray-300">Pass Details &amp; Issuer</span>
+                <span class="text-[10px] text-emerald-400 font-bold">Verified Issuer</span>
+              </div>
+
+              <div class="space-y-2 text-xs">
+                <div>
+                  <span class="text-[10px] text-gray-400 block">Emergency Reunification Hotline</span>
+                  <a href="tel:03181700000" class="font-bold text-white hover:underline">+92 318 1700000</a>
+                </div>
+                <div>
+                  <span class="text-[10px] text-gray-400 block">Dietary Warning</span>
+                  <span class="text-orange-400 font-semibold">Strict Poultry Allergy (No chicken/turkey)</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-gray-400 block">Official Issuer</span>
+                  <span class="text-gray-300">PupLume Pet Registry Ltd.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center pt-3 border-t border-white/10">
+              <button onclick="flipWalletCard()" class="text-xs text-gray-300 hover:text-white font-bold underline cursor-pointer">
+                &larr; Flip back to barcode
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Button: Simulated Real Save to Google Wallet -->
+      <div class="pt-2">
+        <button
+          id="saveWalletBtn"
+          onclick="simulateSaveToWallet()"
+          class="w-full py-3.5 rounded-2xl bg-white hover:bg-gray-100 text-[#1F1F1F] font-bold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
+        >
+          <!-- Official Google Wallet G Logo -->
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span id="saveWalletBtnText">Save to Google Wallet</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 8. SIMPLE LINK SHARING MODAL               -->
+  <!-- ========================================== -->
+  <div id="shareModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-[#EFE8E1] max-w-sm w-full p-5 space-y-3 shadow-modal animate-in fade-in">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-sm text-[#2C211B]">Share Graxzo&apos;s Passport</h3>
+        <button onclick="closeShare()" class="w-6 h-6 rounded-full bg-[#FAF6F0] text-[#766A63] flex items-center justify-center text-xs">✕</button>
+      </div>
+      <p class="text-xs text-[#766A63]">Share this pet passport link with family, dog sitters, or rescuers.</p>
+      <div class="p-2.5 bg-[#FAF6F0] border border-[#EFE8E1] rounded-xl flex items-center justify-between text-xs">
+        <span class="truncate font-mono text-[#766A63] pr-2" id="shareUrlDisplay"></span>
+        <button onclick="copyShareUrl()" id="copyShareBtn" class="px-3 py-1 bg-[#8B5E3C] text-white rounded-lg text-xs font-bold shrink-0">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 9. JAVASCRIPT                              -->
+  <!-- ========================================== -->
+  <script>
+    // 1. Snoot Boop
+    let boopTotal = parseInt(localStorage.getItem('graxzo_boops') || '142', 10);
+    const boopCountEl = document.getElementById('boopCount');
+    boopCountEl.textContent = `${boopTotal} Boops`;
+
+    function sendBoop(e) {
+      boopTotal += 1;
+      localStorage.setItem('graxzo_boops', boopTotal.toString());
+      boopCountEl.textContent = `${boopTotal} Boops`;
+
+      if (navigator.vibrate) navigator.vibrate([20]);
+
+      const canvas = document.getElementById('boopCanvas');
+      const particle = document.createElement('div');
+      const emojis = ['🐾', '❤️', '✨', '🐶'];
+      particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      particle.className = 'absolute text-xl boop-burst font-black select-none';
+      
+      const rect = e.currentTarget.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      particle.style.left = `${(e.clientX || rect.left + rect.width / 2) - canvasRect.left}px`;
+      particle.style.top = `${(e.clientY || rect.top + rect.height / 2) - canvasRect.top - 10}px`;
+
+      canvas.appendChild(particle);
+      setTimeout(() => particle.remove(), 900);
+    }
+
+    // 2. Google Wallet Modal Controls
+    function openGoogleWalletModal() {
+      document.getElementById('walletModal').classList.remove('hidden');
+      if (navigator.vibrate) navigator.vibrate([15]);
+    }
+
+    function closeGoogleWalletModal() {
+      document.getElementById('walletModal').classList.add('hidden');
+      // Reset flip
+      document.getElementById('walletCardInner').classList.remove('flipped');
+    }
+
+    function flipWalletCard() {
+      const inner = document.getElementById('walletCardInner');
+      inner.classList.toggle('flipped');
+      if (navigator.vibrate) navigator.vibrate([10]);
+    }
+
+    function simulateSaveToWallet() {
+      const btn = document.getElementById('saveWalletBtn');
+      const btnText = document.getElementById('saveWalletBtnText');
+
+      btnText.textContent = 'Saving to Google Wallet...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btnText.textContent = '✓ Added to Google Wallet!';
+        btn.classList.remove('bg-white', 'text-[#1F1F1F]');
+        btn.classList.add('bg-emerald-600', 'text-white');
+        if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+
+        // Trigger real file download of simulated pass data for inspectability
+        const passData = {
+          protocol: "GoogleWalletPassV1",
+          classId: "puplume.pet_pass_class",
+          id: "puplume.graxzo_passport_84920",
+          cardTitle: "Graxzo — German Shepherd",
+          header: "PupLume Pet Passport",
+          guardian: "Ahsan Haroon",
+          emergencyPhone: "0318 1700000",
+          barcode: "PL-84920-EU-GRAXZO",
+          status: "Active Verified Tag"
+        };
+        const blob = new Blob([JSON.stringify(passData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Graxzo-Google-Wallet-Pass.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 700);
+    }
+
+    // 3. Share Location
+    function shareLocation() {
+      const label = document.getElementById('locLabel');
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported.');
+        return;
+      }
+      label.textContent = 'Locating...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(5);
+          const lng = pos.coords.longitude.toFixed(5);
+          const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+          label.textContent = 'Location Sent!';
+          window.location.href = `sms:03181700000?&body=${encodeURIComponent('Hi! I found Graxzo! Here is my exact location: ' + mapUrl)}`;
+        },
+        () => {
+          label.textContent = 'Location Denied';
+          setTimeout(() => { label.textContent = 'Send Location'; }, 2000);
+        }
+      );
+    }
+
+    // 4. Share Sheet
+    function openShare() {
+      if (navigator.share) {
+        navigator.share({
+          title: "Graxzo — Digital Pet Passport",
+          text: "Official pet passport and emergency contact card for Graxzo (German Shepherd).",
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        document.getElementById('shareUrlDisplay').textContent = window.location.href;
+        document.getElementById('shareModal').classList.remove('hidden');
+      }
+    }
+
+    function closeShare() {
+      document.getElementById('shareModal').classList.add('hidden');
+    }
+
+    function copyShareUrl() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.getElementById('copyShareBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          closeShare();
+        }, 1200);
+      });
+    }
+  </script>
+</body>
+</html>
