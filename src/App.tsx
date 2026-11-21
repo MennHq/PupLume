@@ -263,6 +263,12 @@ function SkeletonPlayground() {
 export default function App() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { signOut } = useClerk();
+
+  // Synchronously isolate storage to current user before reading initial puppy state
+  if (user?.id && storage.getCurrentUserId() !== user.id) {
+    storage.setAuthenticatedUser(user.id);
+  }
+
   const [puppy, setPuppy] = useState<PuppyProfile | null>(() => storage.getPuppy());
   const [currentView, setCurrentView] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -811,6 +817,11 @@ export default function App() {
   } : (isDevPreview ? fallbackPreviewPuppy : null));
 
   // 4. Show onboarding only if user explicitly navigated to it, OR if user has no puppy profile yet
+  // If user is authenticated and cloud data is still loading, NEVER flash onboarding for a fraction of a second!
+  if (effectiveSignedIn && !activePuppy && cloudData === undefined && currentView !== 'onboarding') {
+    return <PupLumeSkeleton variant={getSkeletonVariantForPath(currentView)} label={`Loading ${currentView}...`} />;
+  }
+
   if (!activePuppy || currentView === 'onboarding') {
     return (
       <div className="min-h-screen flex flex-col">

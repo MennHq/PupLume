@@ -27,16 +27,7 @@ if (typeof window !== 'undefined') {
     return originalAddEventListener.call(window, type, listener, options);
   };
 
-  // Seamless update when service worker installs a new build
-  if ('serviceWorker' in navigator) {
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
-  }
+
 }
 
 // Defer PostHog initialization so it does not block the main thread during initial render

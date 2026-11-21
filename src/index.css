@@ -105,6 +105,15 @@ button, .btn, [role="button"] {
 }
 
 /* Ensure ALL Skullet measured bars and boxes shimmer continuously */
+@keyframes puplume-shimmer-sweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
 [skullet-bar],
 .puplume-shimmer {
   overflow: hidden !important;
@@ -133,7 +142,7 @@ span[skullet-bar] {
     rgba(255, 255, 255, 0.55) 75%,
     transparent 100%
   ) !important;
-  animation: puplume-shimmer-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  animation: puplume-shimmer-sweep 1.625s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
   will-change: transform !important;
   pointer-events: none !important;
 }
@@ -168,7 +177,7 @@ span[skullet-bar].skullet-deep {
     rgba(255, 255, 255, 0.6) 75%,
     transparent 100%
   ) !important;
-  animation: puplume-shimmer-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  animation: puplume-shimmer-sweep 1.625s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
   will-change: transform !important;
   pointer-events: none !important;
 }

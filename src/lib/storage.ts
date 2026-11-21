@@ -173,6 +173,14 @@ class StorageManager {
   }
 
   constructor() {
+    if (typeof window !== 'undefined') {
+      try {
+        const lastUserId = localStorage.getItem('puplume_last_user_id');
+        if (lastUserId) {
+          this.currentUserId = lastUserId;
+        }
+      } catch (_) {}
+    }
     this.loadCache();
   }
 
@@ -197,6 +205,15 @@ class StorageManager {
     if (this.currentUserId === userId) return;
 
     this.currentUserId = userId;
+    if (typeof window !== 'undefined') {
+      try {
+        if (userId) {
+          localStorage.setItem('puplume_last_user_id', userId);
+        } else {
+          localStorage.removeItem('puplume_last_user_id');
+        }
+      } catch (_) {}
+    }
     this.hasHydratedFromConvex = false;
 
     // Load user cache or clear state
@@ -1761,6 +1778,11 @@ class StorageManager {
       }
     }
     localKeys.forEach(k => localStorage.removeItem(k));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('puplume_last_user_id');
+      } catch (_) {}
+    }
 
     this.currentUserId = null;
     this.hasHydratedFromConvex = false;
