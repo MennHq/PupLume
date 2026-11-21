@@ -222,12 +222,8 @@ const PublicPupSafetyContent: React.FC = () => {
 
 export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> = ({ puppy: activePup, identifier }) => {
   // Modal states
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isWalletFlipped, setIsWalletFlipped] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copiedShareLink, setCopiedShareLink] = useState(false);
-  const [isSavingWallet, setIsSavingWallet] = useState(false);
-  const [walletSavedSuccess, setWalletSavedSuccess] = useState(false);
 
   // Snoot Boop Real-Time State
   const recordBoopMutation = useMutation(api.puppies.recordBoopByTag);
@@ -282,50 +278,6 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
     if (targetTag) {
       recordBoopMutation({ identifier: targetTag }).catch(() => {});
     }
-  };
-
-  // Google Wallet Pass Handlers
-  const openWalletModal = () => {
-    setIsWalletModalOpen(true);
-    if (navigator.vibrate) navigator.vibrate([15]);
-  };
-
-  const closeWalletModal = () => {
-    setIsWalletModalOpen(false);
-    setIsWalletFlipped(false);
-  };
-
-  const toggleWalletFlip = () => {
-    setIsWalletFlipped(prev => !prev);
-    if (navigator.vibrate) navigator.vibrate([10]);
-  };
-
-  const handleSaveToGoogleWallet = () => {
-    setIsSavingWallet(true);
-
-    const width = 600;
-    const height = 750;
-    const left = typeof window !== 'undefined' ? Math.max(0, (window.innerWidth - width) / 2 + window.screenX) : 100;
-    const top = typeof window !== 'undefined' ? Math.max(0, (window.innerHeight - height) / 2 + window.screenY) : 100;
-
-    const targetUrl = `https://wallet.google.com/`;
-
-    // Directly open Google Wallet in popup window (zero file download)
-    const popup = window.open(
-      targetUrl,
-      'GoogleWalletPopup',
-      `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no,location=yes,resizable=yes,scrollbars=yes`
-    );
-
-    if (popup) {
-      popup.focus();
-    }
-
-    setTimeout(() => {
-      setIsSavingWallet(false);
-      setWalletSavedSuccess(true);
-      if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
-    }, 600);
   };
 
   // GPS Location Sharing
@@ -390,8 +342,6 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
   const guardianDisplayName = activePup.guardianName || activePup.emergencyContactName || 'Guardian';
   const ownerPhoneNumber = activePup.ownerPhone || activePup.emergencyContactPhone || '';
   const cleanWhatsAppNumber = (activePup.ownerWhatsApp || ownerPhoneNumber).replace(/[^0-9]/g, '');
-  const tagCode = `PL-${(activePup._id || activePup.slug || '84920').toString().slice(-6).toUpperCase()}`;
-  const barcodeValue = `${tagCode}-EU-${(activePup.name || 'PUP').toUpperCase()}`;
   const photoUrl = activePup.photoUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400";
   const isEmergency = Boolean(activePup.isLost);
 
@@ -587,54 +537,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
         </article>
 
         {/* ========================================== */}
-        {/* 3. REAL WORKING GOOGLE WALLET PASS CARD   */}
-        {/* ========================================== */}
-        <section className="bg-white rounded-[28px] border border-[#EFE8E1] p-4.5 shadow-clean space-y-3">
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {/* Google Wallet G Icon */}
-              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              <span className="text-xs font-bold text-[#2C211B] uppercase tracking-wider">
-                Google Wallet Pass
-              </span>
-            </div>
-            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
-              Ready to Save
-            </span>
-          </div>
-
-          {/* Google Wallet Pass Interactive Trigger Button */}
-          <button
-            type="button"
-            onClick={openWalletModal}
-            className="w-full py-3 px-4 rounded-2xl bg-[#1F1F1F] hover:bg-black text-white font-bold text-xs flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer shadow-subtle"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="20" height="14" x="2" y="5" rx="3"/>
-                  <line x1="2" x2="22" y1="10" y2="10"/>
-                </svg>
-              </div>
-              <div className="text-left">
-                <span className="block text-xs font-bold leading-none">View &amp; Save Google Wallet Pass</span>
-                <span className="text-[10px] text-gray-400 font-normal">NFC Pet ID &bull; Barcode &bull; Emergency Info</span>
-              </div>
-            </div>
-
-            <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
-          </button>
-
-        </section>
-
-        {/* ========================================== */}
-        {/* 4. EMERGENCY REUNIFICATION (Primary Action)*/}
+        {/* 3. EMERGENCY REUNIFICATION (Primary Action)*/}
         {/* ========================================== */}
         <section className="bg-white rounded-[28px] border border-[#EFE8E1] p-4.5 shadow-clean space-y-3">
           
@@ -847,248 +750,44 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
       </main>
 
       {/* ========================================== */}
-      {/* 7. MOBILE FIXED BOTTOM CALL DOCK           */}
+      {/* 6. MOBILE FIXED BOTTOM CALL DOCK           */}
       {/* ========================================== */}
       <aside className="sm:hidden fixed bottom-3 inset-x-3 z-30">
         <div className="bg-white/95 backdrop-blur-md border border-[#EFE8E1] rounded-2xl p-2 shadow-modal flex gap-2">
           {ownerPhoneNumber ? (
-            <a
-              href={`tel:${ownerPhoneNumber}`}
-              className="flex-1 h-12 rounded-xl bg-[#8B5E3C] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-subtle active:scale-95 transition-transform"
-            >
-              <Phone className="w-4 h-4 shrink-0" />
-              <span>Call Guardian</span>
-            </a>
+            <>
+              <a
+                href={`tel:${ownerPhoneNumber}`}
+                className="flex-1 h-12 rounded-xl bg-[#8B5E3C] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-subtle active:scale-95 transition-transform"
+              >
+                <Phone className="w-4 h-4 shrink-0" />
+                <span>Call Guardian</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleOpenShare}
+                className="px-4 h-12 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1] text-[#8B5E3C] font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+                title="Share Pet Passport"
+              >
+                <Share2 className="w-4 h-4 shrink-0" />
+                <span>Share</span>
+              </button>
+            </>
           ) : (
             <button
+              type="button"
               onClick={handleOpenShare}
-              className="flex-1 h-12 rounded-xl bg-[#8B5E3C] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-subtle active:scale-95 transition-transform"
+              className="w-full h-12 rounded-xl bg-[#8B5E3C] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-subtle active:scale-95 transition-transform cursor-pointer"
             >
               <Share2 className="w-4 h-4 shrink-0" />
               <span>Share Passport</span>
             </button>
           )}
-
-          <button
-            onClick={openWalletModal}
-            className="px-4 h-12 rounded-xl bg-[#1F1F1F] text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
-          >
-            <span>Wallet</span>
-          </button>
         </div>
       </aside>
 
       {/* ========================================== */}
-      {/* 8. REAL WORKING GOOGLE WALLET MODAL        */}
-      {/* ========================================== */}
-      {isWalletModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm space-y-3 animate-in fade-in zoom-in-95">
-            
-            {/* Top Close Bar */}
-            <div className="flex items-center justify-between text-white px-1">
-              <div className="flex items-center gap-2 text-xs font-bold">
-                {/* Google Wallet Symbol */}
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span>Google Wallet Digital Pet Pass</span>
-              </div>
-              <button 
-                onClick={closeWalletModal}
-                className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 cursor-pointer text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* The Real Google Wallet Card (Flippable) */}
-            <div className="wallet-perspective">
-              <div className={`wallet-card-inner relative w-full rounded-[24px] shadow-2xl ${isWalletFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT OF GOOGLE WALLET PASS */}
-                <div className="wallet-front bg-[#1E1E1E] text-white p-5 rounded-[24px] border border-white/10 space-y-4">
-                  
-                  {/* Pass Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-[#8B5E3C] flex items-center justify-center text-[10px]">
-                        🐾
-                      </div>
-                      <span className="text-xs font-bold tracking-wide">PupLume Pet Pass</span>
-                    </div>
-                    
-                    {/* NFC Contactless Icon */}
-                    <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M7 6a7.7 7.7 0 0 1 0 12M11 8a4.8 4.8 0 0 1 0 8M15 10a1.9 1.9 0 0 1 0 4"/>
-                    </svg>
-                  </div>
-
-                  {/* Pet Identity Row */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/20 shrink-0">
-                      <img
-                        src={photoUrl}
-                        alt={activePup.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-2xl font-black leading-none text-white truncate" style={{ fontFamily: "'Grandstander', cursive" }}>
-                        {activePup.name}
-                      </h3>
-                      <p className="text-xs text-gray-300 font-medium pt-1 truncate">
-                        {activePup.breed || "Canine"} &bull; {activePup.sex ? (activePup.sex.charAt(0).toUpperCase() + activePup.sex.slice(1)) : "Pet"}
-                      </p>
-                      <span className="inline-block mt-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                        Tag #{tagCode}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Pass Key-Value Table */}
-                  <div className="grid grid-cols-2 gap-2 text-xs bg-black/30 p-3 rounded-xl border border-white/5">
-                    <div className="truncate">
-                      <span className="text-[10px] text-gray-400 block uppercase">Guardian</span>
-                      <span className="font-bold text-white truncate block">{guardianDisplayName}</span>
-                    </div>
-                    <div className="truncate">
-                      <span className="text-[10px] text-gray-400 block uppercase">Phone</span>
-                      <span className="font-bold text-white truncate block">{ownerPhoneNumber || "On File"}</span>
-                    </div>
-                  </div>
-
-                  {/* Authentic Scannable Barcode Strip */}
-                  <div className="bg-white p-3 rounded-xl flex flex-col items-center justify-center space-y-1">
-                    <div className="w-full h-10 flex items-center justify-center gap-[2px] overflow-hidden px-2">
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1.5 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-2 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1.5 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-2 h-full bg-black" />
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1.5 h-full bg-black" />
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-2 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-1 h-full bg-black" />
-                      <span className="w-1.5 h-full bg-black" />
-                      <span className="w-0.5 h-full bg-black" />
-                      <span className="w-2 h-full bg-black" />
-                    </div>
-                    <span className="text-[9px] font-mono text-gray-700 tracking-widest font-bold truncate max-w-full">
-                      {barcodeValue}
-                    </span>
-                  </div>
-
-                  {/* Flip Card Prompt */}
-                  <div className="text-center pt-1">
-                    <button 
-                      type="button"
-                      onClick={toggleWalletFlip} 
-                      className="text-[11px] text-gray-400 hover:text-white underline cursor-pointer"
-                    >
-                      Tap to view emergency instructions (Back)
-                    </button>
-                  </div>
-
-                </div>
-
-                {/* BACK OF GOOGLE WALLET PASS */}
-                <div className="wallet-back absolute inset-0 bg-[#1E1E1E] text-white p-5 rounded-[24px] border border-white/10 flex flex-col justify-between">
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="text-xs font-bold text-gray-300">Pass Details &amp; Issuer</span>
-                      <span className="text-[10px] text-emerald-400 font-bold">Verified Issuer</span>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                      <div>
-                        <span className="text-[10px] text-gray-400 block">Emergency Reunification Hotline</span>
-                        {ownerPhoneNumber ? (
-                          <a href={`tel:${ownerPhoneNumber}`} className="font-bold text-white hover:underline">
-                            {ownerPhoneNumber}
-                          </a>
-                        ) : (
-                          <span className="font-bold text-white">Registered in Pet Database</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-gray-400 block">Dietary &amp; Care Warning</span>
-                        <span className="text-orange-400 font-semibold">
-                          {activePup.allergies || activePup.dietaryRestrictions || "No known food allergies. Check with guardian."}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-gray-400 block">Official Issuer</span>
-                        <span className="text-gray-300">PupLume Pet Registry Ltd.</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-center pt-3 border-t border-white/10">
-                    <button 
-                      type="button"
-                      onClick={toggleWalletFlip} 
-                      className="text-xs text-gray-300 hover:text-white font-bold underline cursor-pointer"
-                    >
-                      &larr; Flip back to barcode
-                    </button>
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-
-            {/* Action Button: Directly Open Google Wallet Popup */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={handleSaveToGoogleWallet}
-                disabled={isSavingWallet}
-                className={`w-full py-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer ${
-                  walletSavedSuccess 
-                    ? 'bg-emerald-600 text-white' 
-                    : 'bg-white hover:bg-gray-100 text-[#1F1F1F]'
-                }`}
-              >
-                {/* Official Google Wallet G Logo */}
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span>
-                  {isSavingWallet 
-                    ? 'Saving to Google Wallet...' 
-                    : walletSavedSuccess 
-                      ? '✓ Added to Google Wallet!' 
-                      : 'Save to Google Wallet'}
-                </span>
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* ========================================== */}
-      {/* 9. SIMPLE LINK SHARING MODAL               */}
+      {/* 7. SIMPLE LINK SHARING MODAL               */}
       {/* ========================================== */}
       {isShareModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
