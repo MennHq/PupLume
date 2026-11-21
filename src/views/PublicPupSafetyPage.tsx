@@ -257,8 +257,8 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
     }
 
     // Trigger floating burst particle
-    if (boopCanvasRef.current) {
-      const canvas = boopCanvasRef.current;
+    const canvas = (e.currentTarget.parentElement?.querySelector('.boop-canvas') || boopCanvasRef.current) as HTMLElement | null;
+    if (canvas) {
       const particle = document.createElement('div');
       const emojis = ['🐾', '❤️', '✨', '🐶', '🦴'];
       particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
@@ -366,10 +366,10 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
     <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center pb-28 sm:pb-12 selection:bg-[#8B5E3C] selection:text-white font-sans w-full">
 
       {/* ========================================== */}
-      {/* 1. MINIMAL TOP NAV BAR                     */}
+      {/* 1. TOP NAV BAR (Responsive)                */}
       {/* ========================================== */}
       <header className="w-full bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#EFE8E1] sticky top-0 z-40">
-        <div className="max-w-md mx-auto px-4 h-14 sm:h-15 flex items-center justify-between">
+        <div className="max-w-md md:max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           
           {/* Brand Logo & Name */}
           <a href="/" className="flex items-center gap-2 select-none hover:opacity-90 transition-opacity">
@@ -393,28 +393,32 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
             <span className="font-black text-lg tracking-tight text-[#2C211B]" style={{ fontFamily: "'Grandstander', cursive" }}>
               Pup<span className="text-[#8B5E3C]">Lume</span>
             </span>
+            <span className="hidden sm:inline-block text-xs font-bold text-[#766A63] border-l border-[#EFE8E1] pl-2.5 ml-0.5">
+              Digital Pet Passport
+            </span>
           </a>
 
           {/* Active Status Badge + Share */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {isEmergency ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-300 rounded-full text-[11px] font-bold text-rose-800 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 pulse-dot" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-300 rounded-full text-xs font-bold text-rose-800 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-rose-600 pulse-dot" />
                 <span>Lost Pet Alert</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-full text-[11px] font-bold text-emerald-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-full text-xs font-bold text-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
                 <span>Active Tag</span>
               </div>
             )}
 
             <button
               onClick={handleOpenShare}
-              className="w-8 h-8 rounded-full bg-white border border-[#EFE8E1] text-[#8B5E3C] flex items-center justify-center hover:bg-[#FAF6F0] active:scale-95 transition-transform cursor-pointer"
+              className="h-8 px-3 rounded-full bg-white border border-[#EFE8E1] text-[#8B5E3C] flex items-center gap-1.5 hover:bg-[#FAF6F0] active:scale-95 transition-transform cursor-pointer text-xs font-bold"
               title="Share Pet Passport"
             >
               <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Share</span>
             </button>
           </div>
 
@@ -422,9 +426,9 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
       </header>
 
       {/* ========================================== */}
-      {/* 2. MAIN CLEAN STREAM                       */}
+      {/* 2. MAIN CLEAN STREAM (Phones Only)         */}
       {/* ========================================== */}
-      <main className="w-full max-w-md px-4 py-4 space-y-3.5">
+      <main className="w-full max-w-md px-4 py-4 space-y-3.5 md:hidden">
 
         {/* EMERGENCY LOST MODE BANNER (IF LOST) */}
         {isEmergency && (
@@ -531,7 +535,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
                 {boopCount} Boops
               </span>
             </button>
-            <div ref={boopCanvasRef} className="pointer-events-none absolute inset-0 z-30 overflow-visible" />
+            <div ref={boopCanvasRef} className="boop-canvas pointer-events-none absolute inset-0 z-30 overflow-visible" />
           </div>
 
         </article>
@@ -750,9 +754,393 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
       </main>
 
       {/* ========================================== */}
-      {/* 6. MOBILE FIXED BOTTOM CALL DOCK           */}
+      {/* 4. SPREAD-OUT DESKTOP UI (Laptops & Desktops)*/}
       {/* ========================================== */}
-      <aside className="sm:hidden fixed bottom-3 inset-x-3 z-30">
+      <section className="hidden md:block w-full max-w-5xl mx-auto px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* EMERGENCY LOST MODE BANNER (IF LOST) */}
+        {isEmergency && (
+          <div className="bg-rose-600 text-white p-5 rounded-3xl shadow-clean space-y-2 animate-pulse border-2 border-rose-400">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-300 shrink-0" />
+                <span>CRITICAL MISSING PET ALERT &bull; PLEASE CONTACT GUARDIAN IMMEDIATELY</span>
+              </span>
+              {activePup.rewardAmount && (
+                <span className="px-3 py-1 bg-amber-400 text-amber-950 text-xs font-black rounded-lg uppercase tracking-wider shadow-sm">
+                  ★ Reward: {activePup.rewardAmount}
+                </span>
+              )}
+            </div>
+            {activePup.emergencyNotes && (
+              <p className="text-sm text-rose-100 font-medium pl-7 leading-relaxed">
+                {activePup.emergencyNotes}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* 2-COLUMN SPREAD GRID */}
+        <div className="grid grid-cols-12 gap-8 items-start">
+          
+          {/* ======================================== */}
+          {/* LEFT COLUMN: IDENTITY, BIO & COMMUNITY  */}
+          {/* ======================================== */}
+          <div className="col-span-5 space-y-6 sticky top-24">
+            
+            {/* HERO PROFILE CARD */}
+            <article className="bg-white rounded-[32px] border border-[#EFE8E1] p-6 shadow-clean space-y-5 relative overflow-hidden">
+              
+              {/* Pet Photo & Header */}
+              <div className="flex items-start gap-4">
+                <div className="relative shrink-0">
+                  <div className="w-28 h-28 rounded-2xl overflow-hidden bg-[#FAF6F0] border border-[#EFE8E1] shadow-xs">
+                    <img
+                      src={photoUrl}
+                      alt={activePup.name}
+                      className="w-full h-full object-cover select-none"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400";
+                      }}
+                    />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-1.5 border-2 border-white shadow-xs" title="Verified Pet Registration">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                </div>
+
+                <div className="space-y-1 min-w-0 flex-1 pt-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-3xl font-black text-[#2C211B] leading-tight truncate" style={{ fontFamily: "'Grandstander', cursive" }}>
+                      {activePup.name}
+                    </h1>
+                    <span className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold shrink-0">
+                      Verified
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-bold text-[#8B5E3C] truncate">
+                    {activePup.breed || "Canine"} &bull; {activePup.sex ? activePup.sex.charAt(0).toUpperCase() + activePup.sex.slice(1) : "Pet"} &bull; {ageDisplay}
+                  </p>
+
+                  <p className="text-xs text-[#766A63] leading-relaxed pt-1 line-clamp-3">
+                    {activePup.pageBio || activePup.emergencyNotes || "Friendly & loyal family pet. If found alone or in distress, please contact guardian immediately."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Trait Pills */}
+              <div className="grid grid-cols-3 gap-2 text-center pt-4 border-t border-[#EFE8E1]">
+                <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]/60">
+                  <span className="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Weight</span>
+                  <span className="text-xs font-black text-[#2C211B] block pt-0.5">
+                    {activePup.weightLbs ? `${activePup.weightLbs} lbs` : "Recorded"}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]/60">
+                  <span className="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Status</span>
+                  <span className={`text-xs font-black block pt-0.5 ${isEmergency ? "text-rose-600 font-extrabold" : "text-emerald-700"}`}>
+                    {isEmergency ? "Missing" : (activePup.hasSmartTagPass ? "Protected" : "Active Tag")}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#EFE8E1]/60">
+                  <span className="text-[10px] text-[#766A63] font-bold block uppercase tracking-wider">Temperament</span>
+                  <span className="text-xs font-black text-[#2C211B] truncate block pt-0.5">
+                    {activePup.temperament || "Friendly"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Snoot Boop Desktop Widget */}
+              <div className="pt-1 relative">
+                <button
+                  type="button"
+                  onClick={handleSendBoop}
+                  className="w-full py-3 px-4 rounded-2xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] flex items-center justify-between text-xs font-bold text-[#2C211B] transition-all active:scale-[0.98] cursor-pointer shadow-subtle group"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-base group-hover:scale-125 transition-transform">🐾</span>
+                    <span>Send {activePup.name} a Boop</span>
+                  </span>
+                  <span className="text-xs text-[#8B5E3C] bg-white px-3 py-1 rounded-full border border-[#EFE8E1] shadow-subtle font-mono font-bold">
+                    {boopCount} Boops
+                  </span>
+                </button>
+                <div className="boop-canvas pointer-events-none absolute inset-0 z-30 overflow-visible" />
+              </div>
+
+            </article>
+
+            {/* COMMUNITY / SOCIAL CHANNELS */}
+            {((Array.isArray(activePup.customLinks) && activePup.customLinks.length > 0) ||
+              (Array.isArray(activePup.communicationLinks) && activePup.communicationLinks.length > 0)) && (
+              <section className="bg-white rounded-[28px] border border-[#EFE8E1] p-5 shadow-clean space-y-3">
+                <div className="flex items-center justify-between border-b border-[#EFE8E1] pb-2.5">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#2C211B] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#8B5E3C]" />
+                    <span>{activePup.name}&apos;s Official Links</span>
+                  </h2>
+                  <span className="text-[10px] text-[#766A63]">Verified</span>
+                </div>
+
+                <div className="space-y-2">
+                  {activePup.customLinks?.map((link: any) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] flex items-center justify-between text-xs font-bold text-[#2C211B] transition-colors"
+                    >
+                      <div>
+                        <span className="block">{link.title}</span>
+                        {link.subtitle && <span className="text-[10px] font-normal text-[#766A63]">{link.subtitle}</span>}
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-[#8B5E3C] shrink-0" />
+                    </a>
+                  ))}
+
+                  {activePup.communicationLinks?.map((cLink: any) => {
+                    const plat = COMMUNICATION_PLATFORMS.find((p) => p.id === cLink.platform);
+                    const favicon = getPlatformFaviconUrl(cLink.platform, cLink.value);
+                    const targetUrl = cLink.value.startsWith("http") ? cLink.value : `https://${cLink.value}`;
+                    return (
+                      <a
+                        key={cLink.id || cLink.platform}
+                        href={targetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] flex items-center justify-between text-xs font-bold text-[#2C211B] transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <img src={favicon} alt="" className="w-4 h-4 object-contain" />
+                          <span>{plat?.name || cLink.platform}</span>
+                        </div>
+                        <ExternalLink className="w-3 h-3 text-[#766A63] shrink-0" />
+                      </a>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* PASSPORT VERIFICATION STAMP */}
+            <div className="bg-[#FAF6F0]/80 border border-[#EFE8E1] rounded-2xl p-4 text-xs text-[#766A63] space-y-1.5">
+              <div className="flex items-center justify-between font-bold text-[#2C211B]">
+                <span>Pet Passport Registry</span>
+                <span className="text-emerald-700 font-mono text-[11px]">ACTIVE #{activePup._id?.toString().slice(-6).toUpperCase() || "PL-84920"}</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Official digital pet identity recorded in PupLume Cloud Registry. NFC collar tag verified.
+              </p>
+            </div>
+
+          </div>
+
+          {/* ======================================== */}
+          {/* RIGHT COLUMN: REUNIFICATION & MEDICAL   */}
+          {/* ======================================== */}
+          <div className="col-span-7 space-y-6">
+            
+            {/* EMERGENCY REUNIFICATION HUB */}
+            <section className="bg-white rounded-[32px] border border-[#EFE8E1] p-6 shadow-clean space-y-5">
+              
+              <div className="flex items-center justify-between border-b border-[#EFE8E1] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🚨</span>
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-[#2C211B]">
+                      Emergency Reunification
+                    </h2>
+                    <p className="text-[11px] text-[#766A63]">Direct connection to verified pet guardian</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                  24/7 Available
+                </span>
+              </div>
+
+              {/* 1-Tap Call Guardian Main Button */}
+              {ownerPhoneNumber ? (
+                <a
+                  href={`tel:${ownerPhoneNumber}`}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#8B5E3C] hover:bg-[#5F3E29] text-white font-black text-sm flex items-center justify-center gap-3 shadow-clean hover:shadow-md transition-all active:scale-[0.98] group"
+                >
+                  <Phone className="w-5 h-5 shrink-0 group-hover:rotate-12 transition-transform" />
+                  <span>Call {guardianDisplayName} ({ownerPhoneNumber})</span>
+                </a>
+              ) : (
+                <div className="w-full py-4 px-6 rounded-2xl bg-[#FAF6F0] text-[#766A63] font-bold text-xs text-center border border-[#EFE8E1]">
+                  Guardian contact on file &bull; See veterinary details below
+                </div>
+              )}
+
+              {/* WhatsApp + Send GPS Location Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {cleanWhatsAppNumber ? (
+                  <a
+                    href={`https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(`Hi! I have found ${activePup.name}. They are safe with me.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-subtle"
+                  >
+                    <svg className="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.63c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.45-.04 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29"/>
+                    </svg>
+                    <span>Message on WhatsApp</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleOpenShare}
+                    className="py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-subtle"
+                  >
+                    <Share2 className="w-4 h-4 text-emerald-600" />
+                    <span>Share Passport</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleShareLocation}
+                  className="py-3 px-4 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] text-[#2C211B] text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-subtle"
+                >
+                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{locLabel}</span>
+                </button>
+              </div>
+
+              {/* Primary Veterinary Details */}
+              <div className="p-4 rounded-2xl bg-[#FAF6F0]/80 border border-[#EFE8E1] flex items-center justify-between text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#766A63] block">Primary Veterinary Hospital</span>
+                  <span className="font-bold text-[#2C211B] text-sm block">
+                    {activePup.vetClinic || activePup.vetName || "Oakwood Vet Hospital (24/7)"}
+                  </span>
+                </div>
+                <a
+                  href={`tel:${activePup.vetPhone || ownerPhoneNumber || ""}`}
+                  className="px-4 py-2 bg-[#8B5E3C] hover:bg-[#5F3E29] text-white rounded-xl text-xs font-bold transition-colors shadow-subtle shrink-0"
+                >
+                  Call Vet
+                </a>
+              </div>
+
+              {/* Backup Emergency Contact (if configured) */}
+              {activePup.emergencyContactPhone && activePup.emergencyContactPhone !== ownerPhoneNumber && (
+                <div className="p-4 rounded-2xl bg-[#FAF6F0]/80 border border-[#EFE8E1] flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#766A63] block">Secondary Emergency Backup</span>
+                    <span className="font-bold text-[#2C211B] text-sm block">
+                      {activePup.emergencyContactName || "Trusted Family"}
+                    </span>
+                  </div>
+                  <a
+                    href={`tel:${activePup.emergencyContactPhone}`}
+                    className="px-4 py-2 bg-white border border-[#EFE8E1] text-[#8B5E3C] hover:bg-[#FAF6F0] rounded-xl text-xs font-bold transition-colors shadow-subtle shrink-0"
+                  >
+                    Call Backup
+                  </a>
+                </div>
+              )}
+
+            </section>
+
+            {/* CARE & MEDICAL DOSSIER */}
+            <section className="bg-white rounded-[32px] border border-[#EFE8E1] p-6 shadow-clean space-y-5">
+              
+              <div className="flex items-center justify-between border-b border-[#EFE8E1] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🩺</span>
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-[#2C211B]">
+                      Care &amp; Medical Dossier
+                    </h2>
+                    <p className="text-[11px] text-[#766A63]">Verified dietary alerts and clinical records</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                  Vaccinated
+                </span>
+              </div>
+
+              {/* Allergy & Dietary Alert */}
+              {(activePup.allergies || activePup.dietaryRestrictions) ? (
+                <div className="p-4 rounded-2xl bg-orange-50/90 border border-orange-200 text-xs text-orange-950 space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-orange-800 text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-orange-600" />
+                    <span>Special Dietary &amp; Allergy Caution</span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-orange-900">
+                    {activePup.allergies && <span>Allergies: <strong className="font-semibold">{activePup.allergies}</strong>. </span>}
+                    {activePup.dietaryRestrictions && <span>Diet: <strong className="font-semibold">{activePup.dietaryRestrictions}</strong>. </span>}
+                    Do not feed snacks without consulting guardian.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
+                    <Check className="w-4 h-4 shrink-0 text-emerald-600 stroke-[3]" />
+                    <span>No Known Health Allergies</span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-emerald-900">
+                    No food allergies reported. Always check with guardian before offering human foods.
+                  </p>
+                </div>
+              )}
+
+              {/* Verified Vaccinations Grid */}
+              <div>
+                <span className="text-xs font-bold text-[#766A63] uppercase tracking-wider block mb-2.5">
+                  Verified Core Vaccinations
+                </span>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  {vaccinesList.map((vac, idx) => (
+                    <div key={idx} className="p-3 rounded-2xl bg-[#FAF6F0] border border-[#EFE8E1]">
+                      <span className="text-xs text-[#766A63] block truncate font-medium">{vac.name}</span>
+                      <span className="font-black text-sm text-emerald-700 capitalize block pt-1">{vac.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rescuer Assistance Box */}
+              <div className="p-4 rounded-2xl bg-[#FAF6F0]/60 border border-[#EFE8E1] text-xs text-[#766A63] space-y-1">
+                <span className="font-bold text-[#2C211B] block">Safe Reunification Guide</span>
+                <p className="text-[11px] leading-relaxed">
+                  Keep {activePup.name} in a secure, calm space with clean water. Check for any physical injuries and keep the leash secured while contacting the guardian.
+                </p>
+              </div>
+
+            </section>
+
+          </div>
+
+        </div>
+
+        {/* DESKTOP FOOTER */}
+        <footer className="pt-8 pb-12 text-center text-xs text-[#766A63] space-y-2 border-t border-[#EFE8E1]/60 mt-8">
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-bold text-[#2C211B]">PupLume Pet Passport</span>
+            <span>&bull;</span>
+            <span>Smart NFC Collar Connected</span>
+            <span>&bull;</span>
+            <span>Global Reunification Protocol</span>
+          </div>
+          <div>
+            <a href="/" className="text-xs font-bold text-[#8B5E3C] hover:underline">
+              Are you the owner? Open PupLume App &rarr;
+            </a>
+          </div>
+        </footer>
+
+      </section>
+
+      {/* ========================================== */}
+      {/* 5. MOBILE FIXED BOTTOM CALL DOCK (Phones)  */}
+      {/* ========================================== */}
+      <aside className="md:hidden fixed bottom-3 inset-x-3 z-30">
         <div className="bg-white/95 backdrop-blur-md border border-[#EFE8E1] rounded-2xl p-2 shadow-modal flex gap-2">
           {ownerPhoneNumber ? (
             <>
