@@ -4,7 +4,9 @@ const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
 
-const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const CHROME_PATH = fs.existsSync("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
+  ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  : "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 const ARTIFACT_DIR = "C:\\Users\\AHSAN HAROON\\.gemini\\antigravity\\brain\\0beb69f7-58c5-4413-99c9-8c1bb65d2b50";
 const PORT = 9229;
 
