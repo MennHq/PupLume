@@ -280,35 +280,52 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
     }
   };
 
-  // GPS Location Sharing
-  const [locLabel, setLocLabel] = useState<string>('Send Location');
-  const handleShareLocation = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
-      return;
+  // Authentic Location Sharing (Google Maps & WhatsApp)
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [detectedLocationUrl, setDetectedLocationUrl] = useState<string>('https://maps.google.com');
+  const [copiedMapLink, setCopiedMapLink] = useState(false);
+
+  const handleOpenLocationModal = () => {
+    setIsLocationModalOpen(true);
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          setDetectedLocationUrl(`https://www.google.com/maps?q=${lat},${lng}`);
+        },
+        () => {
+          setDetectedLocationUrl('https://maps.google.com');
+        },
+        { enableHighAccuracy: false, timeout: 3500, maximumAge: 300000 }
+      );
     }
-    setLocLabel('Locating...');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(5);
-        const lng = pos.coords.longitude.toFixed(5);
-        const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
-        setLocLabel('Location Sent!');
-        const targetPhone = activePup.ownerPhone || activePup.emergencyContactPhone || '';
-        const bodyText = encodeURIComponent(`Hi! I found ${activePup.name}! Here is my exact location: ${mapUrl}`);
-        if (targetPhone) {
-          window.location.href = `sms:${targetPhone}?&body=${bodyText}`;
-        } else {
-          copyToClipboard(mapUrl);
-        }
-        setTimeout(() => setLocLabel('Send Location'), 3000);
-      },
-      () => {
-        setLocLabel('Location Denied');
-        setTimeout(() => setLocLabel('Send Location'), 2500);
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
+  };
+
+  const handleShareViaWhatsApp = () => {
+    const mapUrl = detectedLocationUrl || 'https://maps.google.com';
+    const text = encodeURIComponent(
+      `📍 Hi! I have found ${activePup.name}. Here is my location on Google Maps: ${mapUrl}`
     );
+    const targetUrl = cleanWhatsAppNumber
+      ? `https://wa.me/${cleanWhatsAppNumber}?text=${text}`
+      : `https://wa.me/?text=${text}`;
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    setIsLocationModalOpen(false);
+  };
+
+  const handleShareViaGoogleMaps = () => {
+    const mapUrl = detectedLocationUrl || 'https://maps.google.com';
+    window.open(mapUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyMapLink = async () => {
+    const mapUrl = detectedLocationUrl || 'https://maps.google.com';
+    const ok = await copyToClipboard(mapUrl);
+    if (ok) {
+      setCopiedMapLink(true);
+      setTimeout(() => setCopiedMapLink(false), 2000);
+    }
   };
 
   // Share Sheet
@@ -597,11 +614,15 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
 
             <button
               type="button"
-              onClick={handleShareLocation}
+              onClick={handleOpenLocationModal}
               className="py-2.5 px-3 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] text-[#2C211B] text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+              title="Share Location via Google Maps or WhatsApp"
             >
-              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-              <span>{locLabel}</span>
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
+                <circle cx="12" cy="9" r="2.5" fill="#FFFFFF"/>
+              </svg>
+              <span>Share Location</span>
             </button>
           </div>
 
@@ -1003,11 +1024,15 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
 
                 <button
                   type="button"
-                  onClick={handleShareLocation}
-                  className="py-3 px-4 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] text-[#2C211B] text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-subtle"
+                  onClick={handleOpenLocationModal}
+                  className="py-3 px-4 rounded-xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] text-[#2C211B] text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-subtle hover:border-[#8B5E3C]/30"
+                  title="Share Location via Google Maps or WhatsApp"
                 >
-                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>{locLabel}</span>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
+                    <circle cx="12" cy="9" r="2.5" fill="#FFFFFF"/>
+                  </svg>
+                  <span>Share Location (Google Maps)</span>
                 </button>
               </div>
 
@@ -1201,6 +1226,124 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
                 {copiedShareLink ? 'Copied!' : 'Copy'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 8. AUTHENTIC LOCATION SHARING MODAL        */}
+      {/* ========================================== */}
+      {isLocationModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] border border-[#EFE8E1] max-w-md w-full p-6 space-y-5 shadow-modal animate-in fade-in zoom-in-95">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#EFE8E1] pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
+                    <circle cx="12" cy="9" r="2.5" fill="#FFFFFF"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-[#2C211B] leading-tight" style={{ fontFamily: "'Grandstander', cursive" }}>
+                    Share Location with Guardian
+                  </h3>
+                  <p className="text-xs text-[#766A63]">Send your exact spot to reunite {activePup.name}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#FAF6F0] text-[#766A63] flex items-center justify-center text-xs hover:bg-[#F3E7DA] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Options List */}
+            <div className="space-y-3">
+              
+              {/* Option 1: WhatsApp Native Location (Trusted & Direct) */}
+              {cleanWhatsAppNumber && (
+                <button
+                  type="button"
+                  onClick={handleShareViaWhatsApp}
+                  className="w-full p-4 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200 flex items-start gap-3.5 text-left transition-all active:scale-[0.98] cursor-pointer group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.63c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.45-.04 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-emerald-950">Send via WhatsApp</span>
+                      <span className="text-[10px] font-bold bg-emerald-200/60 text-emerald-900 px-2 py-0.5 rounded-full">Recommended</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 leading-snug pt-0.5">
+                      Opens direct chat with {guardianDisplayName}. You can send your live pin using WhatsApp&apos;s location tool.
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Option 2: Google Maps Pin (Authentic Google Maps) */}
+              <button
+                type="button"
+                onClick={handleShareViaGoogleMaps}
+                className="w-full p-4 rounded-2xl bg-[#FAF6F0] hover:bg-[#F3E7DA] border border-[#EFE8E1] flex items-start gap-3.5 text-left transition-all active:scale-[0.98] cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white border border-[#EFE8E1] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
+                    <circle cx="12" cy="9" r="2.5" fill="#FFFFFF"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[#2C211B]">Open in Google Maps</span>
+                    <span className="text-[10px] font-bold bg-white text-[#766A63] border border-[#EFE8E1] px-2 py-0.5 rounded-full">Universal</span>
+                  </div>
+                  <p className="text-[11px] text-[#766A63] leading-snug pt-0.5">
+                    Opens Google Maps app or website to generate an exact pin and share directions with the guardian.
+                  </p>
+                </div>
+              </button>
+
+              {/* Option 3: Copy GPS Coordinates / Google Maps Link */}
+              <div className="p-3 rounded-2xl bg-white border border-[#EFE8E1] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 min-w-0 pr-2">
+                  <span className="text-sm">📍</span>
+                  <span className="text-[11px] text-[#766A63] truncate font-mono">
+                    {detectedLocationUrl ? detectedLocationUrl : 'Google Maps Link ready'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyMapLink}
+                  className="px-3 py-1.5 bg-[#8B5E3C] hover:bg-[#5F3E29] text-white rounded-xl text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                >
+                  {copiedMapLink ? 'Copied!' : 'Copy Link'}
+                </button>
+              </div>
+
+            </div>
+
+            {/* Guardian Phone Call direct fallback */}
+            {ownerPhoneNumber && (
+              <div className="pt-1 text-center">
+                <a
+                  href={`tel:${ownerPhoneNumber}`}
+                  className="text-xs font-bold text-[#8B5E3C] hover:underline inline-flex items-center gap-1.5"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Or call guardian directly: {ownerPhoneNumber}</span>
+                </a>
+              </div>
+            )}
+
           </div>
         </div>
       )}
