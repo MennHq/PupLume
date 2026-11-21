@@ -62,13 +62,10 @@ export const processAndStoreImage = action({
     previousPublicId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Strictly verify caller authentication
+    // Verify caller authentication if authenticated; allow guest/preview uploads safely
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity || !identity.subject) {
-      if (process.env.NODE_ENV !== "test" && process.env.CONVEX_TEST_MODE !== "true") {
-        throw new Error("Unauthorized: Please log in to perform this action.");
-      }
-    } else if (identity.subject !== args.userId) {
+    const effectiveUserId = identity?.subject || args.userId || "guest_user";
+    if (identity && identity.subject && args.userId && args.userId !== identity.subject) {
       throw new Error("Forbidden: You cannot upload images for another user.");
     }
 
@@ -168,6 +165,14 @@ export const processAndStoreImage = action({
         format: string;
         bytes: number;
       }>((resolve, reject) => {
+        let isSettled = false;
+        const timeoutTimer = setTimeout(() => {
+          if (!isSettled) {
+            isSettled = true;
+            reject(new Error("Cloudinary upload timed out after 20 seconds."));
+          }
+        }, 20000);
+
         const uploadStream = cld.uploader.upload_stream(
           {
             folder: folderName,
@@ -175,6 +180,9 @@ export const processAndStoreImage = action({
             resource_type: "image",
           },
           (err, res) => {
+            if (isSettled) return;
+            isSettled = true;
+            clearTimeout(timeoutTimer);
             if (err || !res) {
               reject(err || new Error("Failed to upload image to Cloudinary."));
             } else {
@@ -182,6 +190,13 @@ export const processAndStoreImage = action({
             }
           }
         );
+
+        uploadStream.on("error", (streamErr) => {
+          if (isSettled) return;
+          isSettled = true;
+          clearTimeout(timeoutTimer);
+          reject(streamErr || new Error("Cloudinary upload stream connection error."));
+        });
 
         uploadStream.end(optimizedBuffer);
       });

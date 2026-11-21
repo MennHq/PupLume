@@ -7,6 +7,7 @@ interface CloudinaryImageUploaderProps {
   currentImageUrl?: string;
   onUploadSuccess: (secureUrl: string, metadata?: UploadResult) => void;
   onUploadingChange?: (uploading: boolean) => void;
+  userId?: string;
   folder?: string;
   label?: string;
   sublabel?: string;
@@ -22,6 +23,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
   currentImageUrl,
   onUploadSuccess,
   onUploadingChange,
+  userId,
   folder,
   label = 'Upload Photo',
   sublabel = 'JPG, PNG, or WebP (Max 10MB)',
@@ -87,10 +89,20 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
     onUploadingChange?.(true);
     setUploadStep('Uploading photo...');
 
+    // Safety watchdog: Guarantee UI upload state never hangs past 20s
+    const safetyWatchdog = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsUploading(false);
+        setUploadStep('');
+      }
+      onUploadingChange?.(false);
+    }, 20000);
+
     try {
       const previousTarget = currentImageUrl || (previewUrl && previewUrl.startsWith('http') ? previewUrl : undefined);
 
       const result = await uploadImageToCloudinary(file, {
+        userId,
         folder: folder || (isProfile ? 'puplume/pets' : 'puplume/uploads'),
         targetType: effectiveTargetType,
         targetId,
@@ -112,9 +124,10 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
     } catch (err: any) {
       console.error('[CloudinaryImageUploader] Upload failed:', err);
       if (isMountedRef.current) {
-        setError(err.message || 'Failed to upload and process image. Please try again.');
+        setError(err.message || 'Failed to upload photo. Please try again.');
       }
     } finally {
+      clearTimeout(safetyWatchdog);
       if (isMountedRef.current) {
         setIsUploading(false);
         setUploadStep('');

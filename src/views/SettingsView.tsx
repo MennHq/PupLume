@@ -905,6 +905,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
               storage.savePuppy(updated);
               showStatus(`${puppy.name}'s photo updated securely!`);
             }}
+            userId={user?.id}
             folder="puplume/puppies"
             label={`Upload New Photo for ${puppy.name}`}
             sublabel="JPG, PNG, or WebP (Max 10MB)"

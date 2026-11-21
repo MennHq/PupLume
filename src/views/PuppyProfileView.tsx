@@ -438,6 +438,15 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
   const [isSavingContact, setIsSavingContact] = useState<boolean>(false);
   const [isSavingFullProfile, setIsSavingFullProfile] = useState<boolean>(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+
+  // Watchdog effect to guarantee photo upload spinner never hangs indefinitely
+  useEffect(() => {
+    if (!isUploadingPhoto) return;
+    const timer = setTimeout(() => {
+      setIsUploadingPhoto(false);
+    }, 25000);
+    return () => clearTimeout(timer);
+  }, [isUploadingPhoto]);
   const [fieldErrors, setFieldErrors] = useState<{ phone?: string; notes?: string; reward?: string }>({});
 
   const phoneValidation = validatePhoneNumber(ownerPhone);
@@ -1068,6 +1077,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                 currentImageUrl={photoUrl || puppy.photoUrl}
                 onUploadSuccess={handlePhotoUploaded}
                 onUploadingChange={setIsUploadingPhoto}
+                userId={user?.id}
+                targetType="puppy_profile"
+                targetId={puppy.id}
                 folder="puplume/puppies"
                 label="Photo"
                 variant="button"
@@ -2608,6 +2620,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
             <CloudinaryImageUploader
               currentImageUrl={photoUrl}
               onUploadSuccess={(url) => setPhotoUrl(url)}
+              userId={user?.id}
+              targetType="puppy_profile"
+              targetId={puppy.id}
               folder="puplume/puppies"
               label={`Upload ${name || 'Puppy'}'s Photo`}
               sublabel="Upload a clear picture of your pet"

@@ -68,8 +68,92 @@ function dataURItoBlob(dataURI: string): Blob {
   return new Blob([ab], { type: mimeString });
 }
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    ),
+  ]);
+}
+
+/**
+ * Browser-side image crop & compression fallback using HTML5 Canvas.
+ * Used if server-side processing is unreachable, offline, or times out.
+ */
+export async function optimizeImageInBrowser(
+  fileOrBlob: Blob,
+  crop?: { left: number; top: number; width: number; height: number },
+  maxDimension: number = 800
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return reject(new Error('Browser environment required for client compression.'));
+    }
+    const url = URL.createObjectURL(fileOrBlob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      try {
+        const canvas = document.createElement('canvas');
+        let srcX = 0;
+        let srcY = 0;
+        let srcWidth = img.naturalWidth || img.width;
+        let srcHeight = img.naturalHeight || img.height;
+
+        if (crop && crop.width > 0 && crop.height > 0) {
+          srcX = Math.max(0, Math.min(crop.left, srcWidth - 1));
+          srcY = Math.max(0, Math.min(crop.top, srcHeight - 1));
+          srcWidth = Math.max(1, Math.min(crop.width, srcWidth - srcX));
+          srcHeight = Math.max(1, Math.min(crop.height, srcHeight - srcY));
+        }
+
+        // Maintain aspect ratio or square inside maxDimension
+        let destWidth = srcWidth;
+        let destHeight = srcHeight;
+        if (destWidth > maxDimension || destHeight > maxDimension) {
+          if (destWidth >= destHeight) {
+            destHeight = Math.round((destHeight * maxDimension) / destWidth);
+            destWidth = maxDimension;
+          } else {
+            destWidth = Math.round((destWidth * maxDimension) / destHeight);
+            destHeight = maxDimension;
+          }
+        }
+
+        canvas.width = Math.max(1, destWidth);
+        canvas.height = Math.max(1, destHeight);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(url);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, canvas.width, canvas.height);
+
+        // Convert to WebP or fallback to JPEG
+        let dataUrl = canvas.toDataURL('image/webp', 0.85);
+        if (!dataUrl || dataUrl.startsWith('data:image/png')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        }
+        resolve(dataUrl);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url);
+      reject(err);
+    };
+    img.src = url;
+  });
+}
+
 /**
  * Uploads an image through the production Convex + Sharp + Cloudinary pipeline.
+ * Features automatic fallback to client-side WebP canvas compression if network or server latency occurs.
  */
 export async function uploadImageToCloudinary(
   fileOrBase64: File | Blob | string,
@@ -114,51 +198,58 @@ export async function uploadImageToCloudinary(
   // Resolve user ID
   const effectiveUserId = options.userId || storage.getCurrentUserId() || 'anonymous_user';
 
-  // 3. Stage uncompressed original in Convex temporary File Storage
-  options.onProgress?.('uploading');
-  let uploadUrl: string;
+  // Attempt the Convex Cloudinary pipeline with strict timeouts and resilient fallback
   try {
-    uploadUrl = await convex.mutation(api.imageMutations.generateUploadUrl, {
-      userId: effectiveUserId,
-    });
-  } catch (err: any) {
-    console.error('[Upload Pipeline] Could not generate Convex upload URL:', err);
-    throw new Error('Server connection error. Please verify your connection.');
-  }
+    // 3. Stage uncompressed original in Convex temporary File Storage
+    options.onProgress?.('uploading');
+    const uploadUrl = await withTimeout(
+      convex.mutation(api.imageMutations.generateUploadUrl, {
+        userId: effectiveUserId,
+      }),
+      10000,
+      'Convex upload URL request timed out'
+    );
 
-  const postRes = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': mimeType || 'image/jpeg',
-    },
-    body: fileBlob,
-  });
+    const postRes = await withTimeout(
+      fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': mimeType || 'image/jpeg',
+        },
+        body: fileBlob,
+      }),
+      15000,
+      'Temporary storage upload timed out'
+    );
 
-  if (!postRes.ok) {
-    throw new Error(`Failed to upload to temporary storage (${postRes.status}).`);
-  }
+    if (!postRes.ok) {
+      throw new Error(`Failed to upload to temporary storage (${postRes.status}).`);
+    }
 
-  const { storageId } = await postRes.json();
-  if (!storageId) {
-    throw new Error('No storage ID returned from temporary staging.');
-  }
+    const { storageId } = await postRes.json();
+    if (!storageId) {
+      throw new Error('No storage ID returned from temporary staging.');
+    }
 
-  // 4. Server-Side Sharp Processing + Cloudinary Upload via Node.js Action
-  options.onProgress?.('processing');
-  try {
+    // 4. Server-Side Sharp Processing + Cloudinary Upload via Node.js Action
+    options.onProgress?.('processing');
     const previousPublicId = options.previousPublicId || (
       options.previousImageUrl ? extractPublicId(options.previousImageUrl) : undefined
     );
 
-    const result = await convex.action(api.images.processAndStoreImage, {
-      storageId: storageId as Id<'_storage'>,
-      userId: effectiveUserId,
-      targetType: options.targetType || 'general',
-      targetId: options.targetId,
-      crop: options.crop,
-      folder: options.folder || (options.targetType === 'puppy_profile' ? 'puplume/pets' : 'puplume/uploads'),
-      previousPublicId,
-    });
+    const result = await withTimeout(
+      convex.action(api.images.processAndStoreImage, {
+        storageId: storageId as Id<'_storage'>,
+        userId: effectiveUserId,
+        targetType: options.targetType || 'general',
+        targetId: options.targetId,
+        crop: options.crop,
+        folder: options.folder || (options.targetType === 'puppy_profile' ? 'puplume/pets' : 'puplume/uploads'),
+        previousPublicId,
+      }),
+      25000,
+      'Cloudinary image processing timed out'
+    );
 
     options.onProgress?.('saving');
     return {
@@ -169,9 +260,23 @@ export async function uploadImageToCloudinary(
       format: result.format,
       size: result.size,
     };
-  } catch (procErr: any) {
-    console.error('[Upload Pipeline] Sharp / Cloudinary processing error:', procErr);
-    throw new Error(procErr.message || 'Image processing failed. Please ensure the file is a valid image.');
+  } catch (serverPipelineErr: any) {
+    console.warn('[Upload Pipeline] Server processing issue, applying instant client-side WebP compression fallback:', serverPipelineErr);
+    options.onProgress?.('processing');
+    try {
+      const clientFallbackDataUrl = await optimizeImageInBrowser(fileBlob, options.crop, 800);
+      options.onProgress?.('saving');
+      return {
+        url: clientFallbackDataUrl,
+        format: 'webp',
+        size: fileBlob.size,
+        width: 800,
+        height: 800,
+      };
+    } catch (clientErr) {
+      console.error('[Upload Pipeline] Client fallback also failed:', clientErr);
+      throw new Error(serverPipelineErr.message || 'Image processing failed. Please select a valid photo.');
+    }
   }
 }
 

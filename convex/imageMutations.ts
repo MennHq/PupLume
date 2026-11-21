@@ -5,14 +5,20 @@ import { requireAuthUser } from "./authHelper";
 
 /**
  * Client calls this mutation to obtain a secure temporary
- * Convex File Storage upload URL. Requires user authentication.
+ * Convex File Storage upload URL. Supports authenticated users as well as
+ * guest/preview puppy creation.
  */
 export const generateUploadUrl = mutation({
   args: {
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuthUser(ctx, args.userId);
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity && identity.subject && args.userId) {
+      if (args.userId !== identity.subject) {
+        throw new Error("Forbidden: You cannot upload images for another user.");
+      }
+    }
     return await ctx.storage.generateUploadUrl();
   },
 });
