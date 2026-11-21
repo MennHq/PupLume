@@ -942,11 +942,11 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
     <div className="space-y-6 max-w-5xl mx-auto pb-6 px-1 sm:px-4">
 
       {/* PUP PACK SELECTOR & MANAGER (Case 37: Multi-Pet Architecture) */}
-      <div className="bg-white rounded-3xl border border-[#E8DDD3] p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B5E3C]">Multi-Pet Manager</span>
-            <h2 className="text-sm sm:text-base font-extrabold text-[#2C211B] flex items-center gap-1.5">
+      <div className="bg-white rounded-[24px] border border-[#E8DDD3] p-4 sm:p-5 shadow-xs select-none">
+        <div className="flex items-center justify-between gap-3 mb-3.5">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#8B5E3C] block">Multi-Pet Manager</span>
+            <h2 className="text-sm sm:text-base font-black text-[#2C211B] flex items-center gap-1.5">
               <Dog className="w-4 h-4 text-[#8B5E3C]" />
               Your Puppies ({allPuppies.length})
             </h2>
@@ -954,9 +954,9 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenNewPuppyWizard?.()}
-            className="px-3 py-1.5 rounded-xl bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#8B5E3C] border border-[#E8DDD3] text-xs font-extrabold flex items-center gap-1.5 transition-all active:scale-[0.98] shadow-2xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Add Puppy</span>
           </button>
         </div>
@@ -970,24 +970,25 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                 onClick={() => {
                   if (!isSelected) onSwitchPuppy?.(p.id);
                 }}
-                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                className={`min-h-[56px] p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   isSelected
                     ? 'bg-[#FFF9F2] border-[#8B5E3C] ring-2 ring-[#8B5E3C]/20 shadow-xs'
                     : 'bg-white border-[#E8DDD3] hover:border-[#8B5E3C]/50 hover:bg-[#FAF6F0]'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={p.photoUrl}
                     alt={p.name}
-                    className="w-10 h-10 rounded-xl object-cover border border-[#8B5E3C]/30 shrink-0"
+                    draggable={false}
+                    className="w-11 h-11 rounded-xl object-cover border border-[#8B5E3C]/30 shrink-0 pointer-events-none select-none shadow-2xs"
                   />
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-[#2C211B] truncate flex items-center gap-1.5">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-[#2C211B] truncate flex items-center gap-1.5">
                       {p.name}
-                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#8B5E3C]" />}
+                      {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />}
                     </h4>
-                    <p className="text-[11px] text-[#766A63] truncate">
+                    <p className="text-[11px] text-[#766A63] font-medium truncate tabular-nums">
                       {p.breed} • {p.weightLbs} lbs
                     </p>
                   </div>
@@ -995,11 +996,11 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
 
                 <div className="flex items-center gap-2 shrink-0">
                   {isSelected ? (
-                    <span className="px-2 py-0.5 rounded-md bg-[#8B5E3C] text-white text-[10px] font-bold">
+                    <span className="px-2.5 py-1 rounded-lg bg-[#8B5E3C] text-white text-[11px] font-bold shadow-2xs">
                       Active
                     </span>
                   ) : (
-                    <span className="text-xs font-bold text-[#8B5E3C] hover:underline">
+                    <span className="text-xs font-bold text-[#8B5E3C] hover:underline px-2 py-1">
                       Switch
                     </span>
                   )}
@@ -1027,7 +1028,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       )}
 
       {/* SECTION 1: VERIFIED PET PASSPORT HERO CARD */}
-      <div className="bg-[#FFFDF9] rounded-3xl border-2 border-[#E8DDD3] p-6 sm:p-8 shadow-[0_8px_30px_rgba(44,33,27,0.06)] relative overflow-hidden">
+      <div className="bg-[#FFFDF9] rounded-[28px] border-2 border-[#E8DDD3] p-5 sm:p-7 shadow-[0_8px_30px_rgba(44,33,27,0.06)] relative overflow-hidden select-none">
         
         {/* Subtle decorative background watermarks */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#F3E7DA]/50 to-transparent rounded-bl-full pointer-events-none -mr-16 -mt-16" />
@@ -1035,7 +1036,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
           <span className="text-[11px] font-mono tracking-widest text-[#8B5E3C] font-bold uppercase block">
             PupLume Official Passport
           </span>
-          <span className="text-xs font-mono text-[#766A63] font-semibold">
+          <span className="text-xs font-mono text-[#766A63] font-semibold tabular-nums">
             {passportSerial}
           </span>
         </div>
@@ -1044,11 +1045,12 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
           
           {/* Avatar with Emerald Verified Seal and Instant Uploader */}
           <div className="relative group shrink-0">
-            <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[36px] overflow-hidden border-4 border-[#8B5E3C] shadow-lg bg-[#FAF6F0]">
+            <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-[24px] overflow-hidden border-3 border-[#8B5E3C] shadow-md bg-[#FAF6F0]">
               <img
                 src={photoUrl || puppy.photoUrl}
                 alt={puppy.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                draggable={false}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none select-none"
               />
               {/* Lost Mode Glow ring */}
               {isLost && (
@@ -1056,7 +1058,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
               )}
               {/* Professional Centered Uploading Overlay */}
               {isUploadingPhoto && (
-                <div className="absolute inset-0 bg-[#2C211B]/70 backdrop-blur-xs rounded-[32px] flex flex-col items-center justify-center text-white gap-2 p-3 text-center z-20 animate-in fade-in duration-150">
+                <div className="absolute inset-0 bg-[#2C211B]/70 backdrop-blur-xs rounded-[22px] flex flex-col items-center justify-center text-white gap-2 p-3 text-center z-20 animate-in fade-in duration-150">
                   <Loader2 className="w-7 h-7 animate-spin text-[#F3E7DA]" />
                   <span className="text-xs font-bold text-white tracking-wide">Optimizing photo...</span>
                 </div>
@@ -1065,7 +1067,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
 
             {/* Emerald Verified Seal */}
             <div 
-              className="absolute -top-2 -left-2 bg-[#059669] text-white p-1.5 rounded-2xl shadow-md border-2 border-white flex items-center gap-1 z-10"
+              className="absolute -top-2 -left-2 bg-[#059669] text-white p-1.5 rounded-xl shadow-md border-2 border-white flex items-center gap-1 z-10"
               title="Verified Digital Pet Passport"
             >
               <ShieldCheck className="w-4 h-4" />
@@ -1088,14 +1090,14 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
           </div>
 
           {/* Hero Details & Primary Identity */}
-          <div className="flex-1 text-center md:text-left space-y-3 w-full">
+          <div className="flex-1 text-center md:text-left space-y-3.5 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                   <h1 className="text-3xl sm:text-4xl font-black text-[#2C211B] tracking-tight font-brand">
                     {puppy.name}
                   </h1>
-                  <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                  <span className={`text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
                     puppy.sex === 'male' 
                       ? 'bg-blue-50 text-blue-800 border-blue-200' 
                       : 'bg-rose-50 text-rose-800 border-rose-200'
@@ -1110,66 +1112,75 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                 </div>
 
                 <p className="text-sm sm:text-base text-[#766A63] font-medium mt-1">
-                  {puppy.breed} • <span className="text-[#8B5E3C] font-semibold">{ageDisplay}</span> • {puppy.weightLbs} lbs
+                  {puppy.breed} • <span className="text-[#8B5E3C] font-bold">{ageDisplay}</span> • <span className="tabular-nums font-semibold">{puppy.weightLbs} lbs</span>
                 </p>
               </div>
 
-              {/* Action Buttons: Share Passport & Edit Profile */}
-              <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 pt-1 sm:pt-0">
-                <Button
-                  variant="outline"
-                  size="sm"
+              {/* Action Buttons: Share Passport & Edit Profile with min-h-[44px] mobile touch ergonomics */}
+              <div className="flex flex-wrap items-center justify-center md:justify-end gap-2.5 pt-1 sm:pt-0">
+                <button
+                  type="button"
                   onClick={handleSharePassport}
-                  leftIcon={<Share2 className="w-4 h-4 text-[#8B5E3C]" />}
-                  className="bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF6F0]"
+                  className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF6F0] text-[#2C211B] border border-[#E8DDD3] text-xs font-extrabold flex items-center gap-2 transition-all active:scale-[0.98] shadow-xs cursor-pointer"
                 >
-                  Share Passport
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                  <Share2 className="w-4 h-4 text-[#8B5E3C]" />
+                  <span>Share Passport</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIsEditOpen(true)}
-                  leftIcon={<Edit3 className="w-4 h-4 text-[#8B5E3C]" />}
-                  className="bg-white text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF6F0]"
+                  className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF6F0] text-[#2C211B] border border-[#E8DDD3] text-xs font-extrabold flex items-center gap-2 transition-all active:scale-[0.98] shadow-xs cursor-pointer"
                 >
-                  Edit Profile
-                </Button>
+                  <Edit3 className="w-4 h-4 text-[#8B5E3C]" />
+                  <span>Edit Profile</span>
+                </button>
               </div>
             </div>
 
-            {/* Quick Pet Dossier Highlights */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 w-full text-xs">
-              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#8B5E3C] shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Born</span>
-                  <span className="text-xs font-bold text-[#2C211B] truncate block">{puppy.birthDate || 'Not set'}</span>
+            {/* Quick Pet Dossier Highlights - Stacked card layout with zero awkward text truncation */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 w-full">
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl p-2.5 sm:p-3 flex flex-col justify-between min-h-[64px] shadow-2xs">
+                <div className="flex items-center gap-1.5 text-[#766A63]">
+                  <Calendar className="w-3.5 h-3.5 text-[#8B5E3C] shrink-0" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider">Born</span>
                 </div>
+                <span className="text-xs font-extrabold text-[#2C211B] tabular-nums mt-1 block">
+                  {puppy.birthDate || 'Not set'}
+                </span>
               </div>
 
-              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Treat</span>
-                  <span className="text-xs font-bold text-[#2C211B] truncate block">{puppy.favoriteTreat || 'None set'}</span>
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl p-2.5 sm:p-3 flex flex-col justify-between min-h-[64px] shadow-2xs">
+                <div className="flex items-center gap-1.5 text-[#766A63]">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider">Treat</span>
                 </div>
+                <span 
+                  className="text-xs font-extrabold text-[#2C211B] line-clamp-2 leading-tight mt-1 block"
+                  title={puppy.favoriteTreat || 'None set'}
+                >
+                  {puppy.favoriteTreat || 'None set'}
+                </span>
               </div>
 
-              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Microchip</span>
-                  <span className="text-xs font-bold text-[#2C211B] font-mono truncate block">{puppy.microchipNumber || 'Pending'}</span>
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl p-2.5 sm:p-3 flex flex-col justify-between min-h-[64px] shadow-2xs">
+                <div className="flex items-center gap-1.5 text-[#766A63]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider">Microchip</span>
                 </div>
+                <span className="text-xs font-mono font-extrabold text-[#2C211B] truncate tabular-nums mt-1 block">
+                  {puppy.microchipNumber || 'Pending'}
+                </span>
               </div>
 
-              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl px-3 py-2 flex items-center gap-2">
-                <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-[#766A63] font-bold uppercase tracking-wider block">Smart Tag</span>
-                  <span className="text-xs font-bold text-[#2C211B] flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded-full ${hasSmartTagPass ? 'bg-emerald-500' : 'bg-amber-400'}`} />
-                    {hasSmartTagPass ? 'Active' : 'Standard'}
+              <div className="bg-[#FFF9F2] border border-[#E8DDD3] rounded-xl p-2.5 sm:p-3 flex flex-col justify-between min-h-[64px] shadow-2xs">
+                <div className="flex items-center gap-1.5 text-[#766A63]">
+                  <QrCode className="w-3.5 h-3.5 text-[#8B5E3C] shrink-0" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider">Smart Tag</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${hasSmartTagPass ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]' : 'bg-amber-400'}`} />
+                  <span className="text-xs font-extrabold text-[#2C211B]">
+                    {hasSmartTagPass ? 'Active Pass' : 'Standard'}
                   </span>
                 </div>
               </div>
@@ -1181,77 +1192,37 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       </div>
 
       {/* SECTION NAV: SLEEK SEGMENTED CONTROL TABS */}
-      <div className="bg-[#F5EDE4] p-1.5 rounded-2xl border border-[#E8DDD3] shadow-2xs flex items-center gap-1 sm:gap-1.5 overflow-x-auto">
-        <button
-          type="button"
-          onClick={() => {
-            nativeBridge.haptics.light();
-            setActiveTab('passport');
-          }}
-          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'passport'
-              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
-              : 'text-[#766A63] hover:text-[#2C211B]'
-          }`}
-        >
-          <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" />
-          <span className="hidden sm:inline">Passport &amp; Care</span>
-          <span className="sm:hidden">Passport</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            nativeBridge.haptics.light();
-            setActiveTab('collar');
-          }}
-          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'collar'
-              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
-              : 'text-[#766A63] hover:text-[#2C211B]'
-          }`}
-        >
-          <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" />
-          <span className="hidden sm:inline">Smart Tag &amp; QR</span>
-          <span className="sm:hidden">Tag &amp; QR</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            nativeBridge.haptics.light();
-            setActiveTab('safety');
-          }}
-          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'safety'
-              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
-              : 'text-[#766A63] hover:text-[#2C211B]'
-          }`}
-        >
-          <AlertTriangle className={`w-4 h-4 shrink-0 ${isLost ? 'text-rose-600 animate-pulse' : 'text-[#8B5E3C]'}`} />
-          <span className="hidden sm:inline">Safety &amp; Contacts</span>
-          <span className="sm:hidden">Safety</span>
-          {isLost && (
-            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            nativeBridge.haptics.light();
-            setActiveTab('studio');
-          }}
-          className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'studio'
-              ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
-              : 'text-[#766A63] hover:text-[#2C211B]'
-          }`}
-        >
-          <Sparkles className="w-4 h-4 text-[#8B5E3C] shrink-0" />
-          <span className="hidden sm:inline">Page Studio &amp; Links</span>
-          <span className="sm:hidden">Studio</span>
-        </button>
+      <div className="bg-[#F3E7DA]/70 p-1.5 rounded-2xl border border-[#E8DDD3] shadow-inner flex items-center gap-1 sm:gap-1.5 overflow-x-auto select-none">
+        {[
+          { id: 'passport', label: 'Passport & Care', short: 'Passport', icon: <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
+          { id: 'collar', label: 'Smart Tag & QR', short: 'Tag & QR', icon: <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
+          { id: 'safety', label: 'Safety & Contacts', short: 'Safety', icon: <AlertTriangle className={`w-4 h-4 shrink-0 ${isLost ? 'text-rose-600 animate-pulse' : 'text-[#8B5E3C]'}`} />, badge: isLost },
+          { id: 'studio', label: 'Page Studio & Links', short: 'Studio', icon: <Sparkles className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                nativeBridge.haptics.selection();
+                setActiveTab(tab.id as any);
+              }}
+              className={`flex-1 min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap active:scale-[0.98] ${
+                isActive
+                  ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
+                  : 'text-[#766A63] hover:text-[#2C211B] hover:bg-white/40'
+              }`}
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.short}</span>
+              {tab.badge && (
+                <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* TAB 1: VERIFIED PET DOSSIER & IDENTITY (Case 37 Grouped List Architecture) */}
@@ -2374,7 +2345,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                             <img
                               src={photoUrl || puppy.photoUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400"}
                               alt={puppy.name}
-                              className="w-full h-full object-cover"
+                              draggable={false}
+                              className="w-full h-full object-cover pointer-events-none select-none"
                             />
                           </div>
 
@@ -2843,7 +2815,8 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                           <img 
                             src={previewSrc} 
                             alt="" 
-                            className="w-5 h-5 object-contain"
+                            draggable={false}
+                            className="w-5 h-5 object-contain pointer-events-none select-none"
                             onError={(e) => {
                               (e.currentTarget as HTMLElement).style.display = 'none';
                             }}

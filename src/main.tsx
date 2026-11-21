@@ -27,6 +27,23 @@ if (typeof window !== 'undefined') {
     return originalAddEventListener.call(window, type, listener, options);
   };
 
+  // Prevent browser context menu popup on long-pressing images or touch surfaces for a 100% native mobile app feel
+  window.addEventListener('contextmenu', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    // Allow native context menu only inside input fields or textareas (for copy/paste)
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable ||
+      target.closest('input') ||
+      target.closest('textarea')
+    ) {
+      return;
+    }
+    e.preventDefault();
+  }, { capture: true });
+
 
 }
 

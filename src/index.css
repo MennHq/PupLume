@@ -59,6 +59,14 @@ input, textarea {
   -webkit-user-select: text;
 }
 
+/* Native App Feel: Prevent browser touch callout, ghost image dragging, and long-press popups */
+img, picture, svg, video, canvas {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
 /* Custom utility for subtle smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

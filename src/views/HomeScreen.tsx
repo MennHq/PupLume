@@ -212,7 +212,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <img
               src={puppy.photoUrl}
               alt={puppy.name}
-              className="w-14 h-14 rounded-xl object-cover border-2 border-[#8B5E3C] shadow-xs group-hover:scale-105 transition-transform"
+              draggable={false}
+              className="w-14 h-14 rounded-xl object-cover border-2 border-[#8B5E3C] shadow-xs group-hover:scale-105 transition-transform pointer-events-none select-none"
             />
             <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#8B5E3C] text-white flex items-center justify-center text-[10px] font-bold">
               🐾

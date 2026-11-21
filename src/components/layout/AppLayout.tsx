@@ -189,12 +189,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="relative shrink-0" ref={puppyDropdownRef}>
               <button
                 onClick={() => setIsPuppyDropdownOpen(!isPuppyDropdownOpen)}
-                className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 min-h-[44px] rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] transition-all active:scale-[0.98] cursor-pointer"
               >
                 <img
                   src={puppy.photoUrl}
                   alt={puppy.name}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0"
+                  draggable={false}
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0 pointer-events-none select-none shadow-2xs"
                 />
                 <span className="text-xs font-bold text-[#2C211B] truncate max-w-[80px] sm:max-w-none">{puppy.name}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 shrink-0 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
@@ -236,7 +237,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                           <img
                             src={p.photoUrl}
                             alt={p.name}
-                            className={`w-8 h-8 rounded-xl object-cover border ${
+                            draggable={false}
+                            className={`w-8 h-8 rounded-xl object-cover border pointer-events-none select-none ${
                               isSelected ? 'border-[#8B5E3C]' : 'border-[#E8DDD3]'
                             }`}
                           />
@@ -309,7 +311,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#A45238] text-white text-[9px] font-bold flex items-center justify-center tabular-nums">
+                <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 rounded-full bg-[#A45238] text-white text-[10px] font-black flex items-center justify-center tabular-nums shadow-xs border-2 border-white pointer-events-none">
                   {unreadNotifsCount}
                 </span>
               )}
@@ -361,20 +363,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   nativeBridge.haptics.light();
                   onNavigate(item.id);
                 }}
-                className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-200 cursor-pointer ${
+                className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-150 cursor-pointer active:scale-95 select-none ${
                   isActive ? 'text-[#8B5E3C] -translate-y-0.5' : 'text-[#6A6059] hover:text-[#8B5E3C]'
                 }`}
               >
                 <div className={`p-1.5 rounded-xl transition-all duration-200 mb-0.5 relative ${
                   isActive ? 'bg-[#FFF9F2] shadow-sm border border-[#E8DDD3]/60' : 'bg-transparent border border-transparent'
                 }`}>
-                  {/* Clone the icon to inject dynamic stroke width if needed, or just let CSS cascade handle it */}
                   {item.icon}
                   {item.special && !isActive && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#8B5E3C]" />
                   )}
                 </div>
-                <span className={`text-[9px] tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                <span className={`text-[10px] tracking-wide ${isActive ? 'font-black' : 'font-semibold'}`}>{item.label}</span>
               </button>
             );
           })}

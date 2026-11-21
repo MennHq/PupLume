@@ -51,6 +51,16 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Native App: Prevent browser context menu popup when holding on images
+      window.addEventListener('contextmenu', function (e) {
+        var t = e.target;
+        if (!t) return;
+        if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable || (t.closest && (t.closest('input') || t.closest('textarea')))) {
+          return;
+        }
+        e.preventDefault();
+      }, { capture: true, passive: false });
+
       // Lock mobile viewport: block pinch-to-zoom on iOS/WebKit
       document.addEventListener('gesturestart', function (e) {
         e.preventDefault();
