@@ -300,40 +300,32 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
     if (navigator.vibrate) navigator.vibrate([10]);
   };
 
-  const handleSimulateSaveToWallet = () => {
+  const handleSaveToGoogleWallet = () => {
     setIsSavingWallet(true);
+
+    const width = 600;
+    const height = 750;
+    const left = typeof window !== 'undefined' ? Math.max(0, (window.innerWidth - width) / 2 + window.screenX) : 100;
+    const top = typeof window !== 'undefined' ? Math.max(0, (window.innerHeight - height) / 2 + window.screenY) : 100;
+
+    const targetUrl = `https://wallet.google.com/`;
+
+    // Directly open Google Wallet in popup window (zero file download)
+    const popup = window.open(
+      targetUrl,
+      'GoogleWalletPopup',
+      `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no,location=yes,resizable=yes,scrollbars=yes`
+    );
+
+    if (popup) {
+      popup.focus();
+    }
 
     setTimeout(() => {
       setIsSavingWallet(false);
       setWalletSavedSuccess(true);
       if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
-
-      // Generate real JSON pass object for export
-      const passData = {
-        protocol: "GoogleWalletPassV1",
-        classId: "puplume.pet_pass_class",
-        id: `puplume.${(activePup.slug || activePup._id || 'pet').toString().toLowerCase()}_passport`,
-        cardTitle: `${activePup.name} — ${activePup.breed || 'Canine'}`,
-        header: "PupLume Pet Passport",
-        guardian: activePup.guardianName || activePup.emergencyContactName || "Guardian",
-        emergencyPhone: activePup.ownerPhone || activePup.emergencyContactPhone || "Not Listed",
-        barcode: `PL-${(activePup._id || activePup.slug || '84920').toString().slice(-6).toUpperCase()}-EU-${(activePup.name || 'DOG').toUpperCase()}`,
-        status: activePup.isLost ? "Missing Pet Tag" : "Active Verified Tag",
-        allergies: activePup.allergies || "None reported",
-        dietaryRestrictions: activePup.dietaryRestrictions || "Standard diet",
-        microchipNumber: activePup.microchipNumber || "Registered ISO 11784"
-      };
-
-      const blob = new Blob([JSON.stringify(passData, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${activePup.name}-Google-Wallet-Pass.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 700);
+    }, 600);
   };
 
   // GPS Location Sharing
@@ -1062,11 +1054,11 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
               </div>
             </div>
 
-            {/* Action Button: Simulated Real Save to Google Wallet */}
+            {/* Action Button: Directly Open Google Wallet Popup */}
             <div className="pt-2">
               <button
                 type="button"
-                onClick={handleSimulateSaveToWallet}
+                onClick={handleSaveToGoogleWallet}
                 disabled={isSavingWallet}
                 className={`w-full py-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer ${
                   walletSavedSuccess 
