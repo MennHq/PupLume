@@ -38,6 +38,8 @@ export const RESERVED_SLUGS = new Set([
   'robots',
   'paddlelog',
   'share-target',
+  'marketing',
+  'app',
 ]);
 
 /**
@@ -207,24 +209,35 @@ export function getPuppyPublicUrl(slugOrName: string, options: { canonicalDomain
   if (!cleanSlug) return '';
 
   if (options.canonicalDomain) {
-    return `https://puplumepet.vercel.app/${cleanSlug}`;
+    return `https://puplume.pet/${cleanSlug}`;
   }
 
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname.toLowerCase();
+    // If running in production (app.puplume.pet or puplume.pet), always direct to root domain puplume.pet
+    if (hostname.endsWith('puplume.pet') || hostname === 'puplume.pet') {
+      return `https://puplume.pet/${cleanSlug}`;
+    }
     // If local dev or custom preview host, use window.location.origin
     return `${window.location.origin}/${cleanSlug}`;
   }
 
-  return `https://puplumepet.vercel.app/${cleanSlug}`;
+  return `https://puplume.pet/${cleanSlug}`;
 }
 
 /**
- * Returns the short display string (e.g. "puplumepet.vercel.app/leo" or current host).
+ * Returns the short display string (e.g. "puplume.pet/leo" or current host).
  */
 export function getPuppyDisplayUrl(slugOrName: string): string {
   const cleanSlug = normalizeSlug(slugOrName);
-  const host = typeof window !== 'undefined' && window.location.host
-    ? window.location.host
-    : 'puplumepet.vercel.app';
+  let host = 'puplume.pet';
+  if (typeof window !== 'undefined' && window.location.host) {
+    const rawHost = window.location.host.toLowerCase();
+    if (rawHost.endsWith('puplume.pet') || rawHost === 'puplume.pet') {
+      host = 'puplume.pet';
+    } else {
+      host = window.location.host;
+    }
+  }
   return `${host}/${cleanSlug || 'your-puppy'}`;
 }

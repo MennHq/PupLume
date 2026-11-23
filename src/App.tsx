@@ -34,6 +34,8 @@ const RecapView = lazyWithRetry(() => import('./views/RecapView').then(m => ({ d
 const PrivacyPolicyView = lazyWithRetry(() => import('./views/PrivacyPolicyView').then(m => ({ default: m.PrivacyPolicyView })));
 const TermsOfServiceView = lazyWithRetry(() => import('./views/TermsOfServiceView').then(m => ({ default: m.TermsOfServiceView })));
 const ProPaywallModal = lazyWithRetry(() => import('./components/ui/ProPaywallModal').then(m => ({ default: m.ProPaywallModal })));
+const MarketingLanding = lazyWithRetry(() => import('./views/MarketingLanding').then(m => ({ default: m.MarketingLanding })));
+import { getDomainContext, navigateToApp, navigateToMarketing } from './lib/domain';
 import { Sparkles } from 'lucide-react';
 import { clearUserDataInConvex } from './lib/convex';
 import { nativeBridge } from './lib/nativeBridge';
@@ -113,7 +115,7 @@ const VALID_VIEWS = new Set([
   'home', 'tasks', 'ai', 'academy', 'more', 'potty', 'health', 
   'expenses', 'vault', 'socialization', 'journal', 'recap', 
   'puppy', 'sharing', 'settings', 'onboarding', 'privacy', 'terms',
-  'auth', 'signin'
+  'auth', 'signin', 'marketing'
 ]);
 
 function sanitizeView(view: string | null | undefined): string {
@@ -123,6 +125,8 @@ function sanitizeView(view: string | null | undefined): string {
   if (clean === 'sign-in' || clean === 'login' || clean === 'auth' || clean === 'signin') return 'auth';
   if (clean === 'privacy' || clean === 'legal/privacy') return 'privacy';
   if (clean === 'terms' || clean === 'legal/terms' || clean === 'legal/refund' || clean === 'legal/cookies') return 'terms';
+  if (clean === 'marketing' || clean === 'landing') return 'marketing';
+  if (clean === 'app') return 'home';
   return VALID_VIEWS.has(clean) ? clean : 'home';
 }
 
@@ -269,6 +273,8 @@ export default function App() {
     storage.setAuthenticatedUser(user.id);
   }
 
+  const domainCtx = getDomainContext();
+
   const [puppy, setPuppy] = useState<PuppyProfile | null>(() => storage.getPuppy());
   const [currentView, setCurrentView] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -277,7 +283,12 @@ export default function App() {
       if (viewParam) {
         return sanitizeView(viewParam);
       }
-      return sanitizeView(window.location.pathname);
+      const ctx = getDomainContext();
+      const path = window.location.pathname;
+      if (ctx.isMarketingDomain && (path === '/' || path === '')) {
+        return 'marketing';
+      }
+      return sanitizeView(path);
     }
     return 'home';
   });
@@ -352,6 +363,15 @@ export default function App() {
       const path = window.location.pathname.toLowerCase();
       // NEVER overwrite public routes (like /pup/*, /safety/*, custom puppy slugs, or /paddlelog)
       if (isPublicPuppyPath(path) || path === '/paddlelog') {
+        return;
+      }
+
+      if (currentView === 'marketing') {
+        const ctx = getDomainContext();
+        const targetPath = ctx.isMarketingDomain ? '/' : '/marketing';
+        if (window.location.pathname !== targetPath) {
+          window.history.pushState({ view: 'marketing' }, '', targetPath);
+        }
         return;
       }
 
@@ -610,6 +630,29 @@ export default function App() {
     );
   }
 
+  // Public Marketing Landing Page for root domain (puplume.pet) or explicit /marketing view
+  if (
+    currentView === 'marketing' || 
+    (domainCtx.isMarketingDomain && typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '') && currentView !== 'auth')
+  ) {
+    return (
+      <Suspense fallback={<PupLumeSkeleton variant="home" label="Loading PupLume..." />}>
+        <MarketingLanding
+          isSignedIn={Boolean(isSignedIn)}
+          onGetStarted={() => {
+            navigateToApp('signup', (nextView) => setCurrentView(nextView));
+          }}
+          onSignIn={() => {
+            navigateToApp('signin', (nextView) => setCurrentView(nextView));
+          }}
+          onExploreDemo={() => {
+            navigateToApp('home', (nextView) => setCurrentView(nextView));
+          }}
+        />
+      </Suspense>
+    );
+  }
+
   const isDevPreview = typeof window !== 'undefined' && window.location.search.includes('mock=true');
   const effectiveSignedIn = isSignedIn || isDevPreview;
   const effectiveIsLoaded = isLoaded || isDevPreview;
@@ -637,11 +680,26 @@ export default function App() {
       <div className="min-h-screen bg-[#FFF9F2] flex flex-col md:flex-row">
         
         {/* Left Side: Brand Hero */}
-        <div className="hidden md:flex md:w-1/2 bg-[#8B5E3C] text-white p-12 flex-col justify-center relative overflow-hidden">
+        <div className="hidden md:flex md:w-1/2 bg-[#8B5E3C] text-white p-12 flex-col justify-between relative overflow-hidden">
           {/* Decorative glowing background */}
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
           
+          <div className="relative z-10">
+            <button 
+              type="button" 
+              onClick={() => navigateToMarketing((v) => setCurrentView(v))}
+              aria-label="Back to PupLume Homepage"
+              className="cursor-pointer transition-transform hover:opacity-90 active:scale-95 text-left"
+            >
+              <PupLumeLogo variant="full" size="md" />
+            </button>
+          </div>
+
           <MarketingCarousel />
+
+          <div className="relative z-10 text-xs text-white/50 font-medium">
+            &copy; 2026 PupLume. All rights reserved.
+          </div>
         </div>
 
         {/* Right Side: Auth Widget */}
@@ -653,7 +711,14 @@ export default function App() {
           <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
             {/* Mobile Brand Header */}
             <div className="md:hidden flex flex-col items-center mb-6 text-center">
-              <PupLumeLogo variant="full" size="lg" />
+              <button 
+                type="button" 
+                onClick={() => navigateToMarketing((v) => setCurrentView(v))}
+                aria-label="Back to PupLume Homepage"
+                className="cursor-pointer transition-transform hover:opacity-90 active:scale-95 text-center"
+              >
+                <PupLumeLogo variant="full" size="lg" />
+              </button>
               <p className="text-xs text-[#766A63] mt-2 font-medium">
                 Your AI companion for happy, healthy puppies
               </p>

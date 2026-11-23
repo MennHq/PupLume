@@ -23,12 +23,14 @@ interface MarketingLandingProps {
   onGetStarted: () => void;
   onSignIn: () => void;
   onExploreDemo: () => void;
+  isSignedIn?: boolean;
 }
 
 export const MarketingLanding: React.FC<MarketingLandingProps> = ({
   onGetStarted,
   onSignIn,
-  onExploreDemo
+  onExploreDemo,
+  isSignedIn = false,
 }) => {
 
   return (
@@ -50,21 +52,35 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
           <div className="flex items-center gap-2.5">
             <PWAInstallButton variant="outline" className="hidden sm:flex" />
 
-            <button
-              id="marketing-login-btn"
-              onClick={onSignIn}
-              className="text-xs sm:text-sm font-semibold text-[#5F3E29] hover:text-[#2C211B] px-3 py-2 cursor-pointer transition-colors"
-            >
-              Sign In
-            </button>
-            <Button
-              id="marketing-get-started-header"
-              variant="primary"
-              size="sm"
-              onClick={onGetStarted}
-            >
-              Get Started
-            </Button>
+            {isSignedIn ? (
+              <Button
+                id="marketing-open-app-header"
+                variant="primary"
+                size="sm"
+                onClick={onGetStarted}
+                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                Open PupLume
+              </Button>
+            ) : (
+              <>
+                <button
+                  id="marketing-login-btn"
+                  onClick={onSignIn}
+                  className="text-xs sm:text-sm font-semibold text-[#5F3E29] hover:text-[#2C211B] px-3 py-2 cursor-pointer transition-colors"
+                >
+                  Sign In
+                </button>
+                <Button
+                  id="marketing-get-started-header"
+                  variant="primary"
+                  size="sm"
+                  onClick={onGetStarted}
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -95,7 +111,7 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
               rightIcon={<ArrowRight className="w-4 h-4" />}
               className="w-full sm:w-auto shadow-md"
             >
-              Get Started with Max
+              {isSignedIn ? 'Open Your Puppy Dashboard' : 'Get Started with Max'}
             </Button>
             <Button
               id="hero-cta-demo"
