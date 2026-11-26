@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/react';
 import { 
   Plus, 
   Droplet, 
@@ -26,6 +27,7 @@ interface QuickActionSheetProps {
 }
 
 export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComplete }) => {
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
@@ -700,6 +702,9 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
             </label>
             <CloudinaryImageUploader
               folder="puplume/journal"
+              userId={user?.id || storage.getCurrentUserId() || undefined}
+              targetType="journal"
+              enableCrop={false}
               currentImageUrl={memoryPhotoUrl}
               onUploadSuccess={(url) => setMemoryPhotoUrl(url)}
             />

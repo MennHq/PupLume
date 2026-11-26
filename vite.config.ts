@@ -69,6 +69,7 @@ function serverApiPlugin(): Plugin {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: 'No image file provided' }));
+                return;
               }
               const result = await uploadToCloudinary(file, {
                 folder,

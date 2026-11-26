@@ -102,7 +102,7 @@
       "destination": "/api/pup-meta.ts?slug=$1"
     },
     {
-      "source": "/((?!assets/|.*\\..*).*)",
+      "source": "/((?!assets/|api/|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]

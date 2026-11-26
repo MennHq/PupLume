@@ -58,14 +58,26 @@ export function readFileAsDataUrl(file: File | Blob): Promise<string> {
 }
 
 function dataURItoBlob(dataURI: string): Blob {
-  const byteString = atob(dataURI.split(',')[1]);
-  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
+  const commaIdx = dataURI.indexOf(',');
+  if (commaIdx === -1) {
+    throw new Error('Invalid image data URI.');
   }
-  return new Blob([ab], { type: mimeString });
+  const header = dataURI.slice(0, commaIdx);
+  const body = dataURI.slice(commaIdx + 1);
+  const mimeMatch = header.match(/data:([^;]+)/i);
+  const mimeString = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
+  if (/;base64/i.test(header)) {
+    const byteString = atob(body);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  }
+
+  return new Blob([decodeURIComponent(body)], { type: mimeString });
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
@@ -152,8 +164,65 @@ export async function optimizeImageInBrowser(
 }
 
 /**
- * Uploads an image through the production Convex + Sharp + Cloudinary pipeline.
- * Features automatic fallback to client-side WebP canvas compression if network or server latency occurs.
+ * Tier-2 Cloud Fallback: Uploads browser-optimized WebP directly through /api/upload
+ * (Vercel serverless Cloudinary endpoint) so images are ALWAYS hosted on Cloudinary
+ * even if Convex Sharp action fails, times out, or encounters an exotic format.
+ */
+async function uploadOptimizedViaApi(
+  dataUrl: string,
+  options: UploadImageOptions,
+  previousPublicId?: string
+): Promise<UploadResult> {
+  const folder =
+    options.folder ||
+    (options.targetType === 'puppy_profile' || options.targetType === 'user_avatar'
+      ? 'puplume/pets'
+      : 'puplume/uploads');
+
+  const response = await withTimeout(
+    fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file: dataUrl,
+        folder,
+        tags: options.tags || ['puplume', options.targetType || 'pets'],
+        previousImageUrl:
+          options.previousImageUrl && options.previousImageUrl.startsWith('http')
+            ? options.previousImageUrl
+            : undefined,
+        previousPublicId,
+      }),
+    }),
+    20000,
+    'Cloudinary API upload timed out'
+  );
+
+  let payload: any = null;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`Upload server returned invalid response (${response.status}).`);
+  }
+
+  if (!response.ok || !payload?.success || !payload?.url || !String(payload.url).startsWith('http')) {
+    throw new Error(payload?.error || `Cloudinary API upload failed (${response.status}).`);
+  }
+
+  return {
+    url: payload.url,
+    publicId: payload.publicId,
+    width: payload.width,
+    height: payload.height,
+    format: payload.format || 'webp',
+    size: dataUrl.length,
+  };
+}
+
+/**
+ * Uploads an image through the production Convex + Sharp + Cloudinary pipeline,
+ * automatically falling back to browser-optimized /api/upload (also Cloudinary-hosted).
+ * Never silently returns an unhosted data: base64 URL.
  */
 export async function uploadImageToCloudinary(
   fileOrBase64: File | Blob | string,
@@ -177,15 +246,15 @@ export async function uploadImageToCloudinary(
     }
   }
 
-  // 1. Format validation: strictly JPG/JPEG, PNG, WebP
+  // 1. Format validation: JPG/JPEG, PNG, WebP, GIF, AVIF
   options.onProgress?.('validating');
   const mimeType = (fileBlob.type || '').toLowerCase();
-  const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
   const ext = fileName.toLowerCase().split('.').pop() || '';
-  const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+  const validExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
 
   if (mimeType && !validMimes.includes(mimeType) && !validExts.includes(ext)) {
-    throw new Error('Only JPG, PNG, and WebP images are allowed. Please select a supported file format.');
+    throw new Error('Only JPG, PNG, WebP, GIF, and AVIF images are allowed. Please select a supported file format.');
   }
 
   // 2. Enforce 10 MB maximum original size
@@ -195,12 +264,14 @@ export async function uploadImageToCloudinary(
     throw new Error(`Original image (${sizeMb} MB) exceeds the 10 MB limit. Please select an image under 10 MB.`);
   }
 
-  // Resolve user ID
+  // Resolve user ID & previous Cloudinary publicId
   const effectiveUserId = options.userId || storage.getCurrentUserId() || 'anonymous_user';
+  const previousPublicId =
+    options.previousPublicId ||
+    (options.previousImageUrl ? extractPublicId(options.previousImageUrl) : undefined);
 
-  // Attempt the Convex Cloudinary pipeline with strict timeouts and resilient fallback
+  // Tier 1: Convex Temporary Storage + Sharp + Cloudinary Node Action
   try {
-    // 3. Stage uncompressed original in Convex temporary File Storage
     options.onProgress?.('uploading');
     const uploadUrl = await withTimeout(
       convex.mutation(api.imageMutations.generateUploadUrl, {
@@ -231,12 +302,7 @@ export async function uploadImageToCloudinary(
       throw new Error('No storage ID returned from temporary staging.');
     }
 
-    // 4. Server-Side Sharp Processing + Cloudinary Upload via Node.js Action
     options.onProgress?.('processing');
-    const previousPublicId = options.previousPublicId || (
-      options.previousImageUrl ? extractPublicId(options.previousImageUrl) : undefined
-    );
-
     const result = await withTimeout(
       convex.action(api.images.processAndStoreImage, {
         storageId: storageId as Id<'_storage'>,
@@ -251,6 +317,10 @@ export async function uploadImageToCloudinary(
       'Cloudinary image processing timed out'
     );
 
+    if (!result?.secureUrl || !result.secureUrl.startsWith('http')) {
+      throw new Error('Convex upload completed without a valid Cloudinary HTTPS URL.');
+    }
+
     options.onProgress?.('saving');
     return {
       url: result.secureUrl,
@@ -261,21 +331,26 @@ export async function uploadImageToCloudinary(
       size: result.size,
     };
   } catch (serverPipelineErr: any) {
-    console.warn('[Upload Pipeline] Server processing issue, applying instant client-side WebP compression fallback:', serverPipelineErr);
+    console.warn('[Upload Pipeline] Convex pipeline failed, falling back to /api/upload Cloudinary endpoint:', serverPipelineErr);
+
+    // Tier 2: Browser crop/compress (<300KB WebP) -> /api/upload (Cloudinary Node SDK)
     options.onProgress?.('processing');
+    const isProfileTarget = options.targetType === 'puppy_profile' || options.targetType === 'user_avatar';
+    const maxDim = isProfileTarget ? 800 : 1600;
     try {
-      const clientFallbackDataUrl = await optimizeImageInBrowser(fileBlob, options.crop, 800);
+      const optimizedDataUrl = await optimizeImageInBrowser(fileBlob, options.crop, maxDim);
+      options.onProgress?.('uploading');
+      const apiResult = await uploadOptimizedViaApi(optimizedDataUrl, options, previousPublicId);
       options.onProgress?.('saving');
-      return {
-        url: clientFallbackDataUrl,
-        format: 'webp',
-        size: fileBlob.size,
-        width: 800,
-        height: 800,
-      };
-    } catch (clientErr) {
-      console.error('[Upload Pipeline] Client fallback also failed:', clientErr);
-      throw new Error(serverPipelineErr.message || 'Image processing failed. Please select a valid photo.');
+      return apiResult;
+    } catch (apiFallbackErr: any) {
+      console.error('[Upload Pipeline] Both Convex and /api/upload Cloudinary uploads failed:', apiFallbackErr);
+      const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+      throw new Error(
+        isOffline
+          ? 'You appear to be offline. Please reconnect to upload this photo to Cloudinary.'
+          : apiFallbackErr?.message || serverPipelineErr?.message || 'Cloudinary upload failed. Please try again.'
+      );
     }
   }
 }

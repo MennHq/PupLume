@@ -790,6 +790,18 @@ export async function deleteJournalEntryInConvex(
   );
 }
 
+export async function updateJournalEntryMediaInConvex(
+  id: string,
+  mediaUrl: string,
+  userId?: string
+): Promise<boolean> {
+  if (!id || id.startsWith('jrn-')) return true;
+  const payload = { id: id as any, mediaUrl, userId };
+  return runWithOfflineQueue("journal:updateJournalEntryMedia", payload, () =>
+    convex.mutation(api.journal.updateJournalEntryMedia, payload)
+  );
+}
+
 export async function deleteBehaviorLogInConvex(
   id: string,
   userId?: string

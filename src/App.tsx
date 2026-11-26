@@ -37,7 +37,8 @@ const ProPaywallModal = lazyWithRetry(() => import('./components/ui/ProPaywallMo
 const MarketingLanding = lazyWithRetry(() => import('./views/MarketingLanding').then(m => ({ default: m.MarketingLanding })));
 import { getDomainContext, navigateToApp, navigateToMarketing } from './lib/domain';
 import { Sparkles } from 'lucide-react';
-import { clearUserDataInConvex } from './lib/convex';
+import { clearUserDataInConvex, syncPuppyToConvex } from './lib/convex';
+import { uploadImageToCloudinary } from './lib/cloudinary';
 import { nativeBridge } from './lib/nativeBridge';
 import { OfflineAlert } from './components/pwa/OfflineAlert';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
@@ -545,6 +546,34 @@ export default function App() {
       }
     }
   }, [cloudData, user?.id]);
+
+  // Auto-migrate any legacy local data:image/* puppy photo to permanent Cloudinary URL
+  const migratingPuppyPhotosRef = React.useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!isSignedIn || !user?.id || !puppy?.id || !puppy.photoUrl) return;
+    if (!puppy.photoUrl.startsWith('data:image/')) return;
+    if (migratingPuppyPhotosRef.current.has(puppy.id)) return;
+
+    migratingPuppyPhotosRef.current.add(puppy.id);
+    const targetId = puppy.id;
+    uploadImageToCloudinary(puppy.photoUrl, {
+      userId: user.id,
+      targetType: 'puppy_profile',
+      targetId,
+      folder: 'puplume/pets',
+    })
+      .then((res) => {
+        if (!res.url || !res.url.startsWith('http')) return;
+        const latest = storage.getPuppies().find((p) => p.id === targetId);
+        if (!latest || !latest.photoUrl?.startsWith('data:image/')) return;
+        const updated = { ...latest, photoUrl: res.url };
+        storage.savePuppy(updated);
+        syncPuppyToConvex(updated, user.id).catch(() => {});
+      })
+      .catch(() => {
+        // Leave retry for next session if offline
+      });
+  }, [isSignedIn, user?.id, puppy?.id, puppy?.photoUrl]);
 
   const toastTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 

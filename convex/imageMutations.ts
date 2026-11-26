@@ -14,10 +14,10 @@ export const generateUploadUrl = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (identity && identity.subject && args.userId) {
-      if (args.userId !== identity.subject) {
-        throw new Error("Forbidden: You cannot upload images for another user.");
-      }
+    const isFallbackGuestId =
+      !args.userId || args.userId === "anonymous_user" || args.userId === "guest_user";
+    if (identity && identity.subject && !isFallbackGuestId && args.userId !== identity.subject) {
+      throw new Error("Forbidden: You cannot upload images for another user.");
     }
     return await ctx.storage.generateUploadUrl();
   },

@@ -62,15 +62,15 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
   const effectiveTargetType = targetType || (variant === 'avatar' ? 'puppy_profile' : 'general');
 
   const validateFile = (file: File): boolean => {
-    const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
     const ext = file.name.toLowerCase().split('.').pop() || '';
-    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+    const validExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
 
     const hasValidMime = file.type ? validMimes.includes(file.type.toLowerCase()) : false;
     const hasValidExt = validExts.includes(ext);
 
     if (!hasValidMime && !hasValidExt) {
-      setError('Only JPG, PNG, and WebP images are allowed. Please select a supported file.');
+      setError('Only JPG, PNG, WebP, GIF, and AVIF images are allowed. Please select a supported file.');
       return false;
     }
 
@@ -89,17 +89,19 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
     onUploadingChange?.(true);
     setUploadStep('Uploading photo...');
 
-    // Safety watchdog: Guarantee UI upload state never hangs past 20s
+    // Safety watchdog: Guarantee UI upload state never hangs past 65s (covers Tier 1 + Tier 2 cloud upload)
     const safetyWatchdog = setTimeout(() => {
       if (isMountedRef.current) {
         setIsUploading(false);
         setUploadStep('');
       }
       onUploadingChange?.(false);
-    }, 20000);
+    }, 65000);
 
     try {
-      const previousTarget = currentImageUrl || (previewUrl && previewUrl.startsWith('http') ? previewUrl : undefined);
+      const previousTarget =
+        (currentImageUrl && currentImageUrl.startsWith('http') ? currentImageUrl : undefined) ||
+        (previewUrl && previewUrl.startsWith('http') ? previewUrl : undefined);
 
       const result = await uploadImageToCloudinary(file, {
         userId,
@@ -202,7 +204,7 @@ export const CloudinaryImageUploader: React.FC<CloudinaryImageUploaderProps> = (
     <input
       ref={fileInputRef}
       type="file"
-      accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+      accept="image/jpeg,image/png,image/webp,image/gif,image/avif,.jpg,.jpeg,.png,.webp,.gif,.avif"
       className="hidden"
       onChange={handleInputChange}
       disabled={isUploading}

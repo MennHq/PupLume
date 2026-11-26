@@ -28,6 +28,7 @@ import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploade
 import { useUser } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { syncPuppyToConvex } from '../lib/convex';
 import { engine as notificationEngine } from '../lib/NotificationEngine';
 import { localAlarms } from '../lib/localAlarms';
 
@@ -900,9 +901,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
           </label>
           <CloudinaryImageUploader
             currentImageUrl={puppy.photoUrl}
-            onUploadSuccess={(url) => {
+            onUploadSuccess={async (url) => {
               const updated = { ...puppy, photoUrl: url };
               storage.savePuppy(updated);
+              await syncPuppyToConvex(updated, user?.id).catch(() => {});
               showStatus(`${puppy.name}'s photo updated securely!`);
             }}
             userId={user?.id}

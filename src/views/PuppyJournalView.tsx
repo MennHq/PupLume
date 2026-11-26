@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/react';
 import { 
   Heart, 
   Plus, 
@@ -14,13 +15,15 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ToastNotification } from '../components/ui/ToastNotification';
 import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploader';
-import { deleteImageFromCloudinary } from '../lib/cloudinary';
+import { deleteImageFromCloudinary, uploadImageToCloudinary } from '../lib/cloudinary';
+import { updateJournalEntryMediaInConvex } from '../lib/convex';
 
 interface PuppyJournalViewProps {
   puppy: PuppyProfile;
 }
 
 export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => {
+  const { user } = useUser();
   const [entries, setEntries] = useState(() => storage.getJournal(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [pendingDeleteEntry, setPendingDeleteEntry] = useState<any | null>(null);
@@ -28,6 +31,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
     open: false,
     message: '',
   });
+  const migratedEntryIdsRef = React.useRef<Set<string>>(new Set());
 
   const handleDeleteEntry = (entry: any) => {
     const media = entry.mediaUrl || entry.photoUrl;
@@ -85,19 +89,25 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
             const titleHeader = res.headers.get('x-shared-title');
             const decodedTitle = titleHeader ? decodeURIComponent(titleHeader) : 'Shared Puppy Memory';
 
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              if (typeof reader.result === 'string') {
-                setPhotoUrl(reader.result);
-                setTitle(decodedTitle !== 'Puppy Memory' ? decodedTitle : puppy.name + ' Photo Memory');
-                setBody('Saved from camera roll via native share');
-                setIsAddOpen(true);
-              }
-            };
-            reader.readAsDataURL(blob);
+            setTitle(decodedTitle !== 'Puppy Memory' ? decodedTitle : puppy.name + ' Photo Memory');
+            setBody('Saved from camera roll via native share');
+            setIsAddOpen(true);
 
-            // Clean up cache entry
+            // Clean up cache entry before uploading to Cloudinary
             await cache.delete('/shared-media-latest');
+
+            try {
+              const uploaded = await uploadImageToCloudinary(blob, {
+                folder: 'puplume/journal',
+                targetType: 'journal',
+                userId: user?.id || storage.getCurrentUserId() || undefined,
+              });
+              if (uploaded.url && uploaded.url.startsWith('http')) {
+                setPhotoUrl(uploaded.url);
+              }
+            } catch (uploadErr) {
+              console.warn('[PuppyJournal] Shared media Cloudinary upload failed:', uploadErr);
+            }
           }
         } catch (e) {
           console.debug('[PuppyJournal] Error retrieving shared media:', e);
@@ -105,7 +115,39 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
       }
     };
     checkSharedMedia();
-  }, [puppy.name]);
+  }, [puppy.name, user?.id]);
+
+  // Auto-migrate any legacy data:image/* journal entries to permanent Cloudinary URLs
+  React.useEffect(() => {
+    const uid = user?.id || storage.getCurrentUserId() || undefined;
+    entries.forEach((entry) => {
+      const rawMedia = entry.mediaUrl || (entry as any).photoUrl;
+      if (
+        typeof rawMedia === 'string' &&
+        rawMedia.startsWith('data:image/') &&
+        !migratedEntryIdsRef.current.has(entry.id)
+      ) {
+        migratedEntryIdsRef.current.add(entry.id);
+        uploadImageToCloudinary(rawMedia, {
+          folder: 'puplume/journal',
+          targetType: 'journal',
+          userId: uid,
+        })
+          .then((res) => {
+            if (!res.url || !res.url.startsWith('http')) return;
+            const current = storage.getJournal(puppy.id);
+            const updated = current.map((item) =>
+              item.id === entry.id ? { ...item, mediaUrl: res.url } : item
+            );
+            storage.saveJournalEntries(updated, puppy.id);
+            updateJournalEntryMediaInConvex(entry.id, res.url, uid).catch(() => {});
+          })
+          .catch(() => {
+            // Leave retry available on next session if offline
+          });
+      }
+    });
+  }, [entries, puppy.id, user?.id]);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -314,6 +356,7 @@ export const PuppyJournalView: React.FC<PuppyJournalViewProps> = ({ puppy }) => 
             <CloudinaryImageUploader
               currentImageUrl={photoUrl}
               onUploadSuccess={(url) => setPhotoUrl(url)}
+              userId={user?.id || storage.getCurrentUserId() || undefined}
               folder="puplume/journal"
               label="Upload Memory Photo"
               sublabel="JPG, PNG, or WebP (Max 10MB)"

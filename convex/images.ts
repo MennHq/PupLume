@@ -64,10 +64,12 @@ export const processAndStoreImage = action({
   handler: async (ctx, args) => {
     // Verify caller authentication if authenticated; allow guest/preview uploads safely
     const identity = await ctx.auth.getUserIdentity();
-    const effectiveUserId = identity?.subject || args.userId || "guest_user";
-    if (identity && identity.subject && args.userId && args.userId !== identity.subject) {
+    const isFallbackGuestId =
+      !args.userId || args.userId === "anonymous_user" || args.userId === "guest_user";
+    if (identity && identity.subject && !isFallbackGuestId && args.userId !== identity.subject) {
       throw new Error("Forbidden: You cannot upload images for another user.");
     }
+    const effectiveUserId = identity?.subject || (!isFallbackGuestId ? args.userId : undefined) || "guest_user";
 
     // 1. Retrieve temporary image from Convex File Storage
     const blob = await ctx.storage.get(args.storageId);
@@ -92,34 +94,36 @@ export const processAndStoreImage = action({
 
     try {
       // 3. Inspect and validate decoded image format with Sharp
-      const sharpInstance = sharp(originalBuffer);
-      const metadata = await sharpInstance.metadata();
+      const preMeta = await sharp(originalBuffer).metadata();
 
-      const validFormats = ["jpeg", "jpg", "png", "webp"];
-      if (!metadata.format || !validFormats.includes(metadata.format.toLowerCase())) {
+      const validFormats = ["jpeg", "jpg", "png", "webp", "gif", "avif"];
+      if (!preMeta.format || !validFormats.includes(preMeta.format.toLowerCase())) {
         throw new Error(
-          `Invalid image format "${metadata.format || "unknown"}". Only JPG, PNG, and WebP are allowed.`
+          `Invalid image format "${preMeta.format || "unknown"}". Only JPG, PNG, WebP, GIF, and AVIF are allowed.`
         );
       }
 
-      // 4. Correct image orientation according to EXIF
-      sharpInstance.rotate();
+      // 4. Correct EXIF orientation FIRST so crop coordinates match browser naturalWidth/naturalHeight
+      const rotated = await sharp(originalBuffer).rotate().toBuffer({ resolveWithObject: true });
+      const orientedWidth = rotated.info.width;
+      const orientedHeight = rotated.info.height;
+      const sharpInstance = sharp(rotated.data);
 
       // 5. Apply user crop coordinates if applicable
       const isProfileImage =
         args.targetType === "puppy_profile" || args.targetType === "user_avatar";
 
-      if (args.crop && metadata.width && metadata.height) {
-        // Bounds checking
+      if (args.crop && orientedWidth && orientedHeight) {
+        // Bounds checking against post-EXIF-rotation dimensions
         const rawLeft = Math.round(args.crop.left);
         const rawTop = Math.round(args.crop.top);
         const rawWidth = Math.round(args.crop.width);
         const rawHeight = Math.round(args.crop.height);
 
-        const left = Math.max(0, Math.min(rawLeft, metadata.width - 1));
-        const top = Math.max(0, Math.min(rawTop, metadata.height - 1));
-        const width = Math.max(1, Math.min(rawWidth, metadata.width - left));
-        const height = Math.max(1, Math.min(rawHeight, metadata.height - top));
+        const left = Math.max(0, Math.min(rawLeft, orientedWidth - 1));
+        const top = Math.max(0, Math.min(rawTop, orientedHeight - 1));
+        const width = Math.max(1, Math.min(rawWidth, orientedWidth - left));
+        const height = Math.max(1, Math.min(rawHeight, orientedHeight - top));
 
         if (width >= 10 && height >= 10) {
           sharpInstance.extract({ left, top, width, height });
@@ -203,7 +207,7 @@ export const processAndStoreImage = action({
 
       // 9. Save image reference and metadata in Convex database
       await ctx.runMutation(internal.imageMutations.saveImageRecord, {
-        userId: args.userId,
+        userId: effectiveUserId,
         targetType: args.targetType,
         targetId: args.targetId,
         url: uploadResult.secure_url,

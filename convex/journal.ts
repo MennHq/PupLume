@@ -70,3 +70,21 @@ export const deleteJournalEntry = mutation({
     return args.id;
   },
 });
+
+export const updateJournalEntryMedia = mutation({
+  args: {
+    id: v.id("journalEntries"),
+    mediaUrl: v.string(),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUser(ctx, args.userId);
+    const entry = await ctx.db.get(args.id);
+    if (!entry) {
+      throw new Error("Journal entry not found");
+    }
+    await verifyPuppyAccess(ctx, entry.puppyId, userId);
+    await ctx.db.patch(args.id, { mediaUrl: args.mediaUrl });
+    return args.id;
+  },
+});

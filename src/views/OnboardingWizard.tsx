@@ -822,6 +822,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               <CloudinaryImageUploader
                 currentImageUrl={photoUrl}
                 onUploadSuccess={(url) => setPhotoUrl(url)}
+                userId={userId || user?.id || storage.getCurrentUserId() || undefined}
                 folder="puplume/pets"
                 label={`Upload ${puppyName || 'Puppy'}'s Photo`}
                 sublabel="JPG, PNG, or WebP (Max 10MB)"

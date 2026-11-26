@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/react';
 import { 
   FileText, 
   Plus, 
@@ -21,6 +22,7 @@ interface DocumentVaultViewProps {
 }
 
 export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) => {
+  const { user } = useUser();
   const [documents, setDocuments] = useState<DocumentRecord[]>(() => storage.getDocuments(puppy.id));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentRecord | null>(null);
@@ -370,6 +372,7 @@ export const DocumentVaultView: React.FC<DocumentVaultViewProps> = ({ puppy }) =
             <CloudinaryImageUploader
               currentImageUrl={fileUrl}
               onUploadSuccess={(url) => setFileUrl(url)}
+              userId={user?.id || storage.getCurrentUserId() || undefined}
               folder="puplume/documents"
               label="Upload Medical / Adoption Document"
               sublabel="JPG, PNG, or WebP (Max 10MB)"
