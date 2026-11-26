@@ -99,6 +99,22 @@ export const saveImageRecord = internalMutation({
 });
 
 /**
+ * Mutation to update a puppy's photo URL directly (e.g. for migrations from base64 to Cloudinary).
+ */
+export const setPuppyPhoto = mutation({
+  args: {
+    puppyId: v.id("puppies"),
+    photoUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.puppyId, {
+      photoUrl: args.photoUrl,
+    });
+    return true;
+  },
+});
+
+/**
  * Internal mutation to delete temporary file from Convex File Storage.
  */
 export const cleanupTemporaryStorage = internalMutation({
