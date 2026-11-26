@@ -47,6 +47,29 @@ export function getDomainContext(): DomainContext {
     hostname.endsWith('.puplume.pet')
   );
 
+  // 0. Environment variable override (VITE_APP_MODE=marketing or VITE_APP_MODE=app)
+  const envMode = (import.meta.env?.VITE_APP_MODE || import.meta.env?.VITE_MODE || '').toLowerCase();
+  if (envMode === 'marketing') {
+    return {
+      isAppDomain: false,
+      isMarketingDomain: true,
+      isLocalOrPreview,
+      isProduction,
+      appBaseUrl: isLocalOrPreview ? window.location.origin : 'https://app.puplume.pet',
+      marketingBaseUrl: isLocalOrPreview ? window.location.origin : 'https://puplume.pet',
+    };
+  }
+  if (envMode === 'app') {
+    return {
+      isAppDomain: true,
+      isMarketingDomain: false,
+      isLocalOrPreview,
+      isProduction,
+      appBaseUrl: isLocalOrPreview ? window.location.origin : 'https://app.puplume.pet',
+      marketingBaseUrl: isLocalOrPreview ? window.location.origin : 'https://puplume.pet',
+    };
+  }
+
   // 1. Explicit query parameter overrides (testable on any URL: ?view=marketing or ?view=app)
   const viewParam = searchParams.get('view')?.toLowerCase();
   const appParam = searchParams.get('app');
@@ -98,11 +121,14 @@ export function getDomainContext(): DomainContext {
   }
 
   // 3. Subdomain matching:
-  // e.g. app.puplume.pet, app-staging.puplume.pet, preview URLs starting with app-
+  // e.g. app.puplume.pet, app-puplumepet.vercel.app, puplume-app.vercel.app
   const isAppSubdomain = (
     hostname.startsWith('app.') ||
     hostname.includes('.app.') ||
-    hostname.startsWith('app-')
+    hostname.startsWith('app-') ||
+    hostname.includes('-app.') ||
+    hostname.includes('puplume-app') ||
+    hostname.includes('puplumepet-app')
   );
 
   if (isAppSubdomain) {
@@ -117,7 +143,7 @@ export function getDomainContext(): DomainContext {
   }
 
   // 4. Marketing domain matching:
-  // Production root domain (puplume.pet, www.puplume.pet) or preview branch named marketing
+  // Production root domain (puplume.pet, www.puplume.pet), marketing preview or petttttttpuplume
   const isProductionRoot = (
     hostname === 'puplume.pet' ||
     hostname === 'www.puplume.pet' ||
@@ -127,7 +153,8 @@ export function getDomainContext(): DomainContext {
 
   const isMarketingPreview = isLocalOrPreview && (
     hostname.includes('marketing') ||
-    hostname.includes('landing')
+    hostname.includes('landing') ||
+    hostname === 'petttttttpuplume.vercel.app'
   );
 
   if (isProductionRoot || isMarketingPreview) {

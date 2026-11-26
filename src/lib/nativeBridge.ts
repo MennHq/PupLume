@@ -49,6 +49,17 @@ class NativeBridge {
       }
     },
 
+    /** Selection tick (5-10ms) - for picker/segment/tab selection */
+    selection: (): void => {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+      } catch {
+        // Silently ignore
+      }
+    },
+
     /** Medium tap (25ms) - for action menus, sheet drag, modals */
     medium: (): void => {
       try {
