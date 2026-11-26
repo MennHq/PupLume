@@ -27,22 +27,61 @@ if (typeof window !== 'undefined') {
     return originalAddEventListener.call(window, type, listener, options);
   };
 
-  // Prevent browser context menu popup on long-pressing images or touch surfaces for a 100% native mobile app feel
-  window.addEventListener('contextmenu', (e) => {
-    const target = e.target as HTMLElement | null;
-    if (!target) return;
-    // Allow native context menu only inside input fields or textareas (for copy/paste)
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.isContentEditable ||
-      target.closest('input') ||
-      target.closest('textarea')
-    ) {
-      return;
-    }
-    e.preventDefault();
-  }, { capture: true });
+  // Smart PWA update lifecycle:
+  // - Never reload on first-ever SW install (when no previous controller existed)
+  // - Reload once (throttled & deferred while typing) when an existing PWA receives a new SW build
+  // - Check for SW updates whenever the installed PWA returns to foreground
+  if ('serviceWorker' in navigator) {
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let swRefreshing = false;
+    let waitingForBlur = false;
+
+    const reloadForSwUpdate = () => {
+      if (swRefreshing) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (
+        active &&
+        (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)
+      ) {
+        if (!waitingForBlur) {
+          waitingForBlur = true;
+          active.addEventListener(
+            'blur',
+            () => {
+              waitingForBlur = false;
+              reloadForSwUpdate();
+            },
+            { once: true }
+          );
+        }
+        return;
+      }
+      const lastSwReload = sessionStorage.getItem('puplume_sw_update_reload');
+      const now = Date.now();
+      if (lastSwReload && now - parseInt(lastSwReload, 10) < 30000) {
+        return;
+      }
+      swRefreshing = true;
+      sessionStorage.setItem('puplume_sw_update_reload', now.toString());
+      window.location.reload();
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) return;
+      reloadForSwUpdate();
+    });
+
+    let lastUpdateCheck = 0;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      if (now - lastUpdateCheck < 60000) return;
+      lastUpdateCheck = now;
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg) reg.update().catch(() => {});
+      }).catch(() => {});
+    });
+  }
 
 
 }

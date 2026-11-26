@@ -35,7 +35,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="PupLume" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
@@ -51,15 +52,30 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Native App: Prevent browser context menu popup when holding on images
-      window.addEventListener('contextmenu', function (e) {
-        var t = e.target;
-        if (!t) return;
-        if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable || (t.closest && (t.closest('input') || t.closest('textarea')))) {
-          return;
+      // Native App Feel: Block browser context menus, image callouts, ghost drags, and hold-to-select popups everywhere except text inputs
+      (function () {
+        function isEditableTarget(target) {
+          if (!target) return false;
+          var el = target.nodeType === 1 ? target : target.parentElement;
+          if (!el) return false;
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable) {
+            return true;
+          }
+          return Boolean(
+            el.closest && el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]')
+          );
         }
-        e.preventDefault();
-      }, { capture: true, passive: false });
+
+        function preventHoldPopup(e) {
+          if (isEditableTarget(e.target)) return;
+          e.preventDefault();
+        }
+
+        window.addEventListener('contextmenu', preventHoldPopup, { capture: true, passive: false });
+        document.addEventListener('contextmenu', preventHoldPopup, { capture: true, passive: false });
+        window.addEventListener('dragstart', preventHoldPopup, { capture: true, passive: false });
+        document.addEventListener('selectstart', preventHoldPopup, { capture: true, passive: false });
+      })();
 
       // Lock mobile viewport: block pinch-to-zoom on iOS/WebKit
       document.addEventListener('gesturestart', function (e) {
