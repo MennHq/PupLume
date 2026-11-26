@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderPassportCardPng, renderNotFoundCardPng } from '../_ogPassportCard';
+import { renderPassportCardPng, renderNotFoundCardPng } from '../_ogPassportCard.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');

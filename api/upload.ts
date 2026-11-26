@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { uploadToCloudinary } from '../src/server/cloudinaryService';
+import { uploadToCloudinary } from '../src/server/cloudinaryService.js';
 import {
   applyCorsHeaders,
   handlePreflight,
   parseMultipartUpload,
   readStreamWithLimit,
   sanitizeErrorMessage,
-} from './_utils';
+} from './_utils.js';
 
 // Disable default bodyParser to allow streaming Busboy multipart & bounded JSON reads
 export const config = {

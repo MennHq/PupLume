@@ -3,7 +3,7 @@ import {
   parseMultipartUpload,
   safeJsonScriptEmbed,
   sanitizeErrorMessage,
-} from './_utils';
+} from './_utils.js';
 
 // Disable default Vercel body parser so busboy can stream the multipart/form-data
 export const config = {

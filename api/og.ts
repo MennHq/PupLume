@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import pupHandler from './og/pup';
+import pupHandler from './og/pup.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   return pupHandler(req, res);

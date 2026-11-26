@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { processAIChat } from '../../src/server/geminiService';
+import { processAIChat } from '../../src/server/geminiService.js';
 import {
   applyCorsHeaders,
   handlePreflight,
   readStreamWithLimit,
   sanitizeErrorMessage,
-} from '../_utils';
+} from '../_utils.js';
 
 export const config = {
   api: {

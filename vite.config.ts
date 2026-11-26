@@ -7,6 +7,7 @@ import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { processAIChat, processAIOnboardingChat } from './src/server/geminiService.ts';
 import { uploadToCloudinary, deleteFromCloudinary } from './src/server/cloudinaryService.ts';
+import { parseMultipartUpload } from './api/_utils.ts';
 
 function serverApiPlugin(): Plugin {
   return {
@@ -57,6 +58,37 @@ function serverApiPlugin(): Plugin {
 
         // Cloudinary Upload endpoint (with automatic previous image deletion)
         if ((req.url === '/api/upload' || req.url === '/api/cloudinary/upload') && req.method === 'POST') {
+          const contentType = String(req.headers['content-type'] || '');
+          if (contentType.includes('multipart/form-data')) {
+            try {
+              const parsed = await parseMultipartUpload(req, {
+                maxFileSize: 10 * 1024 * 1024,
+                allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
+                maxFields: 10,
+              });
+              if (!parsed.file || !parsed.file.buffer?.length) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'No image file provided' }));
+                return;
+              }
+              const dataUri = `data:${parsed.file.mimeType || 'image/webp'};base64,${parsed.file.buffer.toString('base64')}`;
+              const result = await uploadToCloudinary(dataUri, {
+                folder: parsed.fields.folder,
+                tags: parsed.fields.tags ? parsed.fields.tags.split(',').map((t) => t.trim()).filter(Boolean) : undefined,
+                previousImageUrl: parsed.fields.previousImageUrl,
+                previousPublicId: parsed.fields.previousPublicId,
+              });
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: true, ...result }));
+            } catch (err: any) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err?.message || 'Cloudinary upload failed' }));
+            }
+            return;
+          }
+
           let body = '';
           req.on('data', (chunk) => {
             body += chunk;

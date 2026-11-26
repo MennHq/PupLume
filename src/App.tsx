@@ -547,32 +547,35 @@ export default function App() {
     }
   }, [cloudData, user?.id]);
 
-  // Auto-migrate any legacy local data:image/* puppy photo to permanent Cloudinary URL
+  // Auto-migrate any legacy local data:image/* puppy photos to permanent Cloudinary URLs
   const migratingPuppyPhotosRef = React.useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!isSignedIn || !user?.id || !puppy?.id || !puppy.photoUrl) return;
-    if (!puppy.photoUrl.startsWith('data:image/')) return;
-    if (migratingPuppyPhotosRef.current.has(puppy.id)) return;
+    if (!isSignedIn || !user?.id) return;
+    const allPups = storage.getPuppies();
+    allPups.forEach((pup) => {
+      if (!pup?.id || !pup.photoUrl?.startsWith('data:image/')) return;
+      if (migratingPuppyPhotosRef.current.has(pup.id)) return;
 
-    migratingPuppyPhotosRef.current.add(puppy.id);
-    const targetId = puppy.id;
-    uploadImageToCloudinary(puppy.photoUrl, {
-      userId: user.id,
-      targetType: 'puppy_profile',
-      targetId,
-      folder: 'puplume/pets',
-    })
-      .then((res) => {
-        if (!res.url || !res.url.startsWith('http')) return;
-        const latest = storage.getPuppies().find((p) => p.id === targetId);
-        if (!latest || !latest.photoUrl?.startsWith('data:image/')) return;
-        const updated = { ...latest, photoUrl: res.url };
-        storage.savePuppy(updated);
-        syncPuppyToConvex(updated, user.id).catch(() => {});
+      migratingPuppyPhotosRef.current.add(pup.id);
+      const targetId = pup.id;
+      uploadImageToCloudinary(pup.photoUrl, {
+        userId: user.id,
+        targetType: 'puppy_profile',
+        targetId,
+        folder: 'puplume/pets',
       })
-      .catch(() => {
-        // Leave retry for next session if offline
-      });
+        .then((res) => {
+          if (!res.url || !res.url.startsWith('http')) return;
+          const latest = storage.getPuppies().find((p) => p.id === targetId);
+          if (!latest || !latest.photoUrl?.startsWith('data:image/')) return;
+          const updated = { ...latest, photoUrl: res.url };
+          storage.savePuppy(updated);
+          syncPuppyToConvex(updated, user.id).catch(() => {});
+        })
+        .catch(() => {
+          // Leave retry for next session if offline
+        });
+    });
   }, [isSignedIn, user?.id, puppy?.id, puppy?.photoUrl]);
 
   const toastTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);

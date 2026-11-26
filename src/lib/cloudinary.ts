@@ -90,14 +90,14 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: st
 }
 
 /**
- * Browser-side image crop & compression fallback using HTML5 Canvas.
- * Used if server-side processing is unreachable, offline, or times out.
+ * Browser-side image crop & compression helper producing a binary WebP/JPEG Blob
+ * (never generates base64 data: URLs).
  */
 export async function optimizeImageInBrowser(
   fileOrBlob: Blob,
   crop?: { left: number; top: number; width: number; height: number },
   maxDimension: number = 800
-): Promise<string> {
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || typeof document === 'undefined') {
       return reject(new Error('Browser environment required for client compression.'));
@@ -137,7 +137,7 @@ export async function optimizeImageInBrowser(
         canvas.height = Math.max(1, destHeight);
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          resolve(url);
+          resolve(fileOrBlob);
           return;
         }
 
@@ -145,12 +145,27 @@ export async function optimizeImageInBrowser(
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, canvas.width, canvas.height);
 
-        // Convert to WebP or fallback to JPEG
-        let dataUrl = canvas.toDataURL('image/webp', 0.85);
-        if (!dataUrl || dataUrl.startsWith('data:image/png')) {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        }
-        resolve(dataUrl);
+        canvas.toBlob(
+          (webpBlob) => {
+            if (webpBlob && webpBlob.size > 0) {
+              resolve(webpBlob);
+              return;
+            }
+            canvas.toBlob(
+              (jpegBlob) => {
+                if (jpegBlob && jpegBlob.size > 0) {
+                  resolve(jpegBlob);
+                } else {
+                  resolve(fileOrBlob);
+                }
+              },
+              'image/jpeg',
+              0.85
+            );
+          },
+          'image/webp',
+          0.85
+        );
       } catch (err) {
         reject(err);
       }
@@ -164,12 +179,12 @@ export async function optimizeImageInBrowser(
 }
 
 /**
- * Tier-2 Cloud Fallback: Uploads browser-optimized WebP directly through /api/upload
- * (Vercel serverless Cloudinary endpoint) so images are ALWAYS hosted on Cloudinary
- * even if Convex Sharp action fails, times out, or encounters an exotic format.
+ * Tier-2 Cloud Fallback: Uploads binary WebP Blob directly via multipart/form-data
+ * to /api/upload (Vercel serverless Cloudinary endpoint) so images are ALWAYS hosted
+ * on Cloudinary without base64 data: URLs.
  */
 async function uploadOptimizedViaApi(
-  dataUrl: string,
+  optimizedBlob: Blob,
   options: UploadImageOptions,
   previousPublicId?: string
 ): Promise<UploadResult> {
@@ -179,20 +194,22 @@ async function uploadOptimizedViaApi(
       ? 'puplume/pets'
       : 'puplume/uploads');
 
+  const ext = optimizedBlob.type.includes('jpeg') ? 'jpg' : 'webp';
+  const formData = new FormData();
+  formData.append('file', optimizedBlob, `upload.${ext}`);
+  formData.append('folder', folder);
+  formData.append('tags', (options.tags || ['puplume', options.targetType || 'pets']).join(','));
+  if (options.previousImageUrl && options.previousImageUrl.startsWith('http')) {
+    formData.append('previousImageUrl', options.previousImageUrl);
+  }
+  if (previousPublicId) {
+    formData.append('previousPublicId', previousPublicId);
+  }
+
   const response = await withTimeout(
     fetch('/api/upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        file: dataUrl,
-        folder,
-        tags: options.tags || ['puplume', options.targetType || 'pets'],
-        previousImageUrl:
-          options.previousImageUrl && options.previousImageUrl.startsWith('http')
-            ? options.previousImageUrl
-            : undefined,
-        previousPublicId,
-      }),
+      body: formData,
     }),
     20000,
     'Cloudinary API upload timed out'
@@ -214,8 +231,8 @@ async function uploadOptimizedViaApi(
     publicId: payload.publicId,
     width: payload.width,
     height: payload.height,
-    format: payload.format || 'webp',
-    size: dataUrl.length,
+    format: payload.format || ext,
+    size: optimizedBlob.size,
   };
 }
 
@@ -338,9 +355,9 @@ export async function uploadImageToCloudinary(
     const isProfileTarget = options.targetType === 'puppy_profile' || options.targetType === 'user_avatar';
     const maxDim = isProfileTarget ? 800 : 1600;
     try {
-      const optimizedDataUrl = await optimizeImageInBrowser(fileBlob, options.crop, maxDim);
+      const optimizedBlob = await optimizeImageInBrowser(fileBlob, options.crop, maxDim);
       options.onProgress?.('uploading');
-      const apiResult = await uploadOptimizedViaApi(optimizedDataUrl, options, previousPublicId);
+      const apiResult = await uploadOptimizedViaApi(optimizedBlob, options, previousPublicId);
       options.onProgress?.('saving');
       return apiResult;
     } catch (apiFallbackErr: any) {

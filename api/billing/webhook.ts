@@ -5,7 +5,7 @@ import {
   readStreamWithLimit,
   verifyPaddleWebhookSignature,
   sanitizeErrorMessage,
-} from '../_utils';
+} from '../_utils.js';
 
 // Disable default Vercel body parser to verify raw webhook HMAC signature
 export const config = {

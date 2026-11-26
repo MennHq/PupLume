@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { deleteFromCloudinary } from '../src/server/cloudinaryService';
+import { deleteFromCloudinary } from '../src/server/cloudinaryService.js';
 import {
   applyCorsHeaders,
   handlePreflight,
   readStreamWithLimit,
   sanitizeErrorMessage,
-} from './_utils';
+} from './_utils.js';
 
 export const config = {
   api: {
