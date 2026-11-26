@@ -29,7 +29,6 @@ html {
   text-size-adjust: 100%;
   touch-action: pan-y;
   overscroll-behavior-x: none;
-  -webkit-touch-callout: none;
 }
 
 body {
@@ -43,10 +42,7 @@ body {
   background-color: #FFF9F2;
   color: #2C211B;
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 #root {
@@ -56,30 +52,9 @@ body {
   min-height: 100vh;
 }
 
-/* Native App Feel: Prevent browser touch callout, ghost image dragging, and long-press popups across ALL images & controls */
 img, picture {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  -webkit-user-drag: none !important;
-  pointer-events: none !important;
-}
-
-.interactive-img {
-  pointer-events: auto !important;
-}
-
-svg, video, canvas, a, button, [role="button"], label {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  -webkit-user-drag: none !important;
-}
-
-input, textarea, select, [contenteditable="true"], [contenteditable=""], [contenteditable="plaintext-only"] {
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  -webkit-touch-callout: default !important;
+  -webkit-touch-callout: default;
+  pointer-events: auto;
 }
 
 /* Custom utility for subtle smooth scrollbar */

@@ -481,7 +481,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
                 <img
                   src={photoUrl}
                   alt={activePup.name}
-                  className="w-full h-full object-cover select-none"
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400";
                   }}
@@ -819,7 +819,7 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
                     <img
                       src={photoUrl}
                       alt={activePup.name}
-                      className="w-full h-full object-cover select-none"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src =
                           "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400";

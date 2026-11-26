@@ -194,8 +194,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 <img
                   src={puppy.photoUrl}
                   alt={puppy.name}
-                  draggable={false}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0 pointer-events-none select-none shadow-2xs"
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl object-cover border border-[#8B5E3C] shrink-0 shadow-2xs"
                 />
                 <span className="text-xs font-bold text-[#2C211B] truncate max-w-[80px] sm:max-w-none">{puppy.name}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 shrink-0 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
@@ -237,8 +236,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                           <img
                             src={p.photoUrl}
                             alt={p.name}
-                            draggable={false}
-                            className={`w-8 h-8 rounded-xl object-cover border pointer-events-none select-none ${
+                            className={`w-8 h-8 rounded-xl object-cover border ${
                               isSelected ? 'border-[#8B5E3C]' : 'border-[#E8DDD3]'
                             }`}
                           />

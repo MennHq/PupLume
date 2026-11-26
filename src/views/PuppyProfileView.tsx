@@ -942,7 +942,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
     <div className="space-y-6 max-w-5xl mx-auto pb-6 px-1 sm:px-4">
 
       {/* PUP PACK SELECTOR & MANAGER (Case 37: Multi-Pet Architecture) */}
-      <div className="bg-white rounded-[24px] border border-[#E8DDD3] p-4 sm:p-5 shadow-xs select-none">
+      <div className="bg-white rounded-[24px] border border-[#E8DDD3] p-4 sm:p-5 shadow-xs">
         <div className="flex items-center justify-between gap-3 mb-3.5">
           <div className="space-y-0.5">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#8B5E3C] block">Multi-Pet Manager</span>
@@ -970,7 +970,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                 onClick={() => {
                   if (!isSelected) onSwitchPuppy?.(p.id);
                 }}
-                className={`min-h-[56px] p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
+                className={`min-h-[56px] p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 active:scale-[0.99] ${
                   isSelected
                     ? 'bg-[#FFF9F2] border-[#8B5E3C] ring-2 ring-[#8B5E3C]/20 shadow-xs'
                     : 'bg-white border-[#E8DDD3] hover:border-[#8B5E3C]/50 hover:bg-[#FAF6F0]'
@@ -980,8 +980,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                   <img
                     src={p.photoUrl}
                     alt={p.name}
-                    draggable={false}
-                    className="w-11 h-11 rounded-xl object-cover border border-[#8B5E3C]/30 shrink-0 pointer-events-none select-none shadow-2xs"
+                    className="w-11 h-11 rounded-xl object-cover border border-[#8B5E3C]/30 shrink-0 shadow-2xs"
                   />
                   <div className="min-w-0">
                     <h4 className="text-xs sm:text-sm font-extrabold text-[#2C211B] truncate flex items-center gap-1.5">
@@ -1028,7 +1027,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       )}
 
       {/* SECTION 1: VERIFIED PET PASSPORT HERO CARD */}
-      <div className="bg-[#FFFDF9] rounded-[28px] border-2 border-[#E8DDD3] p-5 sm:p-7 shadow-[0_8px_30px_rgba(44,33,27,0.06)] relative overflow-hidden select-none">
+      <div className="bg-[#FFFDF9] rounded-[28px] border-2 border-[#E8DDD3] p-5 sm:p-7 shadow-[0_8px_30px_rgba(44,33,27,0.06)] relative overflow-hidden">
         
         {/* Subtle decorative background watermarks */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#F3E7DA]/50 to-transparent rounded-bl-full pointer-events-none -mr-16 -mt-16" />
@@ -1049,8 +1048,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
               <img
                 src={photoUrl || puppy.photoUrl}
                 alt={puppy.name}
-                draggable={false}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none select-none"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               {/* Lost Mode Glow ring */}
               {isLost && (
@@ -1192,7 +1190,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       </div>
 
       {/* SECTION NAV: SLEEK SEGMENTED CONTROL TABS */}
-      <div className="bg-[#F3E7DA]/70 p-1.5 rounded-2xl border border-[#E8DDD3] shadow-inner flex items-center gap-1 sm:gap-1.5 overflow-x-auto select-none">
+      <div className="bg-[#F3E7DA]/70 p-1.5 rounded-2xl border border-[#E8DDD3] shadow-inner flex items-center gap-1 sm:gap-1.5 overflow-x-auto">
         {[
           { id: 'passport', label: 'Passport & Care', short: 'Passport', icon: <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
           { id: 'collar', label: 'Smart Tag & QR', short: 'Tag & QR', icon: <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
@@ -2345,8 +2343,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                             <img
                               src={photoUrl || puppy.photoUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400"}
                               alt={puppy.name}
-                              draggable={false}
-                              className="w-full h-full object-cover pointer-events-none select-none"
+                              className="w-full h-full object-cover"
                             />
                           </div>
 
@@ -2815,8 +2812,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                           <img 
                             src={previewSrc} 
                             alt="" 
-                            draggable={false}
-                            className="w-5 h-5 object-contain pointer-events-none select-none"
+                            className="w-5 h-5 object-contain"
                             onError={(e) => {
                               (e.currentTarget as HTMLElement).style.display = 'none';
                             }}

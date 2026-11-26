@@ -52,31 +52,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Native App Feel: Block browser context menus, image callouts, ghost drags, and hold-to-select popups everywhere except text inputs
-      (function () {
-        function isEditableTarget(target) {
-          if (!target) return false;
-          var el = target.nodeType === 1 ? target : target.parentElement;
-          if (!el) return false;
-          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable) {
-            return true;
-          }
-          return Boolean(
-            el.closest && el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]')
-          );
-        }
-
-        function preventHoldPopup(e) {
-          if (isEditableTarget(e.target)) return;
-          e.preventDefault();
-        }
-
-        window.addEventListener('contextmenu', preventHoldPopup, { capture: true, passive: false });
-        document.addEventListener('contextmenu', preventHoldPopup, { capture: true, passive: false });
-        window.addEventListener('dragstart', preventHoldPopup, { capture: true, passive: false });
-        document.addEventListener('selectstart', preventHoldPopup, { capture: true, passive: false });
-      })();
-
       // Lock mobile viewport: block pinch-to-zoom on iOS/WebKit
       document.addEventListener('gesturestart', function (e) {
         e.preventDefault();
