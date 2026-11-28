@@ -66,7 +66,7 @@ export const OfflineAlert: React.FC = () => {
     return (
       <aside 
         aria-label="Internet connection restored"
-        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xl animate-in fade-in slide-in-from-top-3 duration-300"
+        className="fixed top-[calc(0.75rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xl animate-in fade-in slide-in-from-top-3 duration-300"
       >
         <CheckCircle2 className="w-4 h-4 text-emerald-200" />
         <span>
@@ -89,7 +89,7 @@ export const OfflineAlert: React.FC = () => {
       <aside
         role="alert"
         aria-live="assertive"
-        className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#8B5E3C] via-[#7B5132] to-[#6A4328] text-white px-3 sm:px-4 py-2.5 shadow-md border-b border-[#A06E47] animate-in fade-in slide-in-from-top duration-300"
+        className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#8B5E3C] via-[#7B5132] to-[#6A4328] text-white px-3 sm:px-4 pt-[max(0.625rem,env(safe-area-inset-top,0px))] pb-2.5 shadow-md border-b border-[#A06E47] animate-in fade-in slide-in-from-top duration-300"
       >
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4 text-xs">
           {/* Alert Message */}
@@ -139,7 +139,7 @@ export const OfflineAlert: React.FC = () => {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-black/25 text-white font-semibold text-xs hover:bg-black/35 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-black/25 text-white font-semibold text-xs hover:bg-black/35 active:scale-95 transition-all cursor-pointer"
             >
               <span>Troubleshoot</span>
               <ChevronRight className="w-3.5 h-3.5 text-amber-300" />

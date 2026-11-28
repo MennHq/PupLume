@@ -151,7 +151,7 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
 
   return (
     <div 
-      className="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 z-[9999] sm:max-w-md w-auto"
+      className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] left-4 right-4 sm:left-auto sm:right-6 z-[9999] sm:max-w-md w-auto"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -196,13 +196,13 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
                 <button
                   onClick={handleSnooze}
                   title={`Snooze ${storage.getSettings().snoozeDurationMin || 15} minutes`}
-                  className="text-[11px] font-semibold text-[#766A63] hover:text-[#2C211B] px-2 py-0.5 rounded-lg hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold text-[#766A63] hover:text-[#2C211B] px-2 py-0.5 rounded-lg hover:bg-[#FAF6F0] active:scale-95 transition-all cursor-pointer"
                 >
                   Snooze ({storage.getSettings().snoozeDurationMin || 15}m)
                 </button>
                 <button
                   onClick={() => setAlert(null)}
-                  className="p-1 text-[#766A63] hover:text-[#2C211B] rounded-lg hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+                  className="p-1 text-[#766A63] hover:text-[#2C211B] rounded-lg hover:bg-[#FAF6F0] active:scale-95 transition-all cursor-pointer"
                   title="Dismiss"
                 >
                   <X className="w-4 h-4" />
@@ -266,7 +266,7 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
                   {alert.taskId && (
                     <button
                       onClick={() => handleQuickTaskComplete(alert.taskId)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Mark Done</span>
@@ -274,7 +274,7 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
                   )}
                   <button
                     onClick={handleNavigate}
-                    className="flex items-center justify-center gap-1 px-3 py-1.5 bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] border border-[#E8DDD3] rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    className="flex items-center justify-center gap-1 px-3 py-1.5 bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] border border-[#E8DDD3] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
                   >
                     <span>Open Planner</span>
                     <ArrowRight className="w-3 h-3" />
@@ -285,7 +285,7 @@ export const HeadsUpNotification: React.FC<HeadsUpNotificationProps> = ({
               {alert.category !== 'potty' && alert.category !== 'tasks' && (
                 <button
                   onClick={handleNavigate}
-                  className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#8B5E3C] hover:bg-[#6D492F] text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
                 >
                   <span>Open Alert Details</span>
                   <ArrowRight className="w-3.5 h-3.5" />

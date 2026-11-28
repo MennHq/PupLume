@@ -176,7 +176,7 @@ function SkeletonPlayground() {
   }, [selectedVariant, replayCount]);
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] flex flex-col">
+    <div className="min-h-dvh bg-[#FFF9F2] flex flex-col">
       {/* Top Lume Loading Progress Bar */}
       {isLoading && (
         <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
@@ -632,7 +632,7 @@ export default function App() {
   // Public legal pages accessible without authentication (privacy regulations compliance)
   if (currentView === 'privacy' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase() === '/privacy')) {
     return (
-      <div className="min-h-screen bg-[#FFFDF9] py-8 px-4 sm:px-6">
+      <div className="min-h-dvh bg-[#FFFDF9] pt-[max(2rem,env(safe-area-inset-top,0px))] pb-[max(2rem,env(safe-area-inset-bottom,0px))] px-4 sm:px-6">
         <Suspense fallback={<PupLumeSkeleton variant="privacy" label="Loading Privacy Policy..." />}>
           <PrivacyPolicyView onBack={() => {
             if (isSignedIn) setCurrentView('more');
@@ -648,7 +648,7 @@ export default function App() {
 
   if (currentView === 'terms' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase() === '/terms')) {
     return (
-      <div className="min-h-screen bg-[#FFFDF9] py-8 px-4 sm:px-6">
+      <div className="min-h-dvh bg-[#FFFDF9] pt-[max(2rem,env(safe-area-inset-top,0px))] pb-[max(2rem,env(safe-area-inset-bottom,0px))] px-4 sm:px-6">
         <Suspense fallback={<PupLumeSkeleton variant="terms" label="Loading Terms of Service..." />}>
           <TermsOfServiceView onBack={() => {
             if (isSignedIn) setCurrentView('more');
@@ -709,7 +709,7 @@ export default function App() {
     // Direct in-app sign in
 
     return (
-      <div className="min-h-screen bg-[#FFF9F2] flex flex-col md:flex-row">
+      <div className="min-h-dvh bg-[#FFF9F2] flex flex-col md:flex-row">
         
         {/* Left Side: Brand Hero */}
         <div className="hidden md:flex md:w-1/2 bg-[#8B5E3C] text-white p-12 flex-col justify-between relative overflow-hidden">
@@ -735,8 +735,8 @@ export default function App() {
         </div>
 
         {/* Right Side: Auth Widget */}
-        <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 relative bg-[#FFF9F2] min-h-screen md:min-h-0">
-          <div className="absolute top-4 w-full px-4">
+        <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] relative bg-[#FFF9F2] min-h-dvh md:min-h-0">
+          <div className="absolute top-[calc(1rem+env(safe-area-inset-top,0px))] w-full px-4">
             <OfflineAlert />
           </div>
           
@@ -921,7 +921,7 @@ export default function App() {
 
   if (!activePuppy || currentView === 'onboarding') {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-dvh flex flex-col">
         <OfflineAlert />
         <div className="flex-1">
           <Suspense fallback={<PupLumeSkeleton variant="onboarding" label="Loading AI Onboarding..." />}>

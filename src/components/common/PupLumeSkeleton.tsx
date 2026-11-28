@@ -41,7 +41,7 @@ interface PupLumeSkeletonProps {
 // -------------------------------------------------------------
 export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume Home...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-6xl mx-auto w-full select-none" 
+    className="min-h-dvh bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-6xl mx-auto w-full select-none" 
     aria-busy="true" 
     aria-label={label}
   >
@@ -156,7 +156,7 @@ export const HomeSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
 // -------------------------------------------------------------
 export const AskAISkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume AI Assistant...' }) => (
   <div 
-    className="flex flex-col h-[calc(100dvh-140px)] sm:h-[calc(100vh-120px)] max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
+    className="flex flex-col h-[calc(100dvh-140px)] sm:h-[calc(100dvh-120px)] max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-4 select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -568,7 +568,7 @@ export const CardSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading ca
 // -------------------------------------------------------------
 export const PublicPupSafetySkeleton: React.FC<{ label?: string }> = ({ label = 'Loading puppy safety card...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center select-none"
+    className="min-h-dvh bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -1053,7 +1053,7 @@ export const RecapSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading R
 // -------------------------------------------------------------
 export const OnboardingSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading AI Onboarding...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-2xl mx-auto w-full select-none"
+    className="min-h-dvh bg-[#FFF9F2] flex flex-col justify-between p-4 sm:p-6 max-w-2xl mx-auto w-full select-none"
     aria-busy="true" 
     aria-label={label}
   >
@@ -1163,7 +1163,7 @@ export const SignInCardSkeleton: React.FC<{ mode?: 'signin' | 'signup' }> = ({ m
 // -------------------------------------------------------------
 export const AuthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading PupLume Sign In...' }) => (
   <div 
-    className="min-h-screen bg-[#FFF9F2] flex flex-col md:flex-row select-none" 
+    className="min-h-dvh bg-[#FFF9F2] flex flex-col md:flex-row select-none" 
     aria-busy="true" 
     aria-label={label}
   >
@@ -1185,7 +1185,7 @@ export const AuthSkeleton: React.FC<{ label?: string }> = ({ label = 'Loading Pu
     </div>
 
     {/* Right Side: Auth Widget Area */}
-    <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 relative bg-[#FFF9F2] min-h-screen md:min-h-0">
+    <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 sm:p-12 relative bg-[#FFF9F2] min-h-dvh md:min-h-0">
       <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
         {/* Mobile Brand Header */}
         <div className="md:hidden flex flex-col items-center mb-6 text-center space-y-2">

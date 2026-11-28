@@ -306,7 +306,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
 
         <button
           onClick={handleClearChat}
-          className="p-2 text-[#766A63] hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors cursor-pointer"
+          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#766A63] hover:text-rose-600 hover:bg-rose-50 active:scale-95 rounded-full transition-all cursor-pointer"
           title="Clear chat history"
         >
           <Trash2 className="w-4 h-4" />
@@ -314,7 +314,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-1 space-y-3.5 pr-2">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-1 space-y-3.5 pr-2">
         {messages.length === 0 && (
           <div className="min-h-full flex flex-col items-center justify-start sm:justify-center p-4 pt-6 sm:pt-8 pb-6 text-center">
             <div className="flex items-center justify-center mb-3">
@@ -465,12 +465,12 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
       </div>
 
       {/* Starter Prompts Pills */}
-      <div className="py-2 overflow-x-auto no-scrollbar flex items-center gap-1.5 flex-nowrap">
+      <div className="py-2 overflow-x-auto no-scrollbar flex items-center gap-1.5 flex-nowrap snap-x snap-proximity">
         {starterPrompts.map((prompt) => (
           <button
             key={prompt}
             onClick={() => handleSend(prompt)}
-            className="text-xs font-medium px-3 py-1.5 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] border border-[#E8DDD3] whitespace-nowrap cursor-pointer transition-colors shadow-2xs"
+            className="snap-start text-xs font-medium px-3 py-1.5 rounded-full bg-[#FFF9F2] hover:bg-[#F3E7DA] active:scale-95 text-[#5F3E29] border border-[#E8DDD3] whitespace-nowrap cursor-pointer transition-all shadow-2xs"
           >
             {prompt}
           </button>

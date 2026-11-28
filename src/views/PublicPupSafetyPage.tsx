@@ -183,7 +183,7 @@ const PublicPupSafetyContent: React.FC = () => {
   // Loading state
   if (convexPup === undefined && identifier && !localPup) {
     return (
-      <div className="min-h-screen bg-[#FFF9F2] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-dvh bg-[#FFF9F2] flex flex-col items-center justify-center p-6 text-center">
         <div className="w-10 h-10 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin mb-3.5" />
         <h2 className="text-base font-bold text-[#2C211B]" style={{ fontFamily: "'Grandstander', cursive" }}>
           Accessing Smart Collar Tag...
@@ -196,7 +196,7 @@ const PublicPupSafetyContent: React.FC = () => {
   // Not found fallback
   if (!activePup) {
     return (
-      <div className="min-h-screen bg-[#FFF9F2] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
+      <div className="min-h-dvh bg-[#FFF9F2] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
         <div className="w-20 h-20 bg-[#FAF6F0] rounded-3xl flex items-center justify-center mb-5 border border-[#EFE8E1] shadow-clean">
           <Dog className="w-10 h-10 text-[#8B5E3C]" />
         </div>
@@ -380,12 +380,12 @@ export const PublicPupSafetyCard: React.FC<{ puppy: any; identifier?: string }> 
   }, [rawVaccines]);
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center pb-28 sm:pb-12 selection:bg-[#8B5E3C] selection:text-white font-sans w-full">
+    <div className="min-h-dvh bg-[#FFF9F2] text-[#2C211B] flex flex-col items-center pb-[calc(7rem+env(safe-area-inset-bottom,0px))] sm:pb-12 selection:bg-[#8B5E3C] selection:text-white font-sans w-full">
 
       {/* ========================================== */}
       {/* 1. TOP NAV BAR (Responsive)                */}
       {/* ========================================== */}
-      <header className="w-full bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#EFE8E1] sticky top-0 z-40">
+      <header className="w-full bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#EFE8E1] sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-md md:max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           
           {/* Brand Logo & Name */}

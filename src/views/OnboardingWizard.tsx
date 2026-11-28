@@ -441,7 +441,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] flex flex-col justify-between py-6 px-4 sm:px-6">
+    <div className="min-h-dvh bg-[#FAF6F0] flex flex-col justify-between pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] px-4 sm:px-6">
       <div className="max-w-3xl mx-auto w-full space-y-6">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between bg-white px-5 py-4 rounded-3xl border border-[#E8DDD3] shadow-xs">

@@ -472,12 +472,12 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson, onNav
         </div>
 
         {/* Category horizontal scrolling pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 snap-x snap-proximity">
           {categories.map(c => (
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap cursor-pointer ${
+              className={`snap-start text-xs font-semibold px-3 py-1 rounded-full border transition-all active:scale-95 whitespace-nowrap cursor-pointer ${
                 selectedCategory === c.id
                   ? 'bg-[#8B5E3C] text-white border-[#8B5E3C]'
                   : 'bg-white text-[#766A63] border-[#E8DDD3] hover:bg-[#FFF9F2]'

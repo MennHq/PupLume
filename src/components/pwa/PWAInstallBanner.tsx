@@ -32,7 +32,7 @@ export const PWAInstallBanner: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-[#FFF9F2] border border-[#E8DDD3] rounded-2xl shadow-xl p-4 text-[#2C211B] animate-in slide-in-from-bottom-5 duration-300">
+    <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-[#FFF9F2] border border-[#E8DDD3] rounded-2xl shadow-xl p-4 text-[#2C211B] animate-in slide-in-from-bottom-5 duration-300">
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           <img

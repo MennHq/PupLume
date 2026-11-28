@@ -71,7 +71,7 @@ export const PaddleLogPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] py-8 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-dvh bg-[#FFF9F2] text-[#2C211B] py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Top Navigation & Brand */}

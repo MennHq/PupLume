@@ -107,7 +107,7 @@ export const Modal: React.FC<ModalProps> = ({
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="sm:hidden pt-3 pb-2 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none"
+              className="sm:hidden pt-3 pb-2 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none drag-handle"
               title="Swipe down to close"
             >
               <div className="w-14 h-1.5 bg-[#D4C3B3] hover:bg-[#8B5E3C] rounded-full transition-colors" />
@@ -128,7 +128,7 @@ export const Modal: React.FC<ModalProps> = ({
                 <button
                   id="modal-close-button"
                   onClick={onClose}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 -mr-2 text-[#766A63] hover:text-[#2C211B] rounded-full hover:bg-[#F3E7DA]/60 transition-colors cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 -mr-2 text-[#766A63] hover:text-[#2C211B] rounded-full hover:bg-[#F3E7DA]/60 active:scale-95 transition-all cursor-pointer"
                   aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />
@@ -137,7 +137,7 @@ export const Modal: React.FC<ModalProps> = ({
             )}
 
             {/* Body */}
-            <div className="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 overflow-y-auto flex-1">{children}</div>
+            <div className="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 overflow-y-auto overscroll-contain flex-1">{children}</div>
           </motion.div>
         </div>
       )}

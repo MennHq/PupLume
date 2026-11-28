@@ -164,13 +164,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   }, [puppyList, puppy]);
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
+    <div className="min-h-dvh w-full max-w-full overflow-x-hidden bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
       {/* Offline Status Alert */}
       <OfflineIndicator />
 
       
       {/* Desktop & Tablet Top Navigation */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-3 sm:px-8 py-2.5 sm:py-3 w-full max-w-full">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8DDD3] px-3 sm:px-8 pt-[max(0.625rem,env(safe-area-inset-top,0px))] pb-2.5 sm:pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:pb-3 w-full max-w-full">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between gap-2">
           {/* Logo & Puppy Switcher */}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -217,7 +217,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  <div className="max-h-60 overflow-y-auto">
+                  <div className="max-h-60 overflow-y-auto overscroll-contain">
                     {allPuppies.map((p) => {
                       const isSelected = p.id === puppy.id;
                       return (
@@ -294,7 +294,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={handleOpenSearch}
-              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer"
+              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] active:scale-95 text-[#5F3E29] transition-all cursor-pointer"
               title="Search (⌘K)"
               aria-label="Search"
             >
@@ -303,7 +303,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
             <button
               onClick={handleOpenNotifications}
-              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29] transition-colors cursor-pointer relative"
+              className="flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] active:scale-95 text-[#5F3E29] transition-all cursor-pointer relative"
               title="Notifications"
               aria-label="Notifications"
             >
@@ -318,7 +318,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             {/* Settings Quick Access Button (Matches Search & Notifications styling) */}
             <button
               onClick={() => onNavigate('settings')}
-              className={`hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border transition-all cursor-pointer group ${
+              className={`hidden sm:flex min-w-[44px] min-h-[44px] items-center justify-center p-2.5 rounded-xl border transition-all active:scale-95 cursor-pointer group ${
                 currentView === 'settings'
                   ? 'border-[#8B5E3C] bg-[#8B5E3C] text-white shadow-2xs'
                   : 'border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] text-[#5F3E29]'
@@ -343,8 +343,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       {/* Main Content Area */}
       <main className={`max-w-6xl mx-auto w-full px-3 sm:px-8 ${
         currentView === 'ai'
-          ? 'h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col overflow-hidden pt-2 pb-[calc(78px+env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-4.5rem)] md:pb-4 md:pt-4'
-          : 'flex-1 pt-2.5 sm:pt-5 pb-24 md:pb-8'
+          ? 'h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col overflow-hidden pt-2 pb-[calc(78px+env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-4.5rem)] md:pb-4 md:pt-4'
+          : 'flex-1 pt-2.5 sm:pt-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8'
       }`}>
         {children}
       </main>

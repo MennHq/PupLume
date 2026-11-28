@@ -39,7 +39,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
           sessionStorage.setItem('puplume_eb_reload', now.toString());
           window.location.reload();
           return (
-            <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
+            <div className="min-h-dvh bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-8 h-8 border-3 border-[#8B5E3C] border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-bold text-[#8B5E3C]">Updating PupLume to latest version...</p>
@@ -50,7 +50,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
       }
 
       return (
-        <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
+        <div className="min-h-dvh bg-[#FFF9F2] flex items-center justify-center p-6 text-center">
           <div className="max-w-md bg-white p-8 rounded-3xl border border-[#E8DDD3] shadow-sm flex flex-col items-center gap-4">
             <span className="text-4xl">🐾</span>
             <h2 className="text-xl font-bold text-[#2C211B]">

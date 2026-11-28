@@ -451,6 +451,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
             </label>
             <input
               type="number"
+              inputMode="decimal"
               step="0.25"
               min="0.1"
               value={foodAmount}
@@ -522,6 +523,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
             </label>
             <input
               type="number"
+              inputMode="numeric"
               min="5"
               step="5"
               value={sleepDuration}
@@ -555,6 +557,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
               </label>
               <input
                 type="number"
+                inputMode="numeric"
                 min="5"
                 value={walkDuration}
                 onChange={(e) => setWalkDuration(e.target.value)}
@@ -567,6 +570,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
               </label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.1"
                 min="0.1"
                 value={walkDistance}
@@ -615,6 +619,7 @@ export const QuickActionSheet: React.FC<QuickActionSheetProps> = ({ onActionComp
               </label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.01"
                 min="0.5"
                 required

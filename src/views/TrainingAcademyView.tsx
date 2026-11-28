@@ -192,12 +192,12 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
       </div>
 
       {/* Module Selector Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 snap-x snap-proximity">
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setSelectedModule(m.id)}
-            className={`text-xs font-semibold px-3.5 py-2 rounded-xl border whitespace-nowrap cursor-pointer transition-all ${
+            className={`snap-start text-xs font-semibold px-3.5 py-2 rounded-xl border whitespace-nowrap cursor-pointer transition-all active:scale-95 ${
               selectedModule === m.id
                 ? 'bg-[#8B5E3C] text-white border-[#8B5E3C] shadow-xs'
                 : 'bg-white text-[#766A63] border-[#E8DDD3] hover:bg-[#FFF9F2]'

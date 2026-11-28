@@ -34,9 +34,9 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
 }) => {
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B]">
+    <div className="min-h-svh bg-[#FFF9F2] text-[#2C211B]">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#E8DDD3]">
+      <header className="sticky top-0 z-40 bg-[#FFF9F2]/90 backdrop-blur-md border-b border-[#E8DDD3] pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <PupLumeLogo variant="full" size="md" />
 
@@ -67,7 +67,7 @@ export const MarketingLanding: React.FC<MarketingLandingProps> = ({
                 <button
                   id="marketing-login-btn"
                   onClick={onSignIn}
-                  className="text-xs sm:text-sm font-semibold text-[#5F3E29] hover:text-[#2C211B] px-3 py-2 cursor-pointer transition-colors"
+                  className="text-xs sm:text-sm font-semibold text-[#5F3E29] hover:text-[#2C211B] px-3 py-2 min-h-[44px] active:scale-95 cursor-pointer transition-all"
                 >
                   Sign In
                 </button>

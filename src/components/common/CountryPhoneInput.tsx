@@ -65,6 +65,8 @@ export const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
         {/* The Text Input Typebox */}
         <input
           type="tel"
+          inputMode="tel"
+          autoComplete="tel"
           required={required}
           value={value}
           onKeyDown={preventLetterInput}

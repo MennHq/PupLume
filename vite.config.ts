@@ -187,7 +187,7 @@ export default defineConfig(() => {
           name: 'PupLume — AI Puppy Manager',
           short_name: 'PupLume',
           description: 'PupLume is your clean, premium AI puppy companion — effortlessly managing potty routines, nutrition, wellness, and veterinary safety.',
-          theme_color: '#8B5E3C',
+          theme_color: '#FFF9F2',
           background_color: '#FFF9F2',
           display: 'standalone',
           display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],

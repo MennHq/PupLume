@@ -179,7 +179,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
 
 
   return (
-    <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-dvh bg-[#FFF9F2] flex items-center justify-center p-4 sm:p-8">
       <div className="max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#F5F0EA] flex flex-col md:flex-row">
         
         {/* Left Side: Illustration / Brand */}

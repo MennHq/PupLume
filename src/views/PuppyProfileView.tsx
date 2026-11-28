@@ -1190,7 +1190,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
       </div>
 
       {/* SECTION NAV: SLEEK SEGMENTED CONTROL TABS */}
-      <div className="bg-[#F3E7DA]/70 p-1.5 rounded-2xl border border-[#E8DDD3] shadow-inner flex items-center gap-1 sm:gap-1.5 overflow-x-auto">
+      <div className="bg-[#F3E7DA]/70 p-1.5 rounded-2xl border border-[#E8DDD3] shadow-inner flex items-center gap-1 sm:gap-1.5 overflow-x-auto snap-x snap-proximity">
         {[
           { id: 'passport', label: 'Passport & Care', short: 'Passport', icon: <Dog className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
           { id: 'collar', label: 'Smart Tag & QR', short: 'Tag & QR', icon: <QrCode className="w-4 h-4 text-[#8B5E3C] shrink-0" /> },
@@ -1206,7 +1206,7 @@ export const PuppyProfileView: React.FC<PuppyProfileViewProps> = ({
                 nativeBridge.haptics.selection();
                 setActiveTab(tab.id as any);
               }}
-              className={`flex-1 min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap active:scale-[0.98] ${
+              className={`snap-start flex-1 min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap active:scale-[0.98] ${
                 isActive
                   ? 'bg-white text-[#2C211B] shadow-xs border border-[#E8DDD3]'
                   : 'text-[#766A63] hover:text-[#2C211B] hover:bg-white/40'
